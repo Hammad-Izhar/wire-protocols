@@ -2,10 +2,8 @@ services:
   app:
     build: .
     environment:
-      - DISPLAY=${DISPLAY}  # Forward host display
+      - DISPLAY=host.docker.internal:0              # Forward host display
     volumes:
-      - .:/home/cs2620/wire-protocols              # Mount the project directory
-      - /tmp/.X11-unix:/tmp/.X11-unix  # Allow access to X server
-    network_mode: "host"    # Ensure display communication
+      - .:/home/cs2620/wire-protocols               # Mount the project directory
     stdin_open: true
     tty: true
