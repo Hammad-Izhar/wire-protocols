@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    environment:
+      - DISPLAY=${DISPLAY}  # Forward host display
+    volumes:
+      - .:/home/cs2620/wire-protocols              # Mount the project directory
+      - /tmp/.X11-unix:/tmp/.X11-unix  # Allow access to X server
+    network_mode: "host"    # Ensure display communication
+    stdin_open: true
+    tty: true
