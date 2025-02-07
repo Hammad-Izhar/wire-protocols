@@ -6,7 +6,7 @@ Today, we came up with a rough sketch of the functionality our chat app wants to
 
 We aim to have three major classes corresponding to three tables in our file-backed database: `User`, `Channel`, and `Message`. `User`s and `Message`s obviously correspond to accounts and the messages sent between accounts, however, it may not be obvious what `Channel`s correspond to. `Channel`s are supposed to represent a collection of people that can send messages to each other. We use this abstraction to support having group DMs.
 
-<div hidden>
+<div style="display: none">
 
     ```
     @startuml diagrams/basicClassDiagram
@@ -42,9 +42,9 @@ We aim to have three major classes corresponding to three tables in our file-bac
 
 </div>
 
-<center>
+<div align=center>
     <img src="diagrams/basicClassDiagram.svg">
-</center>
+</div>
 
 Passwords will be stored in a separate table alongside the username. We'll use some cryptographic hash algorithm alongside a server-side generated unique salt for each user and a secret pepper stored in the server config for security.
 
@@ -56,7 +56,7 @@ As for desired functionality, we came up with the following list of operations f
 
 We will likely impose a size limit for a message's text in characters (bytes). Something like 280 characters seems reasonable.
 
-<table style="margin: auto;">
+<table align=center>
     <tr>
         <th>Requirements</th>
         <th>Additional Features</th>
@@ -96,4 +96,6 @@ We will likely impose a size limit for a message's text in characters (bytes). S
 
 Finally, we came up with the following 4 byte header for our wire protocol.
 
-![](diagrams/protocol_header.svg)
+<div align=center>
+    <img src="diagrams/protocol_header.svg">
+</div>
