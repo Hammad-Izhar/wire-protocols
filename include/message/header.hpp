@@ -3,7 +3,7 @@
 
 #include "message/serialize.hpp"
 
-enum Operation
+enum Operation : uint8_t
 {
     REGISTER_ACCOUNT = 0,
     LOGIN = 1,

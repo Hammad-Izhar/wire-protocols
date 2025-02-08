@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <iostream>
 
 #include "message/header.hpp"
+#include "constants.hpp"
 
 TEST(HeaderTest, ConstructsValidHeader)
 {
@@ -18,26 +18,20 @@ TEST(HeaderTest, HeaderSerializesProperly)
     std::vector<uint8_t> buf;
     header.serialize(buf);
 
-    EXPECT_EQ(buf.size(), 4); // 1 byte for version, 1 byte for operation, 2 bytes for packet length
-    EXPECT_EQ(buf[0], 0x17);  // the upper 4 bits are the version, the lower 4 bits are 0x7 (magic number)
-    EXPECT_EQ(buf[1], 0x00);  // REGISTER_ACCOUNT is 0
-    EXPECT_EQ(buf[2], 0x00);  // Packet length is a u16, so its bytes are 0x000A
-    EXPECT_EQ(buf[3], 0x0A);  // Since NBO is big endian, the first byte is 0x00 and the second byte is 0x0A
+    EXPECT_EQ(buf.size(), 4);                            // 1 byte for version, 1 byte for operation, 2 bytes for packet length
+    EXPECT_EQ(buf[0], (1 << 4) | PROTOCOL_MAGIC_NUMBER); // the upper 4 bits are the version, the lower 4 bits are 0x7 (magic number)
+    EXPECT_EQ(buf[1], 0x00);                             // REGISTER_ACCOUNT is 0
+    EXPECT_EQ(buf[2], 0x00);                             // Packet length is a u16, so its bytes are 0x000A
+    EXPECT_EQ(buf[3], 0x0A);                             // Since NBO is big endian, the first byte is 0x00 and the second byte is 0x0A
 }
 
 TEST(HeaderTest, HeaderDeserializesProperly)
 {
-    std::vector<uint8_t> buf = {0x17, 0x06, 0x00, 0x0A};
+    std::vector<uint8_t> buf = {(1 << 4) | PROTOCOL_MAGIC_NUMBER, 0x06, 0x00, 0x0A};
     Header header;
     header.deserialize(buf);
 
     EXPECT_EQ(header.get_version(), 1);
     EXPECT_EQ(header.get_operation(), Operation::DELETE_MESSAGE);
     EXPECT_EQ(header.get_packet_length(), 10);
-}
-
-int main(int argc, char **argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

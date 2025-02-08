@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "message/header.hpp"
+#include "constants.hpp"
 
 Header::Header(uint8_t version, enum Operation operation, uint16_t packet_length)
     : version(version), operation(operation), packet_length(packet_length) {}
@@ -10,7 +11,7 @@ Header::Header(uint8_t version, enum Operation operation, uint16_t packet_length
 void Header::serialize(std::vector<uint8_t> &buf) const
 {
 
-    buf.push_back((this->version << 4) | 0x7);
+    buf.push_back((this->version << 4) | PROTOCOL_MAGIC_NUMBER);
     buf.push_back(static_cast<uint8_t>(this->operation));
     buf.push_back(static_cast<uint8_t>(packet_length >> 8));
     buf.push_back(static_cast<uint8_t>(packet_length & 0xFF));

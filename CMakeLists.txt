@@ -8,9 +8,18 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(GTest REQUIRED)
 qt_standard_project_setup()
 
-add_executable(client src/bin/client.cpp src/message/header.cpp)
-add_executable(server src/bin/server.cpp src/message/header.cpp)
-add_executable(tests test/test.cpp src/message/header.cpp)
+file(GLOB_RECURSE SOURCE_FILES src/**/*.cpp)
+file(GLOB_RECURSE TEST_SOURCE_FILES test/**/*.cpp)
+
+foreach (FILE ${SOURCE_FILES})
+    if (${FILE} MATCHES "src/bin/.*")
+        list(REMOVE_ITEM SOURCE_FILES ${FILE})
+    endif()
+endforeach()
+
+add_executable(client src/bin/client.cpp ${SOURCE_FILES})
+add_executable(server src/bin/server.cpp ${SOURCE_FILES})
+add_executable(test ${TEST_SOURCE_FILES} ${SOURCE_FILES})  
 
 set_target_properties(client PROPERTIES
     WIN32_EXECUTABLE TRUE
@@ -24,5 +33,5 @@ target_link_libraries(client PRIVATE Qt6::Widgets)
 
 target_include_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-target_include_directories(tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)
+target_include_directories(test PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(test PRIVATE GTest::GTest GTest::Main)
