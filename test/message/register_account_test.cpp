@@ -41,16 +41,14 @@ TEST(RegisterAccount, RegisterAccountDeserializesProperly)
 TEST(RegisterAccount, ConstructsValidCompleteMessage)
 {
     RegisterAccountMessage message("username", "password", "display_name");
-    Header header(1, Operation::REGISTER_ACCOUNT, message.size());
     std::vector<uint8_t> buf;
 
-    header.serialize(buf);
-    message.serialize(buf);
+    message.serialize_msg(buf);
 
     RegisterAccountMessage deserialized_message;
-    deserialized_message.deserialize(std::vector<uint8_t>(buf.begin() + header.size(), buf.end()));
+    deserialized_message.deserialize(std::vector<uint8_t>(buf.begin() + Header::size(), buf.end()));
 
-    EXPECT_EQ(buf.size(), header.size() + message.size());
+    EXPECT_EQ(buf.size(), Header::size() + message.size());
     EXPECT_EQ(deserialized_message.get_username(), "username");
     EXPECT_EQ(deserialized_message.get_password(), "password");
     EXPECT_EQ(deserialized_message.get_display_name(), "display_name");

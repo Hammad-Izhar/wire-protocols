@@ -7,6 +7,7 @@ RegisterAccountMessage::RegisterAccountMessage(std::string username, std::string
 
 void RegisterAccountMessage::serialize(std::vector<uint8_t> &buf) const
 {
+
     uint8_t username_length = this->username.size();
     uint8_t password_length = this->password.size();
     uint8_t display_name_length = this->display_name.size();
@@ -28,6 +29,13 @@ void RegisterAccountMessage::serialize(std::vector<uint8_t> &buf) const
     {
         buf.push_back(c);
     }
+}
+
+void RegisterAccountMessage::serialize_msg(std::vector<uint8_t> &buf) const
+{
+    Header header(PROTOCOL_VERSION, Operation::REGISTER_ACCOUNT, this->size());
+    header.serialize(buf);
+    this->serialize(buf);
 }
 
 void RegisterAccountMessage::deserialize(const std::vector<uint8_t> &buf)

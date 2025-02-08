@@ -31,7 +31,7 @@ public:
 
     void deserialize(const std::vector<uint8_t> &buf) override;
 
-    [[nodiscard]] size_t size() const;
+    [[nodiscard]] static size_t size();
 
     [[nodiscard]] uint8_t get_version() const;
 
