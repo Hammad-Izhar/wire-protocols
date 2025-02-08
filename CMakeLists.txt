@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(WireProtocols LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_BUILD_TYPE Debug)  # Optional, can also be set at configure time
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(GTest REQUIRED)

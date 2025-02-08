@@ -22,19 +22,22 @@ enum Operation
 
 class Header : public Serializable
 {
+public:
+    Header() = default;
+
     Header(uint8_t version, enum Operation operation, uint16_t packet_length);
 
     void serialize(std::vector<uint8_t> &buf) const override;
 
     void deserialize(const std::vector<uint8_t> &buf) override;
 
-    size_t size() const;
+    [[nodiscard]] size_t size() const;
 
-    uint8_t get_version() const;
+    [[nodiscard]] uint8_t get_version() const;
 
-    enum Operation get_operation() const;
+    [[nodiscard]] enum Operation get_operation() const;
 
-    uint16_t get_packet_length() const;
+    [[nodiscard]] uint16_t get_packet_length() const;
 
     void set_version(uint8_t version);
 

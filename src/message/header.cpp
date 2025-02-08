@@ -1,18 +1,19 @@
-#include <string.h>
+#include <cstring>
 #include <arpa/inet.h>
+#include <algorithm>
 
 #include "message/header.hpp"
 
 Header::Header(uint8_t version, enum Operation operation, uint16_t packet_length)
-    : version(version << 4 | 0x7), operation(operation), packet_length(packet_length) {}
+    : version(version), operation(operation), packet_length(packet_length) {}
 
 void Header::serialize(std::vector<uint8_t> &buf) const
 {
-    uint16_t packet_length_be = htons(this->packet_length);
 
-    buf[0] = this->version;
-    buf[1] = static_cast<uint8_t>(this->operation);
-    memcpy(&buf[2], &packet_length_be, sizeof(uint16_t));
+    buf.push_back((this->version << 4) | 0x7);
+    buf.push_back(static_cast<uint8_t>(this->operation));
+    buf.push_back(static_cast<uint8_t>(packet_length >> 8));
+    buf.push_back(static_cast<uint8_t>(packet_length & 0xFF));
 }
 
 void Header::deserialize(const std::vector<uint8_t> &buf)
@@ -21,7 +22,7 @@ void Header::deserialize(const std::vector<uint8_t> &buf)
     memcpy(&packet_length_be, &buf[2], sizeof(uint16_t));
     packet_length = ntohs(packet_length_be);
 
-    this->version = buf[0];
+    this->version = buf[0] >> 4;
     this->operation = static_cast<enum Operation>(buf[1]);
     this->packet_length = packet_length;
 }
@@ -33,7 +34,7 @@ size_t Header::size() const
 
 uint8_t Header::get_version() const
 {
-    return this->version >> 4;
+    return this->version;
 }
 
 enum Operation Header::get_operation() const
@@ -48,7 +49,7 @@ uint16_t Header::get_packet_length() const
 
 void Header::set_version(uint8_t version)
 {
-    this->version = version << 4 | 0x7;
+    this->version = version;
 }
 
 void Header::set_operation(enum Operation operation)
