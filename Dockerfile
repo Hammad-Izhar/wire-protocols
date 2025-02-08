@@ -9,7 +9,8 @@ RUN apt-get install -y \
     g++ \
     cmake \
     gdb \
-    valgrind
+    valgrind \
+    libgtest-dev
 
 RUN useradd cs2620
 RUN chown -R cs2620 /home/cs2620
