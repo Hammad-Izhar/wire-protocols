@@ -54,17 +54,15 @@ size_t RegisterAccountMessage::size() const
     return 3 + this->username.size() + this->password.size() + this->display_name.size();
 }
 
-std::string RegisterAccountMessage::get_username() const
+const std::string &RegisterAccountMessage::get_username() const
 {
     return this->username;
 }
-
-std::string RegisterAccountMessage::get_password() const
+const std::string &RegisterAccountMessage::get_password() const
 {
     return this->password;
 }
-
-std::string RegisterAccountMessage::get_display_name() const
+const std::string &RegisterAccountMessage::get_display_name() const
 {
     return this->display_name;
 }

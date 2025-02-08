@@ -4,12 +4,12 @@
 
 #include "message/serialize.hpp"
 
-class RegisterAccountMessage : public Serializable
+class LoginMessage : public Serializable
 {
 public:
-    RegisterAccountMessage() = default;
+    LoginMessage() = default;
 
-    RegisterAccountMessage(std::string username, std::string password, std::string display_name);
+    LoginMessage(std::string username, std::string password);
 
     void serialize(std::vector<uint8_t> &buf) const override;
 
@@ -23,16 +23,11 @@ public:
 
     [[nodiscard]] const std::string &get_password() const;
 
-    [[nodiscard]] const std::string &get_display_name() const;
+    void set_username(const std::string &username);
 
-    void set_username(std::string username);
-
-    void set_password(std::string password);
-
-    void set_display_name(std::string display_name);
+    void set_password(const std::string &password);
 
 private:
     std::string username;
     std::string password;
-    std::string display_name;
 };
