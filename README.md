@@ -11,6 +11,8 @@ To run the code, you'll need Docker and an X11 server. On Linux, you most likely
 >[!INFO]
 > On Linux, `docker.host.internal` is not natively supported. Therefore, it is recommended to first verify the value of `$DISPLAY` locally and then export it in the docker container. Also be sure to verify xhost connections are allowed by `xhost +local:`
 
+Open XQuartz. In 'XQuartz' settings, navigate Settings -> Security -> 'Allow connections from network clients', and then restart machine.
+
 ```bash
 git clone https://github.com/Hammad-Izhar/wire-protocols && cd wire-protocols
 docker compose up --build -d
@@ -23,4 +25,10 @@ To build the code:
 cd ~/cs2620/wire-protocols/build
 cmake ..
 make
+```
+
+If you're getting error `Authorization required, but no authorization protocol specified`, open a new terminal and run
+
+```
+xhost +localhost
 ```
