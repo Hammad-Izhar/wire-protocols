@@ -1,37 +1,84 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(WireProtocols LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)  # Optional, can also be set at configure time
 
+# Find necessary Qt6 components
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(GTest REQUIRED)
-qt_standard_project_setup()
 
+# Include project directories
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
+# Collect source files
 file(GLOB_RECURSE SOURCE_FILES src/**/*.cpp)
-file(GLOB_RECURSE TEST_SOURCE_FILES test/**/*.cpp)
+file(GLOB_RECURSE CLIENT_SOURCE_FILES src/bin/client/*.cpp)
+file(GLOB_RECURSE SERVER_SOURCE_FILES src/bin/server/*.cpp)
+file(GLOB_RECURSE TEST_SOURCE_FILES test/*.cpp)
+file(GLOB_RECURSE QT_HEADERS include/client/gui/*.hpp include/client/gui/*.h)
 
 foreach (FILE ${SOURCE_FILES})
-    if (${FILE} MATCHES "src/bin/.*")
+    if (FILE MATCHES "src/bin/.*")
         list(REMOVE_ITEM SOURCE_FILES ${FILE})
     endif()
 endforeach()
 
-add_executable(client src/bin/client.cpp ${SOURCE_FILES})
-add_executable(server src/bin/server.cpp ${SOURCE_FILES})
-add_executable(test ${TEST_SOURCE_FILES} ${SOURCE_FILES})  
+# Remove main files from their respective sources
+list(REMOVE_ITEM CLIENT_SOURCE_FILES src/bin/client/main.cpp)
+list(REMOVE_ITEM SERVER_SOURCE_FILES src/bin/server/main.cpp)
+
+# Define Client executable
+qt_add_executable(client
+    src/bin/client/main.cpp
+    ${CLIENT_SOURCE_FILES}
+    ${SOURCE_FILES}
+    ${QT_HEADERS}
+)
 
 set_target_properties(client PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
+    AUTOMOC ON  # Ensures Q_OBJECT macro is processed
+    AUTOUIC ON  # Enable Qt UI file processing (if needed)
+    AUTORCC ON  # Enable Qt resource processing (if needed)
 )
 
-target_include_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(client PRIVATE Qt6::Core)
-target_link_libraries(client PRIVATE Qt6::Gui)
 target_link_libraries(client PRIVATE Qt6::Widgets)
 
-target_include_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/include)
+# Define Server executable
+add_executable(server
+    src/bin/server/main.cpp
+    ${SOURCE_FILES}
+    ${SERVER_SOURCE_FILES}
+)
 
-target_include_directories(test PRIVATE ${CMAKE_SOURCE_DIR}/include)
+# Define Test executable
+add_executable(test
+    ${SOURCE_FILES}
+    ${TEST_SOURCE_FILES}
+)
+
 target_link_libraries(test PRIVATE GTest::GTest GTest::Main)
+
+# Print included sources for debugging
+message(STATUS "Shared library source files:")
+foreach(FILE ${SOURCE_FILES})
+    message(STATUS " - ${FILE}")
+endforeach()
+
+message(STATUS "Client source files:")
+foreach(FILE ${CLIENT_SOURCE_FILES})
+    message(STATUS " - ${FILE}")
+endforeach()
+
+message(STATUS "Server source files:")
+foreach(FILE ${SERVER_SOURCE_FILES})
+    message(STATUS " - ${FILE}")
+endforeach()
+
+message(STATUS "Test source files:")
+foreach(FILE ${TEST_SOURCE_FILES})
+    message(STATUS " - ${FILE}")
+endforeach()
