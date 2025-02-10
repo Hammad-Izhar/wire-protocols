@@ -37,6 +37,10 @@ qt_add_executable(client
     ${QT_HEADERS}
 )
 
+qt_add_resources(client_resources "resources.qrc")
+
+target_sources(client PRIVATE ${client_resources})
+
 set_target_properties(client PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE

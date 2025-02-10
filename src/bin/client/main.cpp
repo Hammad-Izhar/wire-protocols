@@ -1,14 +1,32 @@
 #include <QApplication>
 #include <QPushButton>
+#include <thread>
 
-#include "client/gui/chat_window.hpp"
+#include "client/gui/connection_window.hpp"
 
-int main(int argc, char *argv[])
+int gui_main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    ChatWindow window;
+    ConnectionWindow window;
     window.show();
 
     return app.exec();
+}
+
+int worker_main()
+{
+
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    std::thread gui_thread(gui_main, argc, argv);
+    std::thread worker_thread(worker_main);
+
+    gui_thread.join();
+    worker_thread.join();
+
+    return 0;
 }
