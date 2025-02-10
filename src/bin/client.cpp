@@ -1,4 +1,8 @@
-int main()
+#include <QApplication>
+
+int main(int argc, char *argv[])
 {
-    return 0;
+    QApplication app(argc, argv);
+
+    return app.exec();
 }

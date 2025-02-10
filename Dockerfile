@@ -10,7 +10,15 @@ RUN apt-get install -y \
     cmake \
     gdb \
     valgrind \
-    libgtest-dev
+    libgtest-dev \
+    x11-apps \
+    qt6-base-examples
+
+RUN apt install -y \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcb-util1 \
+    libxkbcommon-x11-0
 
 RUN useradd cs2620
 RUN chown -R cs2620 /home/cs2620
