@@ -1,7 +1,7 @@
 FROM vookimedlo/ubuntu-qt:qt6_latestdistroofficial_gcc_noble
 WORKDIR /home/cs2620/wire-protocols
 
-RUN apt-get update
+RUN apt-get update -y
 
 RUN apt-get install -y \
     build-essential \
