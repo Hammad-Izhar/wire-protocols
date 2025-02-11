@@ -3,9 +3,12 @@
 #include <QIntValidator>
 #include <QRegularExpressionValidator>
 #include <QTimer>
+#include <QMessageBox>
+#include <cassert>
 
 #include "client/gui/connection_window.hpp"
 #include "client/gui/components/validated_text_input.hpp"
+#include "client/model/session.hpp"
 
 ConnectionWindow::ConnectionWindow(QWidget *parent) : QWidget(parent)
 {
@@ -82,18 +85,68 @@ void ConnectionWindow::on_submit()
     QString hostname = hostInput->text();
     QString port = portInput->text();
 
+    set_loading(true);
     bool is_valid_hostname = validate_text(hostInput->validator())(hostname, hostInput);
     bool is_valid_port = validate_text(portInput->validator())(port, portInput);
+
     if (!is_valid_hostname || !is_valid_port)
     {
+        set_loading(false);
         return;
     }
 
     qDebug() << hostname.toStdString().c_str() << ":" << port.toStdString().c_str();
 
-    set_loading(true);
-    QTimer::singleShot(5000, this, [this]()
-                       { set_loading(false); });
+    Session &session = Session::getInstance();
+
+    {
+        QMutexLocker lock(&session.session_mutex);
+        session.connection_address = std::make_pair(hostname.toStdString(), port.toUInt());
+        session.worker_cond_var.wakeAll();
+    }
+
+    // Instead of blocking, check asynchronously for connection updates
+    QTimer::singleShot(100, this, &ConnectionWindow::check_connection_status);
+}
+
+void ConnectionWindow::check_connection_status()
+{
+    Session &session = Session::getInstance();
+
+    if (session.session_mutex.tryLock()) // Try to lock without blocking
+    {
+
+        if (session.socket_fd.has_value())
+        {
+            qDebug() << "Connected successfully! on socket fd: " << session.socket_fd.value();
+            set_loading(false);
+            session.session_mutex.unlock();
+            return;
+        }
+
+        if (session.error.has_value())
+        {
+            qDebug() << "Connection error: " << QString::fromStdString(session.error.value());
+            session.error.reset();
+
+            QLineEdit *hostInput = qobject_cast<QLineEdit *>(this->inputGroup->findChild<QLineEdit *>("hostInput"));
+            QLineEdit *portInput = qobject_cast<QLineEdit *>(this->inputGroup->findChild<QLineEdit *>("portInput"));
+
+            hostInput->setStyleSheet("border: 2px solid red; color: red;");
+            portInput->setStyleSheet("border: 2px solid red; color: red;");
+            hostInput->clear();
+            portInput->clear();
+
+            set_loading(false);
+            session.session_mutex.unlock();
+            return;
+        }
+
+        assert(false && "Neither socket_fd nor error was set by worker thread"); // Should not reach here
+    }
+
+    // If tryLock() fails, schedule another check
+    QTimer::singleShot(100, this, &ConnectionWindow::check_connection_status);
 }
 
 std::function<bool(const QString &, QWidget *)> ConnectionWindow::validate_text(const QValidator *validator)
