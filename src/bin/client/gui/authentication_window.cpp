@@ -16,6 +16,17 @@ AuthenticationWindow::AuthenticationWindow(QWidget *parent) : QWidget(parent)
     mainLayout->addWidget(tabs);
     mainLayout->setAlignment(Qt::AlignCenter);
 
-    setWindowTitle("Authentication");
     setFixedSize(450, sizeHint().height());
+    setWindowTitle("Login to [...]");
+
+    connect(tabs, &QTabWidget::currentChanged, this, [this](int index)
+            {
+        if (index == 0)
+        {
+            setWindowTitle("Login to [...]");
+        }
+        else
+        {
+            setWindowTitle("Register to [...]");
+        } });
 }

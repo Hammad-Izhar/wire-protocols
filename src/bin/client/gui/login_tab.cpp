@@ -49,8 +49,7 @@ LoginTab::LoginTab(QWidget *parent) : QWidget(parent)
     mainLayout->addWidget(spinner);
     mainLayout->setAlignment(Qt::AlignCenter);
 
-    setWindowTitle("Login");
-    setFixedSize(450, sizeHint().height());
+        setFixedSize(450, sizeHint().height());
 }
 
 void LoginTab::on_submit()

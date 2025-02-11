@@ -61,7 +61,6 @@ RegistrationTab::RegistrationTab(QWidget *parent) : QWidget(parent)
     mainLayout->addWidget(spinner);
     mainLayout->setAlignment(Qt::AlignCenter);
 
-    setWindowTitle("Login");
     setFixedSize(450, sizeHint().height());
 }
 
