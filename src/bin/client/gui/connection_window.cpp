@@ -1,12 +1,8 @@
-#include <QLineEdit>
-#include <QIntValidator>
 #include <QPushButton>
-#include <iostream>
-#include <QTimer>
-#include <QHBoxLayout>
 #include <QFormLayout>
-#include <QGroupBox>
-#include <algorithm>
+#include <QIntValidator>
+#include <QRegularExpressionValidator>
+#include <QTimer>
 
 #include "client/gui/connection_window.hpp"
 
@@ -19,7 +15,6 @@ ConnectionWindow::ConnectionWindow(QWidget *parent) : QWidget(parent)
     QLineEdit *host = new QLineEdit(inputGroup);
     host->setObjectName("hostInput");
     host->setPlaceholderText("Hostname (eg. 127.0.0.1)");
-    host->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     QRegularExpressionValidator *host_validator = new QRegularExpressionValidator(QRegularExpression("^\\S+$"), this);
     host->setValidator(host_validator);
     connect(host, &QLineEdit::textChanged, this, ConnectionWindow::validate_text(host, host_validator));
@@ -55,15 +50,7 @@ ConnectionWindow::ConnectionWindow(QWidget *parent) : QWidget(parent)
     mainLayout->setAlignment(Qt::AlignCenter);
 
     setWindowTitle("Connect to Server");
-    setFixedSize(400, sizeHint().height());
-    setStyleSheet("QLineEdit { padding: 5px; }");
-    setStyleSheet("QPushButton { padding: 5px; }");
-    setStyleSheet("QLabel { padding: 5px; }");
-    setStyleSheet("QWidget { background-color: #2e3440; color: #d8dee9; }");
-    setStyleSheet("QLineEdit { background-color: #3b4252; color: #d8dee9; border: 1px solid #4c566a; }");
-    setStyleSheet("QPushButton { background-color: #4c566a; color: #d8dee9; border: none; }");
-    setStyleSheet("QPushButton:hover { background-color: #434c5e; }");
-    setStyleSheet("QPushButton:pressed { background-color: #3b4252; }");
+    setFixedSize(450, sizeHint().height());
 }
 
 void ConnectionWindow::set_loading(bool isLoading)
@@ -97,7 +84,7 @@ void ConnectionWindow::on_submit()
         return;
     }
 
-    std::cout << hostname.toStdString() << ":" << port.toStdString() << std::endl;
+    qDebug() << hostname.toStdString().c_str() << ":" << port.toStdString().c_str();
 
     set_loading(true);
     QTimer::singleShot(5000, this, [this]()
