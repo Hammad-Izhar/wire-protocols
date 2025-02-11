@@ -15,11 +15,12 @@ public:
 
 private:
     QGroupBox *inputGroup;
-    QLineEdit *host;
-    QLineEdit *port;
     QMovie *spinnerMovie;
     QLabel *spinnerLabel;
 
-    std::function<void(const QString &)> validate_text(QLineEdit *widget, const QValidator *validator);
     void on_submit();
+
+    void set_loading(bool isLoading);
+
+    std::function<bool(const QString &)> validate_text(QLineEdit *widget, const QValidator *validator);
 };
