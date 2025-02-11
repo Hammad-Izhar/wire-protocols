@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QFormLayout>
+#include <QGroupBox>
 #include <algorithm>
 
 #include "client/gui/connection_window.hpp"
@@ -39,12 +40,8 @@ ConnectionWindow::ConnectionWindow(QWidget *parent) : QWidget(parent)
     connectButton->setObjectName("connectButton");
     connect(connectButton, &QPushButton::clicked, this, &ConnectionWindow::on_submit);
 
-    spinnerMovie = new QMovie(":/assets/animations/loading.gif");
-    spinnerMovie->setScaledSize(QSize(32, 32)); // Scale GIF to match label size
-    spinnerLabel = new QLabel(this);
-    spinnerLabel->setFixedSize(32, 32); // Set small fixed size
-    spinnerLabel->setMovie(spinnerMovie);
-    spinnerLabel->hide(); // Hidden by default
+    spinner = new Spinner(this);
+    spinner->hide();
 
     // Layouts
     QFormLayout *formLayout = new QFormLayout(inputGroup);
@@ -54,7 +51,7 @@ ConnectionWindow::ConnectionWindow(QWidget *parent) : QWidget(parent)
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(inputGroup);
     mainLayout->addWidget(connectButton);
-    mainLayout->addWidget(spinnerLabel);
+    mainLayout->addWidget(spinner);
     mainLayout->setAlignment(Qt::AlignCenter);
 
     setWindowTitle("Connect to Server");
@@ -75,15 +72,13 @@ void ConnectionWindow::set_loading(bool isLoading)
     {
         inputGroup->hide();
         this->findChild<QPushButton *>("connectButton")->hide();
-        spinnerLabel->show();
-        spinnerMovie->start();
+        spinner->show();
     }
     else
     {
         inputGroup->show();
         this->findChild<QPushButton *>("connectButton")->show();
-        spinnerLabel->hide();
-        spinnerMovie->stop();
+        spinner->hide();
     }
 }
 

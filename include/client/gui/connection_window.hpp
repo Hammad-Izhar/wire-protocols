@@ -1,12 +1,11 @@
 #pragma once
 #include <QWidget>
 #include <QLineEdit>
-#include <QProgressBar>
-#include <QMovie>
-#include <QLabel>
 #include <QGroupBox>
+#include <QValidator>
 
-class QPushButton;
+#include "client/gui/components/spinner.hpp"
+
 class ConnectionWindow : public QWidget
 {
     Q_OBJECT
@@ -15,8 +14,7 @@ public:
 
 private:
     QGroupBox *inputGroup;
-    QMovie *spinnerMovie;
-    QLabel *spinnerLabel;
+    Spinner *spinner;
 
     void on_submit();
 
