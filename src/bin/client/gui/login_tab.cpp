@@ -4,27 +4,31 @@
 #include <QTimer>
 
 #include "client/gui/login_tab.hpp"
+#include "client/gui/components/validated_text_input.hpp"
 
 LoginTab::LoginTab(QWidget *parent) : QWidget(parent)
 {
-    inputGroup = new QGroupBox("Login", this);
+    inputGroup = new QGroupBox("", this);
 
-    QLineEdit *username = new QLineEdit(inputGroup);
-    username->setObjectName("usernameInput");
-    username->setPlaceholderText("Username");
     QRegularExpressionValidator *username_validator = new QRegularExpressionValidator(QRegularExpression("^\\S+$"), this);
-    username->setValidator(username_validator);
-    connect(username, &QLineEdit::textChanged, this, LoginTab::validate_text(username, username_validator));
-    connect(username, &QLineEdit::returnPressed, this, &LoginTab::on_submit);
+    ValidatedTextInput *username = new ValidatedTextInput(
+        inputGroup,
+        "usernameInput",
+        "Username",
+        username_validator,
+        QLineEdit::EchoMode::Normal,
+        validate_text(username_validator),
+        std::bind(&LoginTab::on_submit, this));
 
-    QLineEdit *password = new QLineEdit(inputGroup);
-    password->setObjectName("passwordInput");
-    password->setPlaceholderText("Password");
-    password->setEchoMode(QLineEdit::Password);
     QRegularExpressionValidator *password_validator = new QRegularExpressionValidator(QRegularExpression("^\\S+$"), this);
-    password->setValidator(password_validator);
-    connect(password, &QLineEdit::textChanged, this, LoginTab::validate_text(password, password_validator));
-    connect(password, &QLineEdit::returnPressed, this, &LoginTab::on_submit);
+    ValidatedTextInput *password = new ValidatedTextInput(
+        inputGroup,
+        "passwordInput",
+        "Password",
+        password_validator,
+        QLineEdit::EchoMode::Password,
+        validate_text(password_validator),
+        std::bind(&LoginTab::on_submit, this));
 
     QPushButton *loginButton = new QPushButton("Login", this);
     loginButton->setObjectName("loginButton");
@@ -33,9 +37,11 @@ LoginTab::LoginTab(QWidget *parent) : QWidget(parent)
     spinner = new Spinner(this);
     spinner->hide();
 
-    QFormLayout *formLayout = new QFormLayout(inputGroup);
-    formLayout->addRow("Username:", username);
-    formLayout->addRow("Password:", password);
+    QGridLayout *gridLayout = new QGridLayout(inputGroup);
+    gridLayout->addWidget(new QLabel("Username:"), 0, 0, Qt::AlignRight | Qt::AlignVCenter);
+    gridLayout->addWidget(username, 0, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    gridLayout->addWidget(new QLabel("Password:"), 1, 0, Qt::AlignRight | Qt::AlignVCenter);
+    gridLayout->addWidget(password, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(inputGroup);
@@ -55,8 +61,8 @@ void LoginTab::on_submit()
     QString username = usernameInput->text();
     QString password = passwordInput->text();
 
-    bool is_valid_username = validate_text(usernameInput, usernameInput->validator())(username);
-    bool is_valid_password = validate_text(passwordInput, passwordInput->validator())(password);
+    bool is_valid_username = validate_text(usernameInput->validator())(username, usernameInput);
+    bool is_valid_password = validate_text(passwordInput->validator())(password, passwordInput);
     if (!is_valid_username || !is_valid_password)
     {
         return;
@@ -85,9 +91,9 @@ void LoginTab::set_loading(bool isLoading)
     }
 }
 
-std::function<bool(const QString &)> LoginTab::validate_text(QLineEdit *widget, const QValidator *validator)
+std::function<bool(const QString &, QWidget *)> LoginTab::validate_text(const QValidator *validator)
 {
-    return [=](const QString &text)
+    return [=](const QString &text, QWidget *widget)
     {
         QString text_copy = QString(text);
         int pos;

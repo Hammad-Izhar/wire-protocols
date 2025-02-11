@@ -5,30 +5,34 @@
 #include <QTimer>
 
 #include "client/gui/connection_window.hpp"
+#include "client/gui/components/validated_text_input.hpp"
 
 ConnectionWindow::ConnectionWindow(QWidget *parent) : QWidget(parent)
 {
     // Group box to visually group connection fields
-    inputGroup = new QGroupBox("Server Address", this);
+    inputGroup = new QGroupBox("", this);
 
     // Hostname field
-    QLineEdit *host = new QLineEdit(inputGroup);
-    host->setObjectName("hostInput");
-    host->setPlaceholderText("Hostname (eg. 127.0.0.1)");
     QRegularExpressionValidator *host_validator = new QRegularExpressionValidator(QRegularExpression("^\\S+$"), this);
-    host->setValidator(host_validator);
-    connect(host, &QLineEdit::textChanged, this, ConnectionWindow::validate_text(host, host_validator));
-    connect(host, &QLineEdit::returnPressed, this, &ConnectionWindow::on_submit);
+    ValidatedTextInput *host = new ValidatedTextInput(
+        inputGroup,
+        "hostInput",
+        "Hostname",
+        host_validator,
+        QLineEdit::EchoMode::Normal,
+        validate_text(host_validator),
+        std::bind(&ConnectionWindow::on_submit, this));
 
     // Port field
-    QLineEdit *port = new QLineEdit(inputGroup);
-    port->setObjectName("portInput");
-    port->setPlaceholderText("Port (eg. 25565)");
-    port->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     QIntValidator *port_validator = new QIntValidator(0, 65535, this);
-    port->setValidator(port_validator);
-    connect(port, &QLineEdit::textChanged, this, ConnectionWindow::validate_text(port, port_validator));
-    connect(port, &QLineEdit::returnPressed, this, &ConnectionWindow::on_submit);
+    ValidatedTextInput *port = new ValidatedTextInput(
+        inputGroup,
+        "portInput",
+        "Port",
+        port_validator,
+        QLineEdit::EchoMode::Normal,
+        validate_text(port_validator),
+        std::bind(&ConnectionWindow::on_submit, this));
 
     // Connect button
     QPushButton *connectButton = new QPushButton("Connect", this);
@@ -38,10 +42,11 @@ ConnectionWindow::ConnectionWindow(QWidget *parent) : QWidget(parent)
     spinner = new Spinner(this);
     spinner->hide();
 
-    // Layouts
-    QFormLayout *formLayout = new QFormLayout(inputGroup);
-    formLayout->addRow("Hostname:", host);
-    formLayout->addRow("Port:", port);
+    QGridLayout *gridLayout = new QGridLayout(inputGroup);
+    gridLayout->addWidget(new QLabel("Hostname:"), 0, 0, Qt::AlignRight | Qt::AlignVCenter);
+    gridLayout->addWidget(host, 0, 1, Qt::AlignLeft | Qt::AlignVCenter);
+    gridLayout->addWidget(new QLabel("Port:"), 1, 0, Qt::AlignRight | Qt::AlignVCenter);
+    gridLayout->addWidget(port, 1, 1, Qt::AlignLeft | Qt::AlignVCenter);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(inputGroup);
@@ -77,8 +82,8 @@ void ConnectionWindow::on_submit()
     QString hostname = hostInput->text();
     QString port = portInput->text();
 
-    bool is_valid_hostname = validate_text(hostInput, hostInput->validator())(hostname);
-    bool is_valid_port = validate_text(portInput, portInput->validator())(port);
+    bool is_valid_hostname = validate_text(hostInput->validator())(hostname, hostInput);
+    bool is_valid_port = validate_text(portInput->validator())(port, portInput);
     if (!is_valid_hostname || !is_valid_port)
     {
         return;
@@ -91,9 +96,9 @@ void ConnectionWindow::on_submit()
                        { set_loading(false); });
 }
 
-std::function<bool(const QString &)> ConnectionWindow::validate_text(QLineEdit *widget, const QValidator *validator)
+std::function<bool(const QString &, QWidget *)> ConnectionWindow::validate_text(const QValidator *validator)
 {
-    return [=](const QString &text)
+    return [=](const QString &text, QWidget *widget)
     {
         QString text_copy = QString(text);
         int pos;

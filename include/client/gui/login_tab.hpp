@@ -3,6 +3,7 @@
 #include <QLineEdit>
 #include <QGroupBox>
 #include <QValidator>
+#include <QString>
 
 #include "client/gui/components/spinner.hpp"
 
@@ -20,5 +21,5 @@ private:
 
     void set_loading(bool isLoading);
 
-    std::function<bool(const QString &)> validate_text(QLineEdit *widget, const QValidator *validator);
+    static std::function<bool(const QString &, QWidget *)> validate_text(const QValidator *validator);
 };

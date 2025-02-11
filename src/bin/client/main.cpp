@@ -9,7 +9,7 @@ int gui_main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    AuthenticationWindow window;
+    ConnectionWindow window;
     window.show();
 
     return app.exec();
