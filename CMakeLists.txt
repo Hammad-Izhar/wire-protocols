@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)  # Optional, can also be set at configure time
 
 # Find necessary Qt6 components
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network)
 find_package(GTest REQUIRED)
 
 # Include project directories
@@ -17,7 +17,7 @@ file(GLOB_RECURSE SOURCE_FILES src/**/*.cpp)
 file(GLOB_RECURSE CLIENT_SOURCE_FILES src/bin/client/*.cpp)
 file(GLOB_RECURSE SERVER_SOURCE_FILES src/bin/server/*.cpp)
 file(GLOB_RECURSE TEST_SOURCE_FILES test/*.cpp)
-file(GLOB_RECURSE QT_HEADERS include/client/gui/*.hpp include/client/gui/*.h)
+file(GLOB_RECURSE QT_HEADERS include/client/gui/*.hpp include/client/gui/*.h include/client/model/TcpClient.hpp)
 
 foreach (FILE ${SOURCE_FILES})
     if (FILE MATCHES "src/bin/.*")
@@ -49,7 +49,7 @@ set_target_properties(client PROPERTIES
     AUTORCC ON  # Enable Qt resource processing (if needed)
 )
 
-target_link_libraries(client PRIVATE Qt6::Widgets)
+target_link_libraries(client PRIVATE Qt6::Widgets Qt6::Network)
 
 # Define Server executable
 add_executable(server

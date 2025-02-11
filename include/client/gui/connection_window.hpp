@@ -22,7 +22,4 @@ private:
     void set_loading(bool isLoading);
 
     std::function<bool(const QString &, QWidget *)> validate_text(const QValidator *validator);
-
-private slots:
-    void check_connection_status();
 };

@@ -6,15 +6,15 @@
 #include <QMutex>
 #include <QWaitCondition>
 
+#include "client/model/TcpClient.hpp"
+
 class Session
 {
 public:
-    QWaitCondition gui_cond_var;
-    QWaitCondition worker_cond_var;
-    std::optional<std::string> error;
     std::optional<std::pair<std::string, uint16_t>> connection_address;
+    std::optional<std::string> error;
+    std::unique_ptr<TcpClient> tcp_client;
     QMutex session_mutex;
-    std::optional<int> socket_fd;
 
     static Session &getInstance();
 
