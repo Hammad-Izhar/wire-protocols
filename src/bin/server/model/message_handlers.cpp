@@ -9,7 +9,7 @@ void on_register_account(QTcpSocket *socket, RegisterAccountMessage &msg)
 {
     Database &db = Database::get_instance();
 
-    std::optional<UUID> user_id get_uid_from_username(msg.get_username());
+    std::optional<UUID> user_id = db.get_uid_from_username(msg.get_username());
 
     RegisterAccountResponse response;
 
