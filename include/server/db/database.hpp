@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <optional>
 #include <variant>
+#include <memory>
 
 #include "models/uuid.hpp"
 #include "models/user.hpp"
@@ -44,7 +45,7 @@ public:
     std::variant<void, std::string> remove_channel(UUID channel_uid);
 
 private:
-    UserTable users;
-    MessageTable messages;
-    ChannelTable channels;
+    std::unique_ptr<UserTable> users;
+    std::unique_ptr<MessageTable> messages;
+    std::unique_ptr<ChannelTable> channels;
 };

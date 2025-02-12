@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <optional>
 #include <variant>
+#include <mutex>
 
 #include "models/message.hpp"
 
@@ -11,7 +12,7 @@ class MessageTable
 public:
     MessageTable();
     // Getters
-    [[nodiscard]] std::optional<const Message::SharedPtr> get_by_uid(uint64_t message_snowflake) const;
+    [[nodiscard]] std::optional<const Message::SharedPtr> get_by_uid(uint64_t message_snowflake);
 
     [[nodiscard]] std::optional<Message::SharedPtr> get_mut_by_uid(uint64_t message_snowflake);
 
@@ -21,4 +22,5 @@ public:
 
 private:
     std::unordered_map<uint64_t, Message::SharedPtr> data;
+    std::mutex mutex;
 };

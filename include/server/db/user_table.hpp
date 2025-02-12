@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <optional>
 #include <variant>
+#include <mutex>
 
 #include "models/user.hpp"
 #include "models/uuid.hpp"
@@ -12,7 +13,7 @@ public:
     UserTable() = default;
 
     // Getters
-    [[nodiscard]] std::optional<const User::SharedPtr> get_by_uid(UUID user_uid) const;
+    [[nodiscard]] std::optional<const User::SharedPtr> get_by_uid(UUID user_uid);
 
     [[nodiscard]] std::optional<User::SharedPtr> get_mut_by_uid(UUID user_uid);
 
@@ -22,4 +23,5 @@ public:
 
 private:
     std::unordered_map<UUID, User::SharedPtr> data;
+    std::mutex mutex;
 };
