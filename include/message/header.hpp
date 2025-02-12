@@ -7,7 +7,7 @@ enum Operation : uint8_t
 {
     REGISTER_ACCOUNT = 0,
     LOGIN = 1,
-    LIST_ACCOUNT = 2,
+    LIST_ACCOUNTS = 2,
     DELETE_ACCOUNT = 3,
     SEND_MESSAGE = 4,
     RECEIVE_MESSAGE = 5,
