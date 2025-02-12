@@ -8,9 +8,23 @@
 void on_register_account(QTcpSocket *socket, RegisterAccountMessage &msg)
 {
     Database &db = Database::get_instance();
-    User::SharedPtr user = std::make_shared<User>(msg.get_username(), msg.get_password(), msg.get_display_name());
 
-    RegisterAccountResponse response(db.add_user(user));
+    std::optional<UUID> user_id get_uid_from_username(msg.get_username());
+
+    RegisterAccountResponse response;
+
+    // If username exists, return
+    if (user_id.has_value())
+    {
+        // Make error response
+        response = RegisterAccountResponse("Username already exists");
+    }
+    else
+    {
+        // Try to add the password to the password table
+        response = RegisterAccountResponse(db.add_user(msg.get_user(), msg.get_password()));
+    }
+
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
     socket->write(reinterpret_cast<const char *>(buf.data()), buf.size());
