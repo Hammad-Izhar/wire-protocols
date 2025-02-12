@@ -34,6 +34,12 @@ public:
 
     [[nodiscard]] std::optional<Channel::SharedPtr> get_mut_channel_by_uid(UUID channel_uid);
 
+    [[nodiscard]] std::vector<UUID> get_uuids_matching_regex(std::string regex) const; 
+
+    [[nodiscard]] std::optional<UUID> get_uid_from_username(std::string username);
+
+    std::variant<bool, std::string> verify_password(UUID &user_uid, std::string password);
+
     // Setters -- Add
     std::variant<std::monostate, std::string> add_user(User::SharedPtr user);
     std::variant<std::monostate, std::string> add_message(Message::SharedPtr message);

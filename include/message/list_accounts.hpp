@@ -17,6 +17,8 @@ public:
 
     void deserialize(const std::vector<uint8_t> &buf) override;
 
+    [[nodiscard]] std::string get_regex() const;
+
     [[nodiscard]] size_t size() const;
 
     void set_regex(std::string regex);

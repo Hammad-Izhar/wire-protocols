@@ -17,6 +17,22 @@ UUID::UUID()
     }
 }
 
+void UUID::serialize(std::vector<uint8_t> &buf) const
+{
+    for (auto byte : this->value)
+    {
+        buf.push_back(byte);
+    }
+}
+
+void UUID::deserialize(const std::vector<uint8_t> &buf)
+{
+    for (int i = 0; i < 16; i++)
+    {
+        this->value[i] = buf[i];
+    }
+}
+
 bool UUID::operator==(const UUID &other) const
 {
     return this->value == other.value;

@@ -2,8 +2,9 @@
 #include <array>
 #include <stdint.h>
 #include <string>
+#include "message/serialize.hpp"
 
-class UUID
+class UUID : public Serializable
 {
 public:
     // Define the UUID as a 16-byte array
@@ -11,6 +12,9 @@ public:
 
     // Default constructor (optional)
     UUID();
+
+    void serialize(std::vector<uint8_t> &buf) const override;
+    void deserialize(const std::vector<uint8_t> &buf) override;
 
     // Comparison operator for equality
     bool operator==(const UUID &other) const;

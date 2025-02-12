@@ -36,6 +36,11 @@ size_t ListAccountsMessage::size() const
     return 1 + this->regex.size();
 }
 
+std::string ListAccountsMessage::get_regex() const
+{
+    return this->regex;
+}
+
 void ListAccountsMessage::set_regex(std::string regex)
 {
     this->regex = std::move(regex);
