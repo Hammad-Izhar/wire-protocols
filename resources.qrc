@@ -2,5 +2,6 @@
 <RCC>
     <qresource prefix="/">
         <file>assets/animations/loading.gif</file>
+        <file>assets/profile_pics/blank_profile_pic.png</file>
     </qresource>
 </RCC>

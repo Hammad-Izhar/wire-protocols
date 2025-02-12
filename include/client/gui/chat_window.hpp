@@ -1,14 +1,20 @@
 #pragma once
 #include <QWidget>
-// #include <QPushButton>
+#include <QStackedLayout>
+#include <QHBoxLayout>
 
-class QPushButton;
+#include "client/gui/chat_sidebar.hpp"
+#include "client/gui/chat_area.hpp"
+
 class ChatWindow : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit ChatWindow(QWidget *parent = nullptr);
 
 private:
-    QPushButton *button;
+    ChatSidebar *sidebar;
+    ChatArea *chatArea;
+    QStackedLayout *chatStack;
 };
