@@ -1,24 +1,23 @@
 #pragma once
 #include <stdint.h>
+#include <optional>
 #include <string>
 #include <variant>
-#include <optional>
 
-#include "models/user.hpp"
 #include "message/serialize.hpp"
+#include "models/user.hpp"
 
-class LoginResponse : public Serializable
-{
-public:
+class LoginResponse : public Serializable {
+   public:
     LoginResponse() = default;
 
     LoginResponse(std::variant<User::SharedPtr, std::string> data);
 
-    void serialize(std::vector<uint8_t> &buf) const override;
+    void serialize(std::vector<uint8_t>& buf) const override;
 
-    void serialize_msg(std::vector<uint8_t> &buf) const;
+    void serialize_msg(std::vector<uint8_t>& buf) const;
 
-    void deserialize(const std::vector<uint8_t> &buf) override;
+    void deserialize(const std::vector<uint8_t>& buf) override;
 
     [[nodiscard]] size_t size() const;
 
@@ -28,6 +27,6 @@ public:
 
     [[nodiscard]] const std::optional<std::string> get_error_message() const;
 
-private:
+   private:
     std::variant<User::SharedPtr, std::string> data;
 };

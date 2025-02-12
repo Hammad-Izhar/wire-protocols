@@ -1,15 +1,14 @@
 #pragma once
-#include <unordered_map>
-#include <optional>
-#include <variant>
 #include <mutex>
+#include <optional>
+#include <unordered_map>
+#include <variant>
 
 #include "models/user.hpp"
 #include "models/uuid.hpp"
 
-class UserTable
-{
-public:
+class UserTable {
+   public:
     UserTable() = default;
 
     // Getters
@@ -25,7 +24,7 @@ public:
     std::variant<std::monostate, std::string> add_user(User::SharedPtr user);
     std::variant<std::monostate, std::string> remove_user(UUID user_uid);
 
-private:
+   private:
     std::unordered_map<UUID, User::SharedPtr> data;
     std::mutex mutex;
 };

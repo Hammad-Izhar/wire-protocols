@@ -1,8 +1,7 @@
 #include "client/gui/chat_area.hpp"
 
-ChatArea::ChatArea(QWidget *parent) : QWidget(parent)
-{
-    QVBoxLayout *layout = new QVBoxLayout(this);
+ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
+    QVBoxLayout* layout = new QVBoxLayout(this);
 
     // Chat title at the top
     chatTitle = new QLabel("Chat Name", this);
@@ -24,21 +23,21 @@ ChatArea::ChatArea(QWidget *parent) : QWidget(parent)
     messageScrollArea->setWidgetResizable(true);
 
     // Message input area (input field + send button)
-    QHBoxLayout *inputLayout = new QHBoxLayout();
+    QHBoxLayout* inputLayout = new QHBoxLayout();
 
     messageInput = new QLineEdit(this);
     messageInput->setPlaceholderText("Type a message...");
     messageInput->setStyleSheet("padding: 5px;");
-    messageInput->setMaxLength(255); // Enforces max length
+    messageInput->setMaxLength(255);  // Enforces max length
     connect(messageInput, &QLineEdit::textChanged, this, &ChatArea::validateMessage);
 
     sendButton = new QPushButton("Send", this);
     sendButton->setStyleSheet("padding: 5px 10px;");
-    sendButton->setEnabled(false); // Initially disabled
-    connect(sendButton, &QPushButton::clicked, this, [this]()
-            {
+    sendButton->setEnabled(false);  // Initially disabled
+    connect(sendButton, &QPushButton::clicked, this, [this]() {
         // Handle sending message (for now, just clear input)
-        messageInput->clear(); });
+        messageInput->clear();
+    });
 
     inputLayout->addWidget(messageInput);
     inputLayout->addWidget(sendButton);
@@ -46,13 +45,12 @@ ChatArea::ChatArea(QWidget *parent) : QWidget(parent)
     // Add all components to main layout
     layout->addWidget(chatTitle);
     layout->addWidget(messageScrollArea);
-    layout->addLayout(inputLayout); // Add input field + send button
+    layout->addLayout(inputLayout);  // Add input field + send button
 
     setLayout(layout);
 }
 
 // Validates input to ensure it's within 280 characters
-void ChatArea::validateMessage()
-{
+void ChatArea::validateMessage() {
     sendButton->setEnabled(!messageInput->text().isEmpty());
 }

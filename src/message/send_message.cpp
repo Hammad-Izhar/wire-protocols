@@ -5,8 +5,7 @@
 SendMessageMessage::SendMessageMessage(UUID channel_uid, UUID sender_uid, std::string text)
     : channel_uid(channel_uid), sender_uid(sender_uid), text(text) {}
 
-void SendMessageMessage::serialize(std::vector<uint8_t> &buf) const
-{
+void SendMessageMessage::serialize(std::vector<uint8_t>& buf) const {
     // Encode channel UUID
     this->channel_uid.serialize(buf);
 
@@ -17,21 +16,18 @@ void SendMessageMessage::serialize(std::vector<uint8_t> &buf) const
     uint8_t text_length = this->text.size();
 
     buf.push_back(text_length);
-    for (const auto &c : this->text)
-    {
+    for (const auto& c : this->text) {
         buf.push_back(c);
     }
 }
 
-void SendMessageMessage::serialize_msg(std::vector<uint8_t> &buf) const
-{
+void SendMessageMessage::serialize_msg(std::vector<uint8_t>& buf) const {
     Header header(PROTOCOL_VERSION, Operation::SEND_MESSAGE, this->size());
     header.serialize(buf);
     this->serialize(buf);
 }
 
-void SendMessageMessage::deserialize(const std::vector<uint8_t> &buf)
-{
+void SendMessageMessage::deserialize(const std::vector<uint8_t>& buf) {
     // Decode channel UUID
     this->channel_uid.deserialize(std::vector<uint8_t>(buf.begin(), buf.begin() + 16));
 
@@ -42,22 +38,18 @@ void SendMessageMessage::deserialize(const std::vector<uint8_t> &buf)
     uint8_t text_length = buf[32];
     this->text = std::string(buf.begin() + 33, buf.begin() + 33 + text_length);
 }
-size_t SendMessageMessage::size() const
-{
+size_t SendMessageMessage::size() const {
     return 17 + this->text.size();
 }
 
-UUID SendMessageMessage::get_channel_uid() const
-{
+UUID SendMessageMessage::get_channel_uid() const {
     return this->channel_uid;
 }
 
-UUID SendMessageMessage::get_sender_uid() const
-{
+UUID SendMessageMessage::get_sender_uid() const {
     return this->sender_uid;
 }
 
-std::string SendMessageMessage::get_text() const
-{
+std::string SendMessageMessage::get_text() const {
     return this->text;
 }

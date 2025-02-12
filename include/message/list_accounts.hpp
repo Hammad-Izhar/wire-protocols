@@ -4,18 +4,17 @@
 
 #include "message/serialize.hpp"
 
-class ListAccountsMessage : public Serializable
-{
-public:
+class ListAccountsMessage : public Serializable {
+   public:
     ListAccountsMessage() = default;
 
     ListAccountsMessage(std::string regex);
 
-    void serialize(std::vector<uint8_t> &buf) const override;
+    void serialize(std::vector<uint8_t>& buf) const override;
 
-    void serialize_msg(std::vector<uint8_t> &buf) const;
+    void serialize_msg(std::vector<uint8_t>& buf) const;
 
-    void deserialize(const std::vector<uint8_t> &buf) override;
+    void deserialize(const std::vector<uint8_t>& buf) override;
 
     [[nodiscard]] std::string get_regex() const;
 
@@ -23,6 +22,6 @@ public:
 
     void set_regex(std::string regex);
 
-private:
+   private:
     std::string regex;
 };

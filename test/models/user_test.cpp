@@ -2,8 +2,7 @@
 #include <stdexcept>
 
 #include "models/user.hpp"
-TEST(UserTest, MakeUser)
-{
+TEST(UserTest, MakeUser) {
     User user("tomdavkam", "thomas");
 
     EXPECT_EQ(user.get_username(), "tomdavkam");
@@ -11,16 +10,14 @@ TEST(UserTest, MakeUser)
     EXPECT_EQ(user.get_profile_pic(), "./assets/profile_pics/blank_profile_pic.png");
 }
 
-TEST(UserTest, DifferentUIDs)
-{
+TEST(UserTest, DifferentUIDs) {
     User user1("tomdavkam", "thomas");
     User user2("hizhar", "hammad");
 
     EXPECT_NE(user1.get_uid(), user2.get_uid());
 }
 
-TEST(UserTest, AddChannel)
-{
+TEST(UserTest, AddChannel) {
     User user("tomdavkam", "thomas");
     UUID channel1 = UUID();
     UUID channel2 = UUID();
@@ -36,8 +33,7 @@ TEST(UserTest, AddChannel)
     EXPECT_EQ(user.get_channels()[1], channel2);
 }
 
-TEST(UserTest, RemoveChannel)
-{
+TEST(UserTest, RemoveChannel) {
     User user("tomdavkam", "thomas");
     UUID channel1 = UUID();
     UUID channel2 = UUID();
@@ -51,8 +47,7 @@ TEST(UserTest, RemoveChannel)
     EXPECT_EQ(user.get_channels().size(), 0);
 }
 
-TEST(UserTest, RemoveNonexistentChannel)
-{
+TEST(UserTest, RemoveNonexistentChannel) {
     User user("tomdavkam", "thomas");
     UUID channel1 = UUID();
     UUID channel2 = UUID();

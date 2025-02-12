@@ -19,7 +19,9 @@ RUN apt-get install -y \
     libxkbcommon-x11-0 \
     wireshark \
     libssl-dev \
-    sudo  # Add sudo for privilege escalation if needed
+    clang-format \
+    clang-tidy  \
+    clangd
 
 RUN groupadd -r wireshark && useradd -m -s /bin/bash -G wireshark cs2620
 RUN usermod -aG ubuntu cs2620

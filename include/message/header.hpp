@@ -3,8 +3,7 @@
 
 #include "message/serialize.hpp"
 
-enum Operation : uint8_t
-{
+enum Operation : uint8_t {
     REGISTER_ACCOUNT = 0,
     LOGIN = 1,
     LIST_ACCOUNTS = 2,
@@ -20,16 +19,15 @@ enum Operation : uint8_t
     RESET_PASSWORD = 12,
 };
 
-class Header : public Serializable
-{
-public:
+class Header : public Serializable {
+   public:
     Header() = default;
 
     Header(uint8_t version, enum Operation operation, uint16_t packet_length);
 
-    void serialize(std::vector<uint8_t> &buf) const override;
+    void serialize(std::vector<uint8_t>& buf) const override;
 
-    void deserialize(const std::vector<uint8_t> &buf) override;
+    void deserialize(const std::vector<uint8_t>& buf) override;
 
     [[nodiscard]] static size_t size();
 
@@ -45,7 +43,7 @@ public:
 
     void set_packet_length(uint16_t packet_length);
 
-private:
+   private:
     uint8_t version;
     enum Operation operation;
     uint16_t packet_length;

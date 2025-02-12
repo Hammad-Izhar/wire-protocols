@@ -3,8 +3,7 @@
 
 #include "models/message.hpp"
 
-TEST(MessageTest, MakeMessage)
-{
+TEST(MessageTest, MakeMessage) {
     UUID sender_id = UUID();
     UUID channel_id = UUID();
     std::string text = "Hello world";
@@ -15,8 +14,7 @@ TEST(MessageTest, MakeMessage)
     EXPECT_EQ(message.get_text(), text);
 }
 
-TEST(MessageTest, ModifyMessage)
-{
+TEST(MessageTest, ModifyMessage) {
     UUID sender_id = UUID();
     UUID channel_id = UUID();
     std::string text = "Hello world";
@@ -33,8 +31,7 @@ TEST(MessageTest, ModifyMessage)
     EXPECT_GT(message.get_modified_at(), modified_at);
 }
 
-TEST(MessageTest, UniqueSnowflakes)
-{
+TEST(MessageTest, UniqueSnowflakes) {
     UUID sender_id = UUID();
     UUID channel_id = UUID();
     std::string text = "Hello world";
@@ -43,8 +40,7 @@ TEST(MessageTest, UniqueSnowflakes)
     EXPECT_NE(message1.get_snowflake(), message2.get_snowflake());
 }
 
-TEST(MessageTest, AddReadBy)
-{
+TEST(MessageTest, AddReadBy) {
     UUID sender_id = UUID();
     UUID channel_id = UUID();
     std::string text = "Hello world";

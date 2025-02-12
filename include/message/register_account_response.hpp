@@ -1,23 +1,22 @@
 #pragma once
 #include <stdint.h>
+#include <optional>
 #include <string>
 #include <variant>
-#include <optional>
 
 #include "message/serialize.hpp"
 
-class RegisterAccountResponse : public Serializable
-{
-public:
+class RegisterAccountResponse : public Serializable {
+   public:
     RegisterAccountResponse() = default;
 
     RegisterAccountResponse(std::variant<std::monostate, std::string> error_message);
 
-    void serialize(std::vector<uint8_t> &buf) const override;
+    void serialize(std::vector<uint8_t>& buf) const override;
 
-    void serialize_msg(std::vector<uint8_t> &buf) const;
+    void serialize_msg(std::vector<uint8_t>& buf) const;
 
-    void deserialize(const std::vector<uint8_t> &buf) override;
+    void deserialize(const std::vector<uint8_t>& buf) override;
 
     [[nodiscard]] size_t size() const;
 
@@ -25,6 +24,6 @@ public:
 
     [[nodiscard]] const std::optional<std::string> get_error_message() const;
 
-private:
+   private:
     std::variant<std::monostate, std::string> error_message;
 };

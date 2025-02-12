@@ -3,9 +3,8 @@
 
 #include "client/gui/authentication_window.hpp"
 
-AuthenticationWindow::AuthenticationWindow(QWidget *parent) : QWidget(parent)
-{
-    QTabWidget *tabs = new QTabWidget(this);
+AuthenticationWindow::AuthenticationWindow(QWidget* parent) : QWidget(parent) {
+    QTabWidget* tabs = new QTabWidget(this);
 
     loginTab = new LoginTab(tabs, this);
     registrationTab = new RegistrationTab(tabs, this);
@@ -13,21 +12,18 @@ AuthenticationWindow::AuthenticationWindow(QWidget *parent) : QWidget(parent)
     tabs->addTab(loginTab, "Login");
     tabs->addTab(registrationTab, "Register");
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(tabs);
     mainLayout->setAlignment(Qt::AlignCenter);
 
     setFixedSize(450, sizeHint().height());
     setWindowTitle("Login to [...]");
 
-    connect(tabs, &QTabWidget::currentChanged, this, [this](int index)
-            {
-        if (index == 0)
-        {
+    connect(tabs, &QTabWidget::currentChanged, this, [this](int index) {
+        if (index == 0) {
             setWindowTitle("Login to [...]");
-        }
-        else
-        {
+        } else {
             setWindowTitle("Register to [...]");
-        } });
+        }
+    });
 }

@@ -3,16 +3,12 @@
 
 #include <QThread>
 
-TcpServer::TcpServer(QObject *parent)
-    : QTcpServer(parent)
-{
-}
+TcpServer::TcpServer(QObject* parent) : QTcpServer(parent) {}
 
-void TcpServer::incomingConnection(qintptr socketDescriptor)
-{
+void TcpServer::incomingConnection(qintptr socketDescriptor) {
     qDebug() << "New client connected?";
-    QThread *thread = new QThread();
-    ClientHandler *handler = new ClientHandler(socketDescriptor);
+    QThread* thread = new QThread();
+    ClientHandler* handler = new ClientHandler(socketDescriptor);
 
     handler->moveToThread(thread);
 

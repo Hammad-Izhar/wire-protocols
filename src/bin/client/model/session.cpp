@@ -2,8 +2,7 @@
 
 #include "client/model/session.hpp"
 
-Session &Session::getInstance()
-{
+Session& Session::getInstance() {
     static Session instance;
     if (!instance.tcp_client)
         instance.tcp_client = new TcpClient();
