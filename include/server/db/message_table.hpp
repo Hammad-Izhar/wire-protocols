@@ -10,7 +10,7 @@
 class MessageTable
 {
 public:
-    MessageTable();
+    MessageTable() = default;
     // Getters
     [[nodiscard]] std::optional<const Message::SharedPtr> get_by_uid(uint64_t message_snowflake);
 

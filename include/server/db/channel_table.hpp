@@ -11,7 +11,7 @@
 class ChannelTable
 {
 public:
-    ChannelTable();
+    ChannelTable() = default;
 
     [[nodiscard]] std::optional<const Channel::SharedPtr> get_by_uid(UUID channel_uid);
 
