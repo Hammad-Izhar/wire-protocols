@@ -1,4 +1,4 @@
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 #include <iomanip>
 #include <random>
 #include <sstream>
@@ -32,17 +32,40 @@ std::string PasswordTable::generate_salt() {
 }
 
 std::string PasswordTable::sha256(const std::string& str) {
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    SHA256_Update(&sha256, str.c_str(), str.size());
-    SHA256_Final(hash, &sha256);
-
-    std::stringstream ss;
-    for (unsigned char i : hash) {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)i;
+    EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+    if (!ctx) {
+        throw std::runtime_error("Failed to create EVP_MD_CTX");
     }
-    return ss.str();
+
+    // Initialize the context with SHA-256
+    if (EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr) != 1) {
+        EVP_MD_CTX_free(ctx);
+        throw std::runtime_error("Failed to initialize SHA-256");
+    }
+
+    // Update the context with input data
+    if (EVP_DigestUpdate(ctx, str.data(), str.size()) != 1) {
+        EVP_MD_CTX_free(ctx);
+        throw std::runtime_error("Failed to update digest");
+    }
+
+    // Finalize and get the hash result
+    std::vector<unsigned char> hash(EVP_MD_size(EVP_sha256()));
+    unsigned int length = 0;
+    if (EVP_DigestFinal_ex(ctx, hash.data(), &length) != 1) {
+        EVP_MD_CTX_free(ctx);
+        throw std::runtime_error("Failed to finalize digest");
+    }
+
+    // Cleanup
+    EVP_MD_CTX_free(ctx);
+
+    // Convert hash to a hex string
+    std::ostringstream hex_stream;
+    for (unsigned char byte : hash) {
+        hex_stream << std::hex << std::setw(2) << std::setfill('0') << (int)byte;
+    }
+    return hex_stream.str();
 }
 
 std::variant<std::monostate, std::string> PasswordTable::add_password(UUID& user_uid,

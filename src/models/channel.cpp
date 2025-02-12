@@ -57,6 +57,4 @@ void Channel::remove_message(const uint64_t& message_snowflake) {
                            return snowflake == message_snowflake;
                        }),
         this->message_snowflakes.end());
-    this->message_snowflakes.begin(), this->message_snowflakes.end(),
-        [&message_snowflake](const uint64_t& snowflake) { return snowflake == message_snowflake; };
 }
