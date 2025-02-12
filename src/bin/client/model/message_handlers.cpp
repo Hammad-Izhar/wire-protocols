@@ -21,6 +21,12 @@ void on_login_response(QTcpSocket *socket, LoginResponse &msg)
     Session &session = Session::getInstance();
     if (msg.is_success())
     {
+        User::SharedPtr usr = msg.get_data().value();
+        session.authenticated_user = usr;
+        qDebug() << "Authenticated user: " << QString::fromStdString(usr->get_username());
+        qDebug() << "Authenticated display name: " << QString::fromStdString(usr->get_display_name());
+        qDebug() << "Authenticated profile pic: " << QString::fromStdString(usr->get_profile_pic());
+
         emit session.tcp_client->loginSuccess();
     }
     else

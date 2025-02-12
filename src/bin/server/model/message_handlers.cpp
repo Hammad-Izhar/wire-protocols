@@ -66,7 +66,7 @@ void on_login(QTcpSocket *socket, LoginMessage &msg)
         {
             User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
             client->setAuthenticatedUser(user);
-            response = LoginResponse();
+            response = LoginResponse(user);
         }
     }
 
@@ -122,7 +122,6 @@ void list_accounts(QTcpSocket *socket, ListAccountsMessage &msg)
     response.serialize_msg(buf);
     socket->write(reinterpret_cast<const char *>(buf.data()), buf.size());
     socket->flush();
-
 }
 
 void send_message(SendMessageMessage &msg)

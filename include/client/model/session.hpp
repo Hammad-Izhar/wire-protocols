@@ -8,6 +8,7 @@
 
 #include "client/model/tcp_client.hpp"
 #include "client/gui/components/stacked_window.hpp"
+#include "models/user.hpp"
 
 enum Window
 {
@@ -20,7 +21,7 @@ class Session
 {
 public:
     std::optional<std::pair<std::string, uint16_t>> connection_address;
-    std::optional<std::string> error;
+    std::optional<User::SharedPtr> authenticated_user;
     TcpClient *tcp_client;
     StackedWindow *main_window;
     QMutex session_mutex;

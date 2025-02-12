@@ -4,6 +4,7 @@
 #include <variant>
 #include <optional>
 
+#include "models/user.hpp"
 #include "message/serialize.hpp"
 
 class LoginResponse : public Serializable
@@ -11,7 +12,7 @@ class LoginResponse : public Serializable
 public:
     LoginResponse() = default;
 
-    LoginResponse(std::variant<std::monostate, std::string> error_message);
+    LoginResponse(std::variant<User::SharedPtr, std::string> data);
 
     void serialize(std::vector<uint8_t> &buf) const override;
 
@@ -23,8 +24,10 @@ public:
 
     [[nodiscard]] bool is_success() const;
 
+    [[nodiscard]] const std::optional<User::SharedPtr> get_data() const;
+
     [[nodiscard]] const std::optional<std::string> get_error_message() const;
 
 private:
-    std::variant<std::monostate, std::string> error_message;
+    std::variant<User::SharedPtr, std::string> data;
 };
