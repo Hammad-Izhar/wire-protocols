@@ -4,6 +4,7 @@
 #include <array>
 #include <string>
 #include <algorithm>
+#include "models/UUID.hpp"
 
 class User
 {
@@ -11,7 +12,7 @@ public:
     User(std::string username, std::string password, std::string display_name);
 
     // Getters
-    [[nodiscard]] const std::array<uint8_t,16> &get_uid() const;
+    [[nodiscard]] const UUID &get_uid() const;
 
     [[nodiscard]] const std::string &get_username() const;
 
@@ -21,7 +22,7 @@ public:
 
     // [[nodiscard]] const std::string &get_public_key() const;
 
-    [[nodiscard]] const std::vector< std::array<uint8_t,16> > &get_channels() const;
+    [[nodiscard]] const std::vector<UUID> &get_channels() const;
 
     // [[nodiscard]] const std::vector<std::array<uint8_t,16> > &get_channels() const;
 
@@ -33,16 +34,16 @@ public:
 
     void set_profile_pic(std::string profile_pic);
 
-    void add_channel(std::array<uint8_t,16> channel);
+    void add_channel(UUID channel);
 
-    void remove_channel(std::array<uint8_t,16> channel);
+    void remove_channel(UUID channel);
 
 private:
-    std::array<uint8_t,16> uid; // User ID
+    UUID uid; // User ID
     std::string username; // Username
     std::string password; // Password
     std::string display_name; // Display name
     std::string profile_pic; // URL to profile picture
     std::string public_key; // Public key for encryption
-    std::vector< std::array<uint8_t,16> > channels; // List of channel IDs
+    std::vector<UUID> channels; // List of channel IDs
 };

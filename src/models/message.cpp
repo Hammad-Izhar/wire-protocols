@@ -2,7 +2,7 @@
 #include <random>
 
 
-Message::Message(std::array<uint8_t,16> sender_id, std::array<uint8_t,16> channel_id, std::string text) :
+Message::Message(UUID sender_id, UUID channel_id, std::string text) :
     sender_id(sender_id), channel_id(channel_id), text(std::move(text))
 {
     // Generate a random snowflake
@@ -16,12 +16,12 @@ Message::Message(std::array<uint8_t,16> sender_id, std::array<uint8_t,16> channe
     this->read_by = {this->sender_id};
 }
 
-const std::array<uint8_t,16> &Message::get_sender_id() const
+const UUID &Message::get_sender_id() const
 {
     return this->sender_id;
 }
 
-const std::array<uint8_t,16> &Message::get_channel_id() const
+const UUID &Message::get_channel_id() const
 {
     return this->channel_id;
 }
@@ -36,7 +36,7 @@ time_t Message::get_modified_at() const
     return this->modified_at;
 }
 
-const std::vector<std::array<uint8_t,16>> &Message::get_read_by() const
+const std::vector<UUID> &Message::get_read_by() const
 {
     return this->read_by;
 }
@@ -57,7 +57,7 @@ void Message::set_text(std::string &text)
     this->modified_at = time(nullptr);
 }
 
-void Message::set_read_by(std::array<uint8_t,16> &user_id)
+void Message::set_read_by(UUID &user_id)
 {
     this->read_by.push_back(user_id);
 }

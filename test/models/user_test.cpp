@@ -22,8 +22,8 @@ TEST(UserTest, DifferentUIDs)
 TEST(UserTest, AddChannel)
 {
     User user("tomdavkam", "banana", "thomas");
-    std::array<uint8_t,16> channel1 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    std::array<uint8_t,16> channel2 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2};
+    UUID channel1 = UUID();
+    UUID channel2 = UUID();
 
     user.add_channel(channel1);
 
@@ -39,8 +39,8 @@ TEST(UserTest, AddChannel)
 TEST(UserTest, RemoveChannel)
 {
     User user("tomdavkam", "banana", "thomas");
-    std::array<uint8_t,16> channel1 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    std::array<uint8_t,16> channel2 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2};
+    UUID channel1 = UUID();
+    UUID channel2 = UUID();
     user.add_channel(channel1);
     user.add_channel(channel2);
     EXPECT_EQ(user.get_channels().size(), 2);
@@ -54,8 +54,8 @@ TEST(UserTest, RemoveChannel)
 TEST(UserTest, RemoveNonexistentChannel)
 {
     User user("tomdavkam", "banana", "thomas");
-    std::array<uint8_t,16> channel1 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    std::array<uint8_t,16> channel2 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2};
+    UUID channel1 = UUID();
+    UUID channel2 = UUID();
     user.add_channel(channel1);
     EXPECT_THROW(user.remove_channel(channel2), std::runtime_error);
 }
