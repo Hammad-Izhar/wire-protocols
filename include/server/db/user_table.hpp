@@ -18,8 +18,8 @@ public:
     [[nodiscard]] std::optional<User::SharedPtr> get_mut_by_uid(UUID user_uid);
 
     // Setters
-    std::variant<void, std::string> add_user(User::SharedPtr user);
-    std::variant<void, std::string> remove_user(UUID user_uid);
+    std::variant<std::monostate, std::string> add_user(User::SharedPtr user);
+    std::variant<std::monostate, std::string> remove_user(UUID user_uid);
 
 private:
     std::unordered_map<UUID, User::SharedPtr> data;

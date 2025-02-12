@@ -5,6 +5,7 @@ Database::Database()
     this->users = std::make_unique<UserTable>();
     this->messages = std::make_unique<MessageTable>();
     this->channels = std::make_unique<ChannelTable>();
+    this->passwords = std::make_unique<PasswordTable>();
 }
 
 Database &Database::get_instance()
@@ -43,12 +44,12 @@ std::optional<Channel::SharedPtr> Database::get_mut_channel_by_uid(UUID channel_
     return this->channels->get_mut_by_uid(channel_uid);
 }
 
-std::variant<void, std::string> Database::add_user(User::SharedPtr user)
+std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr user)
 {
     return this->users->add_user(user);
 }
 
-std::variant<void, std::string> Database::add_message(Message::SharedPtr message)
+std::variant<std::monostate, std::string> Database::add_message(Message::SharedPtr message)
 {
     std::optional<Channel::SharedPtr> channel = this->channels->get_mut_by_uid(message->get_channel_id());
     if (!channel.has_value())
@@ -63,9 +64,10 @@ std::variant<void, std::string> Database::add_message(Message::SharedPtr message
     }
 
     channel.value()->add_message(message->get_snowflake());
+    return {};
 }
 
-std::variant<void, std::string> Database::add_channel(Channel::SharedPtr channel)
+std::variant<std::monostate, std::string> Database::add_channel(Channel::SharedPtr channel)
 {
     auto res = this->channels->add_channel(channel);
     if (std::holds_alternative<std::string>(res))
@@ -82,9 +84,11 @@ std::variant<void, std::string> Database::add_channel(Channel::SharedPtr channel
         }
         user.value()->add_channel(channel->get_uid());
     }
+
+    return {};
 }
 
-std::variant<void, std::string> Database::add_user_to_channel(UUID user_uid, UUID channel_uid)
+std::variant<std::monostate, std::string> Database::add_user_to_channel(UUID user_uid, UUID channel_uid)
 {
     std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
     if (!user.has_value())
@@ -100,9 +104,10 @@ std::variant<void, std::string> Database::add_user_to_channel(UUID user_uid, UUI
 
     user.value()->add_channel(channel_uid);
     channel.value()->add_user(user_uid);
+    return {};
 }
 
-std::variant<void, std::string> Database::remove_user(UUID user_uid)
+std::variant<std::monostate, std::string> Database::remove_user(UUID user_uid)
 {
     std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
     if (!user.has_value())
@@ -140,7 +145,7 @@ std::variant<void, std::string> Database::remove_user(UUID user_uid)
     return this->users->remove_user(user_uid);
 }
 
-std::variant<void, std::string> Database::remove_message(uint64_t message_snowflake)
+std::variant<std::monostate, std::string> Database::remove_message(uint64_t message_snowflake)
 {
     std::optional<const Message::SharedPtr> message = this->messages->get_by_uid(message_snowflake);
     if (!message.has_value())
@@ -161,9 +166,10 @@ std::variant<void, std::string> Database::remove_message(uint64_t message_snowfl
     }
 
     channel.value()->remove_message(message_snowflake);
+    return {};
 }
 
-std::variant<void, std::string> Database::remove_channel(UUID channel_uid)
+std::variant<std::monostate, std::string> Database::remove_channel(UUID channel_uid)
 {
     std::optional<const Channel::SharedPtr> channel = this->channels->get_by_uid(channel_uid);
 

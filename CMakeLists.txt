@@ -8,6 +8,7 @@ set(CMAKE_BUILD_TYPE Debug)  # Optional, can also be set at configure time
 # Find necessary Qt6 components
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
 find_package(GTest REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # Include project directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -68,6 +69,7 @@ set_target_properties(server PROPERTIES
 )
 
 target_link_libraries(server PRIVATE Qt6::Core Qt6::Network)
+target_link_libraries(server PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 # Define Test executable
 add_executable(test

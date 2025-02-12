@@ -18,6 +18,7 @@ RUN apt-get install -y \
     libxcb-util1 \
     libxkbcommon-x11-0 \
     wireshark \
+    libssl-dev \
     sudo  # Add sudo for privilege escalation if needed
 
 RUN groupadd -r wireshark && useradd -m -s /bin/bash -G wireshark cs2620

@@ -12,6 +12,7 @@
 #include "server/db/user_table.hpp"
 #include "server/db/message_table.hpp"
 #include "server/db/channel_table.hpp"
+#include "server/db/password_table.hpp"
 
 class Database
 {
@@ -34,18 +35,19 @@ public:
     [[nodiscard]] std::optional<Channel::SharedPtr> get_mut_channel_by_uid(UUID channel_uid);
 
     // Setters -- Add
-    std::variant<void, std::string> add_user(User::SharedPtr user);
-    std::variant<void, std::string> add_message(Message::SharedPtr message);
-    std::variant<void, std::string> add_channel(Channel::SharedPtr channel);
-    std::variant<void, std::string> add_user_to_channel(UUID user_uid, UUID channel_uid);
+    std::variant<std::monostate, std::string> add_user(User::SharedPtr user);
+    std::variant<std::monostate, std::string> add_message(Message::SharedPtr message);
+    std::variant<std::monostate, std::string> add_channel(Channel::SharedPtr channel);
+    std::variant<std::monostate, std::string> add_user_to_channel(UUID user_uid, UUID channel_uid);
 
     // Setters -- Remove
-    std::variant<void, std::string> remove_user(UUID user_uid);
-    std::variant<void, std::string> remove_message(uint64_t message_snowflake);
-    std::variant<void, std::string> remove_channel(UUID channel_uid);
+    std::variant<std::monostate, std::string> remove_user(UUID user_uid);
+    std::variant<std::monostate, std::string> remove_message(uint64_t message_snowflake);
+    std::variant<std::monostate, std::string> remove_channel(UUID channel_uid);
 
 private:
     std::unique_ptr<UserTable> users;
     std::unique_ptr<MessageTable> messages;
     std::unique_ptr<ChannelTable> channels;
+    std::unique_ptr<PasswordTable> passwords;
 };
