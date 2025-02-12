@@ -22,7 +22,8 @@ void on_register_account(QTcpSocket *socket, RegisterAccountMessage &msg)
     else
     {
         // Try to add the password to the password table
-        response = RegisterAccountResponse(db.add_user(msg.get_user(), msg.get_password()));
+        User::SharedPtr user = std::make_shared<User>(msg.get_username(), msg.get_display_name());
+        response = RegisterAccountResponse(db.add_user(user, msg.get_password()));
     }
 
     std::vector<uint8_t> buf;

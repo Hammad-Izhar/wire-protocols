@@ -8,7 +8,7 @@
 #include "client/gui/components/validated_text_input.hpp"
 #include "client/model/session.hpp"
 
-RegistrationTab::RegistrationTab(QWidget *parent, QTabWidget *tabWidget) : QWidget(parent), tabWidget(tabWidget)
+RegistrationTab::RegistrationTab(QTabWidget *tabWidget, QWidget *parent) : QWidget(parent), tabWidget(tabWidget)
 {
     inputGroup = new QGroupBox("", this);
 

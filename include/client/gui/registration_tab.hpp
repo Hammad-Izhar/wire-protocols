@@ -14,7 +14,7 @@ class RegistrationTab : public QWidget
 {
     Q_OBJECT
 public:
-    explicit RegistrationTab(QWidget *parent = nullptr, QTabWidget *tabWidget);
+    explicit RegistrationTab(QTabWidget *tabWidget, QWidget *parent = nullptr);
 
 private slots:
     void onRegistrationSuccess();
