@@ -3,6 +3,7 @@
 #include <array>
 #include <string>
 #include <memory>
+#include <mutex>
 
 #include "models/user.hpp"
 #include "models/message.hpp"
@@ -16,10 +17,10 @@ public:
     Channel(std::string name, std::vector<UUID> user_uids);
 
     // Getters
-    [[nodiscard]] const UUID &get_uid() const;
-    [[nodiscard]] const std::string &get_name() const;
-    [[nodiscard]] const std::vector<UUID> &get_user_uids() const;
-    [[nodiscard]] const std::vector<uint64_t> &get_message_snowflakes() const;
+    [[nodiscard]] const UUID &get_uid();
+    [[nodiscard]] const std::string &get_name();
+    [[nodiscard]] const std::vector<UUID> &get_user_uids();
+    [[nodiscard]] const std::vector<uint64_t> &get_message_snowflakes();
 
     // Setters
     void set_name(std::string name);
@@ -33,4 +34,5 @@ private:
     std::string name;
     std::vector<UUID> user_uids;
     std::vector<uint64_t> message_snowflakes;
+    std::mutex mutex;
 };

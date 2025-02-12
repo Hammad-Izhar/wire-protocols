@@ -5,6 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <memory>
+#include <mutex>
 
 #include "models/uuid.hpp"
 
@@ -16,17 +17,17 @@ public:
     User(std::string username, std::string display_name);
 
     // Getters
-    [[nodiscard]] const UUID &get_uid() const;
+    [[nodiscard]] const UUID &get_uid();
 
-    [[nodiscard]] const std::string &get_username() const;
+    [[nodiscard]] const std::string &get_username();
 
-    [[nodiscard]] const std::string &get_display_name() const;
+    [[nodiscard]] const std::string &get_display_name();
 
-    [[nodiscard]] const std::string &get_profile_pic() const;
+    [[nodiscard]] const std::string &get_profile_pic();
 
-    // [[nodiscard]] const std::string &get_public_key() const;
+    // [[nodiscard]] const std::string &get_public_key() ;
 
-    [[nodiscard]] const std::vector<UUID> &get_channels() const;
+    [[nodiscard]] const std::vector<UUID> &get_channels();
 
     // Setters
 
@@ -47,4 +48,5 @@ private:
     std::string profile_pic;    // URL to profile picture
     std::string public_key;     // Public key for encryption
     std::vector<UUID> channels; // List of channel IDs
+    std::mutex mutex;
 };
