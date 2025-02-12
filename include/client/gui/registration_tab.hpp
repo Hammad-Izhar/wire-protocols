@@ -15,6 +15,10 @@ class RegistrationTab : public QWidget
 public:
     explicit RegistrationTab(QWidget *parent = nullptr);
 
+private slots:
+    void onRegistrationSuccess();
+    void onRegistrationFailure(const QString &errorMessage);
+
 private:
     QGroupBox *inputGroup;
     Spinner *spinner;

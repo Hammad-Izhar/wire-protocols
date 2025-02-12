@@ -2,7 +2,9 @@
 #include <QFormLayout>
 #include <QVBoxLayout>
 #include <QTimer>
+#include <QTabWidget>
 
+#include "client/gui/authentication_window.hpp"
 #include "client/gui/registration_tab.hpp"
 #include "client/gui/components/validated_text_input.hpp"
 #include "client/model/session.hpp"
@@ -70,6 +72,10 @@ RegistrationTab::RegistrationTab(QWidget *parent) : QWidget(parent)
     mainLayout->setAlignment(Qt::AlignCenter);
 
     setFixedSize(450, sizeHint().height());
+
+    Session &session = Session::getInstance();
+    connect(session.tcp_client, &TcpClient::registrationSuccess, this, &RegistrationTab::onRegistrationSuccess);
+    connect(session.tcp_client, &TcpClient::registrationFailure, this, &RegistrationTab::onRegistrationFailure);
 }
 
 void RegistrationTab::on_submit()
@@ -91,8 +97,21 @@ void RegistrationTab::on_submit()
     }
 
     set_loading(true);
-    QTimer::singleShot(5000, this, [this]()
-                       { set_loading(false); });
+    Session &session = Session::getInstance();
+    session.tcp_client->register_user(username.toStdString(), displayName.toStdString(), password.toStdString());
+}
+
+void RegistrationTab::onRegistrationSuccess()
+{
+    set_loading(false);
+    qobject_cast<QTabWidget *>(parentWidget())->setCurrentIndex(Tab::Login);
+}
+
+void RegistrationTab::onRegistrationFailure(const QString &errorMessage)
+{
+    set_loading(false);
+    // Handle registration failure (e.g., show an error message)
+    qDebug() << "Registration failed:" << errorMessage;
 }
 
 void RegistrationTab::set_loading(bool isLoading)

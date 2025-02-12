@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     session.main_window->addWidget(connectionWindow);
     session.main_window->addWidget(authenticationWindow);
     session.main_window->addWidget(chatWindow);
-    session.main_window->setCurrentIndex(2);
+    session.main_window->setCurrentIndex(0);
     session.main_window->show();
 
     return app.exec();

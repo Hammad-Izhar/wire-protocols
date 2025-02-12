@@ -3,7 +3,7 @@
 #include <QThread>
 
 #include "server/model/client_handler.hpp"
-#include "server/model/message_handler.hpp"
+#include "models/message_handler.hpp"
 #include "message/header.hpp"
 #include "message/register_account.hpp"
 #include "message/login.hpp"
@@ -44,7 +44,7 @@ void ClientHandler::onReadyRead()
     }
 
     QByteArray data = socket->read(header.get_packet_length());
-    std::vector<uint8_t> msg(headerData.size());
+    std::vector<uint8_t> msg(header.get_packet_length());
     std::transform(data.begin(), data.end(), msg.begin(), [](char c)
                    { return static_cast<uint8_t>(c); });
 
