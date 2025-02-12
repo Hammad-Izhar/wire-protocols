@@ -27,6 +27,19 @@ std::vector<UUID> UserTable::get_uuids_matching_regex(std::string regex)
     return uuids;
 }
 
+std::optional<UUID> UserTable::get_uid_from_username(std::string username)
+{
+    std::lock_guard<std::mutex> lock(this->mutex);
+    for (const auto &[uid, user] : this->data)
+    {
+        if (user->get_username() == username)
+        {
+            return uid;
+        }
+    }
+    return std::nullopt;
+}
+
 std::variant<std::monostate, std::string> UserTable::add_user(User::SharedPtr user)
 {
     std::lock_guard<std::mutex> lock(this->mutex);

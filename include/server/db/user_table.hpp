@@ -19,6 +19,8 @@ public:
 
     [[nodiscard]] std::vector<UUID> get_uuids_matching_regex(std::string regex);
 
+    [[nodiscard]] std::optional<UUID> get_uid_from_username(std::string username);
+
     // Setters
     std::variant<std::monostate, std::string> add_user(User::SharedPtr user);
     std::variant<std::monostate, std::string> remove_user(UUID user_uid);

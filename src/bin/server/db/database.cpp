@@ -49,6 +49,17 @@ std::vector<UUID> Database::get_uuids_matching_regex(std::string regex) const
     return this->users->get_uuids_matching_regex(regex);
 }
 
+std::optional<UUID> Database::get_uid_from_username(std::string username)
+{
+    return this->users->get_uid_from_username(username);
+}
+
+std::variant<bool, std::string> Database::verify_password(UUID &user_uid, std::string password)
+{
+    return this->passwords->verify_password(user_uid, password);
+}
+
+
 std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr user)
 {
     return this->users->add_user(user);
