@@ -1,6 +1,8 @@
 #pragma once
 #include <unordered_map>
 #include <stdint.h>
+#include <optional>
+#include <variant>
 
 #include "models/uuid.hpp"
 #include "models/user.hpp"
@@ -14,21 +16,32 @@ class Database
 {
 public:
     Database();
+
+    static Database &get_instance();
+
     // Getters
-    [[nodiscard]] User &get_user_by_uid(UUID user_uid);
-    [[nodiscard]] const Message &get_message_by_uid(uint64_t message_snowflake) const;
-    [[nodiscard]] const Channel &get_channel_by_uid(UUID channel_uid) const;
+    [[nodiscard]] const std::optional<const User::SharedPtr> get_user_by_uid(UUID user_uid) const;
+
+    [[nodiscard]] const std::optional<const Message::SharedPtr> get_message_by_uid(uint64_t message_snowflake) const;
+
+    [[nodiscard]] const std::optional<const Channel::SharedPtr> get_channel_by_uid(UUID channel_uid) const;
+
+    [[nodiscard]] std::optional<User::SharedPtr> get_mut_user_by_uid(UUID user_uid);
+
+    [[nodiscard]] std::optional<Message::SharedPtr> get_mut_message_by_uid(uint64_t message_snowflake);
+
+    [[nodiscard]] std::optional<Channel::SharedPtr> get_mut_channel_by_uid(UUID channel_uid);
 
     // Setters -- Add
-    void add_user(User &user);
-    void add_message(Message &message);
-    void add_channel(Channel &channel);
-    void add_user_to_channel(UUID user_uid, UUID channel_uid);
+    std::variant<void, std::string> add_user(User::SharedPtr user);
+    std::variant<void, std::string> add_message(Message::SharedPtr message);
+    std::variant<void, std::string> add_channel(Channel::SharedPtr channel);
+    std::variant<void, std::string> add_user_to_channel(UUID user_uid, UUID channel_uid);
 
     // Setters -- Remove
-    void remove_user(UUID user_uid);
-    void remove_message(uint64_t message_snowflake);
-    void remove_channel(UUID channel_uid);
+    std::variant<void, std::string> remove_user(UUID user_uid);
+    std::variant<void, std::string> remove_message(uint64_t message_snowflake);
+    std::variant<void, std::string> remove_channel(UUID channel_uid);
 
 private:
     UserTable users;

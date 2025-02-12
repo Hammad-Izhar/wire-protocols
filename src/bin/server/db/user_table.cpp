@@ -1,16 +1,21 @@
 #include "server/db/user_table.hpp"
 
-User &UserTable::get_by_uid(UUID user_uid)
+std::optional<const User::SharedPtr> UserTable::get_by_uid(UUID user_uid) const
 {
-    return this->data.at(user_uid);
+    return this->data.find(user_uid) != this->data.end() ? std::optional<const User::SharedPtr>(this->data.at(user_uid)) : std::nullopt;
 }
 
-void UserTable::add_user(User &user)
+std::optional<User::SharedPtr> UserTable::get_mut_by_uid(UUID user_uid)
 {
-    this->data.insert({user.get_uid(), user});
+    return this->data.find(user_uid) != this->data.end() ? std::optional<User::SharedPtr>(this->data.at(user_uid)) : std::nullopt;
 }
 
-void UserTable::remove_user(UUID user_uid)
+std::variant<void, std::string> UserTable::add_user(User::SharedPtr user)
+{
+    this->data.insert({user->get_uid(), user});
+}
+
+std::variant<void, std::string> UserTable::remove_user(UUID user_uid)
 {
     this->data.erase(user_uid);
 }

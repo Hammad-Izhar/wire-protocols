@@ -7,82 +7,167 @@ Database::Database()
     this->channels = ChannelTable();
 }
 
-User &Database::get_user_by_uid(UUID user_uid)
+Database &Database::get_instance()
+{
+    static Database instance;
+    return instance;
+}
+
+const std::optional<const User::SharedPtr> Database::get_user_by_uid(UUID user_uid) const
 {
     return this->users.get_by_uid(user_uid);
 }
 
-const Message &Database::get_message_by_uid(uint64_t message_snowflake) const
+const std::optional<const Message::SharedPtr> Database::get_message_by_uid(uint64_t message_snowflake) const
 {
     return this->messages.get_by_uid(message_snowflake);
 }
 
-const Channel &Database::get_channel_by_uid(UUID channel_uid) const
+const std::optional<const Channel::SharedPtr> Database::get_channel_by_uid(UUID channel_uid) const
 {
     return this->channels.get_by_uid(channel_uid);
 }
 
-void Database::add_user(User &user)
+std::optional<User::SharedPtr> Database::get_mut_user_by_uid(UUID user_uid)
 {
-    this->users.add_user(user);
+    return this->users.get_mut_by_uid(user_uid);
 }
 
-void Database::add_message(Message &message)
+std::optional<Message::SharedPtr> Database::get_mut_message_by_uid(uint64_t message_snowflake)
 {
-    this->messages.add_message(message);
-    // Add message snowflake to channel
-    this->channels.get_by_uid(message.get_channel_id()).add_message(message.get_snowflake());
+    return this->messages.get_mut_by_uid(message_snowflake);
 }
 
-void Database::add_channel(Channel &channel)
+std::optional<Channel::SharedPtr> Database::get_mut_channel_by_uid(UUID channel_uid)
 {
-    this->channels.add_channel(channel);
-    // Add channel to all users
-    for (auto &user_uid : channel.get_user_uids())
+    return this->channels.get_mut_by_uid(channel_uid);
+}
+
+std::variant<void, std::string> Database::add_user(User::SharedPtr user)
+{
+    return this->users.add_user(user);
+}
+
+std::variant<void, std::string> Database::add_message(Message::SharedPtr message)
+{
+    std::optional<Channel::SharedPtr> channel = this->channels.get_mut_by_uid(message->get_channel_id());
+    if (!channel.has_value())
     {
-        this->users.get_by_uid(user_uid).add_channel(channel.get_uid());
+        return "Channel does not exist";
+    }
+
+    auto res = this->messages.add_message(message);
+    if (std::holds_alternative<std::string>(res))
+    {
+        return std::get<std::string>(res);
+    }
+
+    channel.value()->add_message(message->get_snowflake());
+}
+
+std::variant<void, std::string> Database::add_channel(Channel::SharedPtr channel)
+{
+    auto res = this->channels.add_channel(channel);
+    if (std::holds_alternative<std::string>(res))
+    {
+        return std::get<std::string>(res);
+    }
+    // Add channel to all users
+    for (auto &user_uid : channel->get_user_uids())
+    {
+        std::optional<User::SharedPtr> user = this->users.get_mut_by_uid(user_uid);
+        if (!user.has_value())
+        {
+            continue;
+        }
+        user.value()->add_channel(channel->get_uid());
     }
 }
 
-void Database::remove_user(UUID user_uid)
+std::variant<void, std::string> Database::remove_user(UUID user_uid)
 {
-    this->users.remove_user(user_uid);
-    // Remove user from all channels
-    for (auto &channel_uid : this->users.get_by_uid(user_uid).get_channels())
+    std::optional<User::SharedPtr> user = this->users.get_mut_by_uid(user_uid);
+    if (!user.has_value())
     {
-        this->channels.get_by_uid(channel_uid).remove_user(user_uid);
-        // For each message in the channel, remove those messages from the user
-        for (auto &message_snowflake : this->channels.get_by_uid(channel_uid).get_message_snowflakes())
+        return "User does not exist";
+    }
+
+    for (auto &channel_uid : user.value()->get_channels())
+    {
+        std::optional<Channel::SharedPtr> channel_opt = this->channels.get_mut_by_uid(channel_uid);
+        if (!channel_opt.has_value())
         {
-            UUID sender_id = this->messages.get_by_uid(message_snowflake).get_sender_id();
-            if (sender_id == user_uid)
+            continue;
+        }
+        Channel::SharedPtr channel = channel_opt.value();
+        channel->remove_user(user_uid);
+
+        // For each message in the channel, remove those messages from the user
+        for (auto &message_snowflake : channel->get_message_snowflakes())
+        {
+            std::optional<const Message::SharedPtr> message_opt = this->messages.get_by_uid(message_snowflake);
+            if (!message_opt.has_value())
+            {
+                continue;
+            }
+
+            if (message_opt.value()->get_sender_id() == user_uid)
             {
                 // Remove the message from the channel
-                this->channels.get_by_uid(channel_uid).remove_message(message_snowflake);
+                channel->remove_message(message_snowflake);
             }
         }
     }
+
+    return this->users.remove_user(user_uid);
 }
 
-void Database::remove_message(uint64_t message_snowflake)
+std::variant<void, std::string> Database::remove_message(uint64_t message_snowflake)
 {
-    this->messages.remove_message(message_snowflake);
-    Channel channel = this->channels.get_by_uid(this->messages.get_by_uid(message_snowflake).get_channel_id());
-    channel.remove_message(message_snowflake);
-}
-
-void Database::remove_channel(UUID channel_uid)
-{
-    this->channels.remove_channel(channel_uid);
-    // Remove all messages in the channel
-    for (auto &message_snowflake : this->channels.get_by_uid(channel_uid).get_message_snowflakes())
+    std::optional<const Message::SharedPtr> message = this->messages.get_by_uid(message_snowflake);
+    if (!message.has_value())
     {
+        return "Message does not exist";
+    }
+
+    std::optional<Channel::SharedPtr> channel = this->channels.get_mut_by_uid(message.value()->get_channel_id());
+    if (!channel.has_value())
+    {
+        return "Channel does not exist";
+    }
+
+    auto res = this->messages.remove_message(message_snowflake);
+    if (std::holds_alternative<std::string>(res))
+    {
+        return std::get<std::string>(res);
+    }
+
+    channel.value()->remove_message(message_snowflake);
+}
+
+std::variant<void, std::string> Database::remove_channel(UUID channel_uid)
+{
+    std::optional<const Channel::SharedPtr> channel = this->channels.get_by_uid(channel_uid);
+
+    for (auto &user_uid : channel.value()->get_user_uids())
+    {
+        std::optional<User::SharedPtr> user = this->users.get_mut_by_uid(user_uid);
+        if (!user.has_value())
+        {
+            continue;
+        }
+        user.value()->remove_channel(channel_uid);
+    }
+
+    for (auto &message_snowflake : channel.value()->get_message_snowflakes())
+    {
+        std::optional<Message::SharedPtr> message = this->messages.get_mut_by_uid(message_snowflake);
+        if (!message.has_value())
+        {
+            continue;
+        }
         this->messages.remove_message(message_snowflake);
     }
 
-    // Remove channel from all users
-    for (auto &user_uid : this->channels.get_by_uid(channel_uid).get_user_uids())
-    {
-        this->users.get_by_uid(user_uid).remove_channel(channel_uid);
-    }
+    return this->channels.remove_channel(channel_uid);
 }

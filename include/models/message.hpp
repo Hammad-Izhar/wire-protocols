@@ -5,12 +5,15 @@
 #include <string>
 #include <cstdint>
 #include <chrono>
+#include <memory>
 
 #include "models/uuid.hpp"
 
 class Message
 {
 public:
+    typedef std::shared_ptr<Message> SharedPtr;
+
     Message(UUID sender_id, UUID channel_id, std::string text);
 
     // Getters

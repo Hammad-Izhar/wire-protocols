@@ -4,12 +4,15 @@
 #include <array>
 #include <string>
 #include <algorithm>
+#include <memory>
 
 #include "models/uuid.hpp"
 
 class User
 {
 public:
+    typedef std::shared_ptr<User> SharedPtr;
+
     User(std::string username, std::string display_name);
 
     // Getters

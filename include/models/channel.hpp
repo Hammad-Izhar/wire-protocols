@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <array>
 #include <string>
+#include <memory>
 
 #include "models/user.hpp"
 #include "models/message.hpp"
@@ -10,6 +11,8 @@
 class Channel
 {
 public:
+    typedef std::shared_ptr<Channel> SharedPtr;
+
     Channel(std::string name, std::vector<UUID> user_uids);
 
     // Getters

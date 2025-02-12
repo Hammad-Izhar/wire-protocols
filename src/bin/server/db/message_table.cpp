@@ -4,17 +4,22 @@
 
 MessageTable::MessageTable() {}
 
-Message const MessageTable::get_by_uid(uint64_t message_snowflake) const
+std::optional<const Message::SharedPtr> MessageTable::get_by_uid(uint64_t message_snowflake) const
 {
-    return this->data.at(message_snowflake);
+    return this->data.find(message_snowflake) != this->data.end() ? std::optional<const Message::SharedPtr>(this->data.at(message_snowflake)) : std::nullopt;
 }
 
-void MessageTable::add_message(Message &message)
+std::optional<Message::SharedPtr> MessageTable::get_mut_by_uid(uint64_t message_snowflake)
 {
-    this->data.insert({message.get_snowflake(), message});
+    return this->data.find(message_snowflake) != this->data.end() ? std::optional<Message::SharedPtr>(this->data.at(message_snowflake)) : std::nullopt;
 }
 
-void MessageTable::remove_message(uint64_t message_snowflake)
+std::variant<void, std::string> MessageTable::add_message(Message::SharedPtr message)
+{
+    this->data.insert({message->get_snowflake(), message});
+}
+
+std::variant<void, std::string> MessageTable::remove_message(uint64_t message_snowflake)
 {
     this->data.erase(message_snowflake);
 }
