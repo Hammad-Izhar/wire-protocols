@@ -60,8 +60,16 @@ std::variant<bool, std::string> Database::verify_password(UUID &user_uid, std::s
 }
 
 
-std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr user)
+std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr user, std::string password)
 {
+    // Add the password
+    UUID user_uid = user->get_uid();
+    std::variant<std::monostate, std::string> res = this->passwords->add_password(user_uid, password);
+    if (std::holds_alternative<std::string>(res))
+    {
+        return std::get<std::string>(res);
+    }
+    // Add the user
     return this->users->add_user(user);
 }
 

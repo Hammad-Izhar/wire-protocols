@@ -41,7 +41,7 @@ public:
     std::variant<bool, std::string> verify_password(UUID &user_uid, std::string password);
 
     // Setters -- Add
-    std::variant<std::monostate, std::string> add_user(User::SharedPtr user);
+    std::variant<std::monostate, std::string> add_user(User::SharedPtr user, std::string password);
     std::variant<std::monostate, std::string> add_message(Message::SharedPtr message);
     std::variant<std::monostate, std::string> add_channel(Channel::SharedPtr channel);
     std::variant<std::monostate, std::string> add_user_to_channel(UUID user_uid, UUID channel_uid);
