@@ -1,17 +1,14 @@
 #include <random>
-#include "models/user.hpp"
 #include <stdexcept>
 
+#include "models/user.hpp"
 
-User::User(std::string username, std::string password, std::string display_name)
-    : username(username), password(password), display_name(display_name) 
+User::User(std::string username, std::string display_name)
+    : username(username),
+      display_name(display_name),
+      uid(UUID()),
+      profile_pic("./assets/profile_pics/blank_profile_pic.png")
 {
-    // Generate a random UID
-    this->uid = UUID();
-
-    // Set profile pic to default (Grey question mark)
-    this->profile_pic = "./assets/profile_pics/blank_profile_pic.png";
-
     // Generate a public/private key pair
     // TBD to friday
 }
@@ -56,17 +53,13 @@ void User::set_profile_pic(std::string profile_pic)
     this->profile_pic = profile_pic;
 }
 
-void User::add_channel(UUID channel)
+void User::add_channel(UUID channel_id)
 {
-    this->channels.push_back(channel);
+    this->channels.push_back(channel_id);
 }
 
-void User::remove_channel(UUID channel)
+void User::remove_channel(UUID channel_id)
 {
-    auto it = std::find(this->channels.begin(), this->channels.end(), channel);
-    if (it != this->channels.end()) {
-        this->channels.erase(it);
-    } else {
-        throw std::runtime_error("Channel not found: " + channel.toString());
-    }
+    std::remove_if(this->channels.begin(), this->channels.end(), [channel_id](UUID &c)
+                   { return c == channel_id; });
 }

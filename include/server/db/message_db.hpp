@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <stdint.h>
+
 #include "models/message.hpp"
 
 class message_db

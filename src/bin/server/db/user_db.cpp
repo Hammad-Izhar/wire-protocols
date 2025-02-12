@@ -1,5 +1,4 @@
-#include "models/user_db.hpp"
-
+#include "server/db/user_db.hpp"
 
 const std::unordered_map<UUID, User> &user_db::get_data() const
 {

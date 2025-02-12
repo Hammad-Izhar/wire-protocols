@@ -1,8 +1,9 @@
 #pragma once
 #include <stdint.h>
 #include <unordered_map>
+
 #include "models/channel.hpp"
-#include "models/UUID.hpp"
+#include "models/uuid.hpp"
 
 class channel_db
 {
@@ -16,6 +17,7 @@ public:
     // Setters
     void add_channel(Channel &channel);
     void remove_channel(UUID channel_uid);
+
 private:
     std::unordered_map<UUID, Channel> data;
 };

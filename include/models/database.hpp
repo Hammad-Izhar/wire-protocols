@@ -1,10 +1,11 @@
 #pragma once
 #include <unordered_map>
 #include <stdint.h>
-#include "models/user_db.hpp"
-#include "models/message_db.hpp"
-#include "models/channel_db.hpp"
-#include "models/UUID.hpp"
+
+#include "server/db/user_db.hpp"
+#include "server/db/message_db.hpp"
+#include "server/db/channel_db.hpp"
+#include "models/uuid.hpp"
 #include "models/user.hpp"
 #include "models/message.hpp"
 #include "models/channel.hpp"
@@ -34,4 +35,3 @@ private:
     message_db messages;
     channel_db channels;
 };
-

@@ -1,17 +1,19 @@
 #include "models/message.hpp"
-#include <random>
 
+#include "models/snowflake.hpp"
 
-Message::Message(UUID sender_id, UUID channel_id, std::string text) :
-    sender_id(sender_id), channel_id(channel_id), text(std::move(text))
+Message::Message(UUID sender_id, UUID channel_id, std::string text)
+    : sender_id(sender_id),
+      channel_id(channel_id),
+      text(text)
 {
-    // Generate a random snowflake
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint64_t> dis(0, UINT64_MAX);
 
-    this->snowflake = dis(gen);
-    this->created_at = time(nullptr);
+    SnowflakeIDGenerator &generator = SnowflakeIDGenerator::get_instance();
+
+    this->snowflake = generator.nextId();
+    this->created_at = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::system_clock::now().time_since_epoch())
+                           .count();
     this->modified_at = this->created_at;
     this->read_by = {this->sender_id};
 }
@@ -26,12 +28,12 @@ const UUID &Message::get_channel_id() const
     return this->channel_id;
 }
 
-time_t Message::get_created_at() const
+uint64_t Message::get_created_at() const
 {
     return this->created_at;
 }
 
-time_t Message::get_modified_at() const
+uint64_t Message::get_modified_at() const
 {
     return this->modified_at;
 }
@@ -54,12 +56,12 @@ uint64_t Message::get_snowflake() const
 void Message::set_text(std::string &text)
 {
     this->text = text;
-    this->modified_at = time(nullptr);
+    this->modified_at = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::system_clock::now().time_since_epoch())
+                            .count();
 }
 
 void Message::set_read_by(UUID &user_id)
 {
     this->read_by.push_back(user_id);
 }
-
-

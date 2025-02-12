@@ -1,5 +1,6 @@
 #include <unordered_map>
-#include "models/message_db.hpp"
+
+#include "server/db/message_db.hpp"
 
 message_db::message_db() {}
 

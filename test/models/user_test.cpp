@@ -1,27 +1,27 @@
 #include <gtest/gtest.h>
-#include "models/user.hpp"
 #include <stdexcept>
 
+#include "models/user.hpp"
 TEST(UserTest, MakeUser)
 {
-    User user("tomdavkam", "passphrase", "thomas");
+    User user("tomdavkam", "thomas");
 
     EXPECT_EQ(user.get_username(), "tomdavkam");
     EXPECT_EQ(user.get_display_name(), "thomas");
-    EXPECT_EQ(user.get_profile_pic(),  "./assets/profile_pics/blank_profile_pic.png");
+    EXPECT_EQ(user.get_profile_pic(), "./assets/profile_pics/blank_profile_pic.png");
 }
 
 TEST(UserTest, DifferentUIDs)
 {
-    User user1("tomdavkam", "banana", "thomas");
-    User user2("hizhar", "apple", "hammad");
+    User user1("tomdavkam", "thomas");
+    User user2("hizhar", "hammad");
 
     EXPECT_NE(user1.get_uid(), user2.get_uid());
 }
 
 TEST(UserTest, AddChannel)
 {
-    User user("tomdavkam", "banana", "thomas");
+    User user("tomdavkam", "thomas");
     UUID channel1 = UUID();
     UUID channel2 = UUID();
 
@@ -38,7 +38,7 @@ TEST(UserTest, AddChannel)
 
 TEST(UserTest, RemoveChannel)
 {
-    User user("tomdavkam", "banana", "thomas");
+    User user("tomdavkam", "thomas");
     UUID channel1 = UUID();
     UUID channel2 = UUID();
     user.add_channel(channel1);
@@ -53,7 +53,7 @@ TEST(UserTest, RemoveChannel)
 
 TEST(UserTest, RemoveNonexistentChannel)
 {
-    User user("tomdavkam", "banana", "thomas");
+    User user("tomdavkam", "thomas");
     UUID channel1 = UUID();
     UUID channel2 = UUID();
     user.add_channel(channel1);

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
-#include "models/message.hpp"
 #include <stdexcept>
+
+#include "models/message.hpp"
 
 TEST(MessageTest, MakeMessage)
 {

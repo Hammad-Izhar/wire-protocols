@@ -4,12 +4,13 @@
 #include <array>
 #include <string>
 #include <algorithm>
-#include "models/UUID.hpp"
+
+#include "models/uuid.hpp"
 
 class User
 {
 public:
-    User(std::string username, std::string password, std::string display_name);
+    User(std::string username, std::string display_name);
 
     // Getters
     [[nodiscard]] const UUID &get_uid() const;
@@ -24,8 +25,6 @@ public:
 
     [[nodiscard]] const std::vector<UUID> &get_channels() const;
 
-    // [[nodiscard]] const std::vector<std::array<uint8_t,16> > &get_channels() const;
-
     // Setters
 
     void set_username(std::string username);
@@ -36,14 +35,13 @@ public:
 
     void add_channel(UUID channel);
 
-    void remove_channel(UUID channel);
+    void remove_channel(UUID channel_id);
 
 private:
-    UUID uid; // User ID
-    std::string username; // Username
-    std::string password; // Password
-    std::string display_name; // Display name
-    std::string profile_pic; // URL to profile picture
-    std::string public_key; // Public key for encryption
+    UUID uid;                   // User ID
+    std::string username;       // Username
+    std::string display_name;   // Display name
+    std::string profile_pic;    // URL to profile picture
+    std::string public_key;     // Public key for encryption
     std::vector<UUID> channels; // List of channel IDs
 };

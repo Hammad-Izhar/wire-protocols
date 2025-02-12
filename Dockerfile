@@ -21,6 +21,8 @@ RUN apt-get install -y \
     sudo  # Add sudo for privilege escalation if needed
 
 RUN groupadd -r wireshark && useradd -m -s /bin/bash -G wireshark cs2620
+RUN usermod -aG ubuntu cs2620
+
 
 RUN chgrp wireshark /usr/bin/dumpcap && \
     chmod 750 /usr/bin/dumpcap && \
