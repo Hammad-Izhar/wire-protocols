@@ -4,8 +4,8 @@
 
 TEST(MessageTest, MakeMessage)
 {
-    std::array<uint8_t,16> sender_id = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    std::array<uint8_t,16> channel_id = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+    UUID sender_id = UUID();
+    UUID channel_id = UUID();
     std::string text = "Hello world";
     Message message(sender_id, channel_id, text);
 
@@ -16,8 +16,8 @@ TEST(MessageTest, MakeMessage)
 
 TEST(MessageTest, ModifyMessage)
 {
-    std::array<uint8_t,16> sender_id = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    std::array<uint8_t,16> channel_id = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+    UUID sender_id = UUID();
+    UUID channel_id = UUID();
     std::string text = "Hello world";
     Message message(sender_id, channel_id, text);
     time_t modified_at = message.get_modified_at();
@@ -34,8 +34,8 @@ TEST(MessageTest, ModifyMessage)
 
 TEST(MessageTest, UniqueSnowflakes)
 {
-    std::array<uint8_t,16> sender_id = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    std::array<uint8_t,16> channel_id = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+    UUID sender_id = UUID();
+    UUID channel_id = UUID();
     std::string text = "Hello world";
     Message message1(sender_id, channel_id, text);
     Message message2(sender_id, channel_id, text);
@@ -44,11 +44,11 @@ TEST(MessageTest, UniqueSnowflakes)
 
 TEST(MessageTest, AddReadBy)
 {
-    std::array<uint8_t,16> sender_id = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    std::array<uint8_t,16> channel_id = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+    UUID sender_id = UUID();
+    UUID channel_id = UUID();
     std::string text = "Hello world";
     Message message(sender_id, channel_id, text);
-    std::array<uint8_t,16> user_id = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2};
+    UUID user_id = UUID();
     message.set_read_by(user_id);
     EXPECT_EQ(message.get_read_by().size(), 2);
 }

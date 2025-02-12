@@ -7,13 +7,7 @@ User::User(std::string username, std::string password, std::string display_name)
     : username(username), password(password), display_name(display_name) 
 {
     // Generate a random UID
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint8_t> dis(0, 255);
-
-    for (int i = 0; i < 16; ++i) {
-        this->uid[i] = dis(gen);
-    }
+    this->uid = UUID();
 
     // Set profile pic to default (Grey question mark)
     this->profile_pic = "./assets/profile_pics/blank_profile_pic.png";
@@ -27,7 +21,7 @@ const std::string &User::get_username() const
     return this->username;
 }
 
-const std::array<uint8_t,16> &User::get_uid() const
+const UUID &User::get_uid() const
 {
     return this->uid;
 }
@@ -42,7 +36,7 @@ const std::string &User::get_profile_pic() const
     return this->profile_pic;
 }
 
-const std::vector< std::array<uint8_t,16> > &User::get_channels() const
+const std::vector<UUID> &User::get_channels() const
 {
     return this->channels;
 }
@@ -62,17 +56,17 @@ void User::set_profile_pic(std::string profile_pic)
     this->profile_pic = profile_pic;
 }
 
-void User::add_channel(std::array<uint8_t,16> channel)
+void User::add_channel(UUID channel)
 {
     this->channels.push_back(channel);
 }
 
-void User::remove_channel(std::array<uint8_t,16> channel)
+void User::remove_channel(UUID channel)
 {
     auto it = std::find(this->channels.begin(), this->channels.end(), channel);
     if (it != this->channels.end()) {
         this->channels.erase(it);
     } else {
-        throw std::runtime_error("Channel not found: " + std::to_string(channel[0]));
+        throw std::runtime_error("Channel not found: " + channel.toString());
     }
 }
