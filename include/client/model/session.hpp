@@ -7,13 +7,22 @@
 #include <QWaitCondition>
 
 #include "client/model/TcpClient.hpp"
+#include "client/gui/components/stacked_window.hpp"
+
+enum Window
+{
+    CONNECTION = 0,
+    AUTHENTICATION = 1,
+    MAIN = 2
+};
 
 class Session
 {
 public:
     std::optional<std::pair<std::string, uint16_t>> connection_address;
     std::optional<std::string> error;
-    std::unique_ptr<TcpClient> tcp_client;
+    TcpClient *tcp_client;
+    StackedWindow *main_window;
     QMutex session_mutex;
 
     static Session &getInstance();

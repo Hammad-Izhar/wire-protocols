@@ -49,7 +49,7 @@ LoginTab::LoginTab(QWidget *parent) : QWidget(parent)
     mainLayout->addWidget(spinner);
     mainLayout->setAlignment(Qt::AlignCenter);
 
-        setFixedSize(450, sizeHint().height());
+    setFixedSize(450, sizeHint().height());
 }
 
 void LoginTab::on_submit()
@@ -66,8 +66,6 @@ void LoginTab::on_submit()
     {
         return;
     }
-
-    qDebug() << username.toStdString().c_str() << ":" << password.toStdString().c_str();
 
     set_loading(true);
     QTimer::singleShot(5000, this, [this]()

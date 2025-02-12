@@ -82,8 +82,6 @@ void RegistrationTab::on_submit()
         return;
     }
 
-    qDebug() << username.toStdString().c_str() << ":" << displayName.toStdString().c_str() << ":" << password.toStdString().c_str();
-
     set_loading(true);
     QTimer::singleShot(5000, this, [this]()
                        { set_loading(false); });

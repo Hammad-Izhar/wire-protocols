@@ -95,13 +95,9 @@ void ConnectionWindow::on_submit()
         return;
     }
 
-    qDebug() << hostname.toStdString().c_str() << ":" << port.toStdString().c_str();
-
     Session &session = Session::getInstance();
     session.tcp_client->connectToServer(QString::fromStdString(hostname.toStdString()), port.toUInt());
 
-    // TODO: Handle connection failure and show error message
-    // TODO on success, move to the authentication window
     set_loading(false);
 }
 

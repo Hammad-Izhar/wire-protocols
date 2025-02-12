@@ -1,4 +1,5 @@
 #include "client/model/TcpClient.hpp"
+#include "client/model/session.hpp"
 
 TcpClient::TcpClient(QObject *parent) : QObject(parent)
 {
@@ -39,12 +40,17 @@ QAbstractSocket::SocketState TcpClient::getConnectionStatus() const
 
 void TcpClient::onConnected()
 {
+    Session &session = Session::getInstance();
     qDebug() << "Connected to server";
+    session.main_window->animatePageTransition(Window::AUTHENTICATION);
 }
 void TcpClient::onDisconnected()
 {
+    Session &session = Session::getInstance();
     qDebug() << "Disconnected from server";
+    session.main_window->animatePageTransition(Window::CONNECTION);
 }
+
 void TcpClient::onErrorOccurred(QAbstractSocket::SocketError socketError)
 {
     qDebug() << "Socket error:" << socket->errorString();

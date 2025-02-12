@@ -1,10 +1,13 @@
-#include <QApplication>
+#include <QWidget>
 
 #include "client/model/session.hpp"
 
 Session &Session::getInstance()
 {
     static Session instance;
-    instance.tcp_client = std::make_unique<TcpClient>(QApplication::instance());
+    if (!instance.tcp_client)
+        instance.tcp_client = new TcpClient();
+    if (!instance.main_window)
+        instance.main_window = new StackedWindow();
     return instance;
 }

@@ -1,6 +1,6 @@
+#pragma once
 #include <QTcpSocket>
 #include <QHostAddress>
-#include <QDebug>
 
 class TcpClient : public QObject
 {
