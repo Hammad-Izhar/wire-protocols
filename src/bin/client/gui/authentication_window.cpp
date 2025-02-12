@@ -6,8 +6,10 @@
 AuthenticationWindow::AuthenticationWindow(QWidget *parent) : QWidget(parent)
 {
     QTabWidget *tabs = new QTabWidget(this);
-    loginTab = new LoginTab(tabs);
-    registrationTab = new RegistrationTab(tabs);
+
+    loginTab = new LoginTab(this);
+    registrationTab = new RegistrationTab(tabs, this);
+
     tabs->addTab(loginTab, "Login");
     tabs->addTab(registrationTab, "Register");
 
