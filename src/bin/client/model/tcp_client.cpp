@@ -1,4 +1,4 @@
-#include "client/model/TcpClient.hpp"
+#include "client/model/tcp_client.hpp"
 #include "client/model/session.hpp"
 
 TcpClient::TcpClient(QObject *parent) : QObject(parent)

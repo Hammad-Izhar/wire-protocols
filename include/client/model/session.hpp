@@ -6,7 +6,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 
-#include "client/model/TcpClient.hpp"
+#include "client/model/tcp_client.hpp"
 #include "client/gui/components/stacked_window.hpp"
 
 enum Window
