@@ -8,6 +8,7 @@
 #include "message/delete_account.hpp"
 #include "message/list_accounts.hpp"
 #include "message/send_message.hpp"
+#include "message/delete_message.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -26,6 +27,8 @@ int main(int argc, char *argv[])
                                                   { std::cout << "ListAccounts message received" << std::endl; });
     handler.register_handler<SendMessageMessage>([](SendMessageMessage &msg)
                                                  { std::cout << "SendMessage message received" << std::endl; });
+    handler.register_handler<DeleteMessageMessage>([](DeleteMessageMessage &msg)
+                                                 { std::cout << "DeleteMessage message received" << std::endl; });
 
     if (!server.listen(QHostAddress::Any, 12345))
     {

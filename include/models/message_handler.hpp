@@ -2,6 +2,7 @@
 #include <functional>
 #include <unordered_map>
 #include <typeindex>
+#include <iostream>
 
 class MessageHandler
 {

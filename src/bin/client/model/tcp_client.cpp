@@ -6,7 +6,6 @@
 #include "message/register_account.hpp"
 #include "message/header.hpp"
 #include "models/message_handler.hpp"
-#include "tcp_client.hpp"
 #include "constants.hpp"
 
 TcpClient::TcpClient(QObject *parent) : QObject(parent)

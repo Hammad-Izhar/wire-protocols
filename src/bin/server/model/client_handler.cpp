@@ -10,6 +10,7 @@
 #include "message/delete_account.hpp"
 #include "message/list_accounts.hpp"
 #include "message/send_message.hpp"
+#include "message/delete_message.hpp"
 
 ClientHandler::ClientHandler(qintptr socketDescriptor, QObject *parent) : QObject(parent), socketDescriptor(socketDescriptor)
 {
@@ -86,6 +87,13 @@ void ClientHandler::onReadyRead()
         SendMessageMessage sendMessage;
         sendMessage.deserialize(msg);
         messageHandler.dispatch(sendMessage);
+        break;
+    }
+    case Operation::DELETE_MESSAGE:
+    {
+        DeleteMessageMessage deleteMessage;
+        deleteMessage.deserialize(msg);
+        messageHandler.dispatch(deleteMessage);
         break;
     }
 
