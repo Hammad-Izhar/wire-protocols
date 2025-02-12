@@ -4,12 +4,11 @@
 
 #include "models/message.hpp"
 
-class message_db
+class MessageTable
 {
 public:
-    message_db();
+    MessageTable();
     // Getters
-    [[nodiscard]] const std::unordered_map<uint64_t, Message> &get_data() const;
     [[nodiscard]] const Message get_by_uid(uint64_t message_snowflake) const;
 
     // Setters

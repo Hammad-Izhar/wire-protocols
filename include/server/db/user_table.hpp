@@ -4,13 +4,12 @@
 #include "models/user.hpp"
 #include "models/uuid.hpp"
 
-class user_db
+class UserTable
 {
 public:
-    user_db() = default;
+    UserTable() = default;
 
     // Getters
-    [[nodiscard]] const std::unordered_map<UUID, User> &get_data() const;
     [[nodiscard]] User &get_by_uid(UUID user_uid);
 
     // Setters

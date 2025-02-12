@@ -2,18 +2,18 @@
 #include <unordered_map>
 #include <stdint.h>
 
-#include "server/db/user_db.hpp"
-#include "server/db/message_db.hpp"
-#include "server/db/channel_db.hpp"
 #include "models/uuid.hpp"
 #include "models/user.hpp"
 #include "models/message.hpp"
 #include "models/channel.hpp"
+#include "server/db/user_table.hpp"
+#include "server/db/message_table.hpp"
+#include "server/db/channel_table.hpp"
 
-class database
+class Database
 {
 public:
-    database();
+    Database();
     // Getters
     [[nodiscard]] User &get_user_by_uid(UUID user_uid);
     [[nodiscard]] const Message &get_message_by_uid(uint64_t message_snowflake) const;
@@ -31,7 +31,7 @@ public:
     void remove_channel(UUID channel_uid);
 
 private:
-    user_db users;
-    message_db messages;
-    channel_db channels;
+    UserTable users;
+    MessageTable messages;
+    ChannelTable channels;
 };

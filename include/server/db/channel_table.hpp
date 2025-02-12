@@ -5,13 +5,11 @@
 #include "models/channel.hpp"
 #include "models/uuid.hpp"
 
-class channel_db
+class ChannelTable
 {
 public:
-    channel_db();
+    ChannelTable();
 
-    // Getters
-    [[nodiscard]] const std::unordered_map<UUID, Channel> &get_data() const;
     [[nodiscard]] Channel get_by_uid(UUID channel_uid) const;
 
     // Setters

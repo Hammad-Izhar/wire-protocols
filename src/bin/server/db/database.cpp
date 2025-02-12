@@ -1,40 +1,40 @@
-#include "models/database.hpp"
+#include "server/db/database.hpp"
 
-database::database()
+Database::Database()
 {
-    this->users = user_db();
-    this->messages = message_db();
-    this->channels = channel_db();
+    this->users = UserTable();
+    this->messages = MessageTable();
+    this->channels = ChannelTable();
 }
 
-User &database::get_user_by_uid(UUID user_uid)
+User &Database::get_user_by_uid(UUID user_uid)
 {
     return this->users.get_by_uid(user_uid);
 }
 
-const Message &database::get_message_by_uid(uint64_t message_snowflake) const
+const Message &Database::get_message_by_uid(uint64_t message_snowflake) const
 {
     return this->messages.get_by_uid(message_snowflake);
 }
 
-const Channel &database::get_channel_by_uid(UUID channel_uid) const
+const Channel &Database::get_channel_by_uid(UUID channel_uid) const
 {
     return this->channels.get_by_uid(channel_uid);
 }
 
-void database::add_user(User &user)
+void Database::add_user(User &user)
 {
     this->users.add_user(user);
 }
 
-void database::add_message(Message &message)
+void Database::add_message(Message &message)
 {
     this->messages.add_message(message);
     // Add message snowflake to channel
     this->channels.get_by_uid(message.get_channel_id()).add_message(message.get_snowflake());
 }
 
-void database::add_channel(Channel &channel)
+void Database::add_channel(Channel &channel)
 {
     this->channels.add_channel(channel);
     // Add channel to all users
@@ -44,7 +44,7 @@ void database::add_channel(Channel &channel)
     }
 }
 
-void database::remove_user(UUID user_uid)
+void Database::remove_user(UUID user_uid)
 {
     this->users.remove_user(user_uid);
     // Remove user from all channels
@@ -64,14 +64,14 @@ void database::remove_user(UUID user_uid)
     }
 }
 
-void database::remove_message(uint64_t message_snowflake)
+void Database::remove_message(uint64_t message_snowflake)
 {
     this->messages.remove_message(message_snowflake);
     Channel channel = this->channels.get_by_uid(this->messages.get_by_uid(message_snowflake).get_channel_id());
     channel.remove_message(message_snowflake);
 }
 
-void database::remove_channel(UUID channel_uid)
+void Database::remove_channel(UUID channel_uid)
 {
     this->channels.remove_channel(channel_uid);
     // Remove all messages in the channel
