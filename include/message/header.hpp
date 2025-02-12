@@ -29,7 +29,7 @@ class Header : public Serializable {
 
     void deserialize(const std::vector<uint8_t>& buf) override;
 
-    [[nodiscard]] static size_t size();
+    [[nodiscard]] size_t size() const override;
 
     [[nodiscard]] uint8_t get_version() const;
 

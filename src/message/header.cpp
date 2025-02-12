@@ -22,7 +22,7 @@ void Header::deserialize(const std::vector<uint8_t>& buf) {
     this->packet_length = ntohs(packet_length_be);
 }
 
-size_t Header::size() {
+size_t Header::size() const {
     return sizeof(version) + sizeof(operation) + sizeof(packet_length);
 }
 

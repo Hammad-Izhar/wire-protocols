@@ -27,14 +27,14 @@ void ClientHandler::handleClient() {
 }
 
 void ClientHandler::onReadyRead() {
-    if (socket->bytesAvailable() < Header::size())
+    Header header;
+    if (socket->bytesAvailable() < header.size())
         return;
 
-    QByteArray headerData = socket->read(Header::size());
+    QByteArray headerData = socket->read(header.size());
     std::vector<uint8_t> vec(headerData.size());
     std::transform(headerData.begin(), headerData.end(), vec.begin(),
                    [](char c) { return static_cast<uint8_t>(c); });
-    Header header;
     header.deserialize(vec);
     qDebug() << "Received header: " << header.get_version() << " " << header.get_operation() << " "
              << header.get_packet_length();

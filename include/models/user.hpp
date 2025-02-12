@@ -17,9 +17,10 @@ class User : public Serializable {
     User() = default;
 
     void serialize(std::vector<uint8_t>& buf) const override;
+
     void deserialize(const std::vector<uint8_t>& buf) override;
 
-    [[nodiscard]] size_t size() const;
+    size_t size() const override;
 
     // Getters
     [[nodiscard]] const UUID& get_uid();

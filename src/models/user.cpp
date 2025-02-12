@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstdint>
 
 #include "models/user.hpp"
 
@@ -22,52 +23,44 @@ void User::serialize(std::vector<uint8_t>& buf) const {
     uint8_t display_name_length = this->display_name.size();
     uint8_t profile_pic_length = this->profile_pic.size();
 
+    this->uid.serialize(buf);
+
     buf.push_back(username_length);
-    for (const auto& c : this->username) {
-        buf.push_back(c);
-    }
+    buf.insert(buf.end(), this->username.begin(), this->username.end());
 
     buf.push_back(display_name_length);
-    for (const auto& c : this->display_name) {
-        buf.push_back(c);
-    }
+    buf.insert(buf.end(), this->display_name.begin(), this->display_name.end());
 
     buf.push_back(profile_pic_length);
-    for (const auto& c : this->profile_pic) {
-        buf.push_back(c);
-    }
-
-    this->uid.serialize(buf);
+    buf.insert(buf.end(), this->profile_pic.begin(), this->profile_pic.end());
 }
 
 void User::deserialize(const std::vector<uint8_t>& buf) {
     size_t offset = 0;
-    uint8_t username_length = buf[offset++];
-    uint8_t display_name_length = buf[offset++];
-    uint8_t profile_pic_length = buf[offset++];
+    this->uid.deserialize(buf);
+    offset += this->uid.size();
 
+    uint8_t username_length = buf[offset++];
     this->username = std::string(buf.begin() + offset, buf.begin() + offset + username_length);
     offset += username_length;
 
+    uint8_t display_name_length = buf[offset++];
     this->display_name =
         std::string(buf.begin() + offset, buf.begin() + offset + display_name_length);
     offset += display_name_length;
 
+    uint8_t profile_pic_length = buf[offset++];
     this->profile_pic =
         std::string(buf.begin() + offset, buf.begin() + offset + profile_pic_length);
     offset += profile_pic_length;
-
-    this->uid.deserialize(buf);
 }
 
 size_t User::size() const {
-    size_t size = 1;  // for the username length
-    size += this->username.size();
-    size += 1;  // for the display name length
-    size += this->display_name.size();
-    size += 1;  // for the profile pic length
-    size += this->profile_pic.size();
-    size += 16;  // for the uid
+    size_t size = this->uid.size();
+    size += 1 + this->username.size();      // for the username and its length byte
+    size += 1 + this->display_name.size();  // for the display name and its length byte
+    size += 1 + this->profile_pic.size();   // for the profile pic and its length byte
+
     return size;
 }
 
@@ -118,6 +111,6 @@ void User::add_channel(UUID channel_id) {
 
 void User::remove_channel(UUID channel_id) {
     std::lock_guard<std::mutex> lock(this->mutex);
-    std::remove_if(this->channels.begin(), this->channels.end(),
-                   [channel_id](UUID& c) { return c == channel_id; });
+    this->channels.erase(std::remove_if(this->channels.begin(), this->channels.end(),
+                                        [channel_id](UUID& c) { return c == channel_id; }));
 }
