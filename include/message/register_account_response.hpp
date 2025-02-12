@@ -23,7 +23,7 @@ public:
 
     [[nodiscard]] bool is_success() const;
 
-    [[nodiscard]] const std::optional<std::string> &get_error_message() const;
+    [[nodiscard]] const std::optional<std::string> get_error_message() const;
 
 private:
     std::variant<std::monostate, std::string> error_message;

@@ -58,7 +58,7 @@ void RegisterAccountResponse::deserialize(const std::vector<uint8_t> &buf)
     return std::holds_alternative<std::monostate>(error_message);
 }
 
-[[nodiscard]] const std::optional<std::string> &RegisterAccountResponse::get_error_message() const
+[[nodiscard]] const std::optional<std::string> RegisterAccountResponse::get_error_message() const
 {
     if (is_success())
     {
