@@ -6,7 +6,6 @@
 #include "message/register_account.hpp"
 #include "message/header.hpp"
 #include "models/message_handler.hpp"
-#include "tcp_client.hpp"
 #include "constants.hpp"
 
 TcpClient::TcpClient(QObject *parent) : QObject(parent)
@@ -90,7 +89,7 @@ void TcpClient::onReadyRead()
     {
         RegisterAccountResponse response;
         response.deserialize(msg);
-        messageHandler.dispatch(response);
+        messageHandler.dispatch(socket, response);
         break;
     }
     default:

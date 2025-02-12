@@ -5,6 +5,8 @@
 #include "client/gui/connection_window.hpp"
 #include "client/gui/authentication_window.hpp"
 #include "client/gui/chat_window.hpp"
+#include "models/message_handler.hpp"
+#include "client/model/message_handlers.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -19,6 +21,9 @@ int main(int argc, char *argv[])
     session.main_window->addWidget(chatWindow);
     session.main_window->setCurrentIndex(0);
     session.main_window->show();
+
+    MessageHandler messageHandler;
+    messageHandler.register_handler<RegisterAccountResponse>(on_register_account_response);
 
     return app.exec();
 }

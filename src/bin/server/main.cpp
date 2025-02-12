@@ -8,6 +8,7 @@
 #include "message/delete_account.hpp"
 #include "message/list_accounts.hpp"
 #include "message/send_message.hpp"
+#include "server/model/message_handlers.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -16,16 +17,15 @@ int main(int argc, char *argv[])
 
     MessageHandler &handler = MessageHandler::get_instance();
 
-    handler.register_handler<RegisterAccountMessage>([](RegisterAccountMessage &msg)
-                                                     { std::cout << "RegisterAccount message received" << std::endl; });
-    handler.register_handler<LoginMessage>([](LoginMessage &msg)
-                                           { std::cout << "Login message received" << std::endl; });
-    handler.register_handler<DeleteAccountMessage>([](DeleteAccountMessage &msg)
-                                                   { std::cout << "DeleteAccount message received" << std::endl; });
-    handler.register_handler<ListAccountsMessage>([](ListAccountsMessage &msg)
-                                                  { std::cout << "ListAccounts message received" << std::endl; });
-    handler.register_handler<SendMessageMessage>([](SendMessageMessage &msg)
-                                                 { std::cout << "SendMessage message received" << std::endl; });
+    handler.register_handler<RegisterAccountMessage>(&on_register_account);
+    // handler.register_handler<LoginMessage>([](LoginMessage &msg)
+    //                                        { std::cout << "Login message received" << std::endl; });
+    // handler.register_handler<DeleteAccountMessage>([](DeleteAccountMessage &msg)
+    //                                                { std::cout << "DeleteAccount message received" << std::endl; });
+    // handler.register_handler<ListAccountsMessage>([](ListAccountsMessage &msg)
+    //                                               { std::cout << "ListAccounts message received" << std::endl; });
+    // handler.register_handler<SendMessageMessage>([](SendMessageMessage &msg)
+    //                                              { std::cout << "SendMessage message received" << std::endl; });
 
     if (!server.listen(QHostAddress::Any, 12345))
     {

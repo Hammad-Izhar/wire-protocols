@@ -10,6 +10,7 @@
 #include "message/delete_account.hpp"
 #include "message/list_accounts.hpp"
 #include "message/send_message.hpp"
+#include "constants.hpp"
 
 ClientHandler::ClientHandler(qintptr socketDescriptor, QObject *parent) : QObject(parent), socketDescriptor(socketDescriptor)
 {
@@ -39,8 +40,20 @@ void ClientHandler::onReadyRead()
     header.deserialize(vec);
     qDebug() << "Received header: " << header.get_version() << " " << header.get_operation() << " " << header.get_packet_length();
 
+    if (header.get_version() != PROTOCOL_VERSION)
+    {
+        return;
+    }
+
+    static constexpr uint8_t MAX_RETRIES = 100;
+    uint8_t retries = 0;
     while (socket->bytesAvailable() < header.get_packet_length())
     {
+        if (++retries > MAX_RETRIES)
+        {
+            qDebug() << "Too many retries";
+            return;
+        }
         QThread::msleep(100);
     }
 
@@ -56,14 +69,14 @@ void ClientHandler::onReadyRead()
     {
         RegisterAccountMessage registerAccount;
         registerAccount.deserialize(msg);
-        messageHandler.dispatch(registerAccount);
+        messageHandler.dispatch(socket, registerAccount);
         break;
     }
     case Operation::LOGIN:
     {
         LoginMessage login;
         login.deserialize(msg);
-        messageHandler.dispatch(login);
+        messageHandler.dispatch(socket, login);
         break;
     }
     case Operation::DELETE_ACCOUNT:
@@ -71,21 +84,21 @@ void ClientHandler::onReadyRead()
 
         DeleteAccountMessage deleteAccount;
         deleteAccount.deserialize(msg);
-        messageHandler.dispatch(deleteAccount);
+        messageHandler.dispatch(socket, deleteAccount);
         break;
     }
     case Operation::LIST_ACCOUNTS:
     {
         ListAccountsMessage listAccounts;
         listAccounts.deserialize(msg);
-        messageHandler.dispatch(listAccounts);
+        messageHandler.dispatch(socket, listAccounts);
         break;
     }
     case Operation::SEND_MESSAGE:
     {
         SendMessageMessage sendMessage;
         sendMessage.deserialize(msg);
-        messageHandler.dispatch(sendMessage);
+        messageHandler.dispatch(socket, sendMessage);
         break;
     }
 
