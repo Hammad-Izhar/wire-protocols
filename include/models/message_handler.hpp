@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <typeindex>
 #include <QTcpSocket>
+#include <iostream>
 
 class MessageHandler
 {
