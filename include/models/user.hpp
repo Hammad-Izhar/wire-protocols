@@ -8,13 +8,21 @@
 #include <mutex>
 
 #include "models/uuid.hpp"
+#include "message/serialize.hpp"
 
-class User
+class User : public Serializable
 {
 public:
     typedef std::shared_ptr<User> SharedPtr;
 
     User(std::string username, std::string display_name);
+    User(std::string username, std::string display_name, UUID uid, std::string profile_pic);
+    User() = default;
+
+    void serialize(std::vector<uint8_t> &buf) const override;
+    void deserialize(const std::vector<uint8_t> &buf) override;
+
+    [[nodiscard]] size_t size() const;
 
     // Getters
     [[nodiscard]] const UUID &get_uid();
