@@ -72,12 +72,12 @@ target_link_libraries(server PRIVATE Qt6::Core Qt6::Network)
 target_link_libraries(server PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 # Define Test executable
-add_executable(test
-    ${SOURCE_FILES}
-    ${TEST_SOURCE_FILES}
-)
+# add_executable(test
+#     ${SOURCE_FILES}
+#     ${TEST_SOURCE_FILES}
+# )
 
-target_link_libraries(test PRIVATE GTest::GTest GTest::Main)
+# target_link_libraries(test PRIVATE GTest::GTest GTest::Main)
 
 # Print included sources for debugging
 message(STATUS "Shared library source files:")

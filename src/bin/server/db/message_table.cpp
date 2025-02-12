@@ -2,8 +2,6 @@
 
 #include "server/db/message_table.hpp"
 
-MessageTable::MessageTable() {}
-
 std::optional<const Message::SharedPtr> MessageTable::get_by_uid(uint64_t message_snowflake)
 {
     std::lock_guard<std::mutex> lock(this->mutex);
