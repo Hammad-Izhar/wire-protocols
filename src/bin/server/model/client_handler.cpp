@@ -30,7 +30,7 @@ void ClientHandler::onReadyRead()
         return;
 
     QByteArray headerData = socket->read(Header::size());
-    std::vector<const uint8_t> vec(headerData.size());
+    std::vector<uint8_t> vec(headerData.size());
     std::transform(headerData.begin(), headerData.end(), vec.begin(), [](char c)
                    { return static_cast<uint8_t>(c); });
     Header header;
@@ -43,7 +43,7 @@ void ClientHandler::onReadyRead()
     }
 
     QByteArray data = socket->read(header.get_packet_length());
-    std::vector<const uint8_t> msg(headerData.size());
+    std::vector<uint8_t> msg(headerData.size());
     std::transform(data.begin(), data.end(), msg.begin(), [](char c)
                    { return static_cast<uint8_t>(c); });
 

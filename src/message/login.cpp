@@ -30,7 +30,7 @@ void LoginMessage::serialize_msg(std::vector<uint8_t> &buf) const
     this->serialize(buf);
 }
 
-void LoginMessage::deserialize(const std::vector<const uint8_t> &buf)
+void LoginMessage::deserialize(const std::vector<uint8_t> &buf)
 {
     uint8_t username_length = buf[0];
     uint8_t password_length = buf[username_length + 1];

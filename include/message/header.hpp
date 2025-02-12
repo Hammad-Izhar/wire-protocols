@@ -29,7 +29,7 @@ public:
 
     void serialize(std::vector<uint8_t> &buf) const override;
 
-    void deserialize(const std::vector<const uint8_t> &buf) override;
+    void deserialize(const std::vector<uint8_t> &buf) override;
 
     [[nodiscard]] static size_t size();
 
