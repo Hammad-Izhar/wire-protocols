@@ -78,6 +78,7 @@ void ClientHandler::onReadyRead()
     {
         LoginMessage login;
         login.deserialize(msg);
+        
         messageHandler.dispatch(socket, login);
         break;
     }

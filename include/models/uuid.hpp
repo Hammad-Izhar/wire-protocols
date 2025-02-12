@@ -12,6 +12,7 @@ public:
 
     // Default constructor (optional)
     UUID();
+    UUID(const std::array<uint8_t, 16> &value);
 
     void serialize(std::vector<uint8_t> &buf) const override;
     void deserialize(const std::vector<uint8_t> &buf) override;

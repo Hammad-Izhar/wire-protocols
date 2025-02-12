@@ -3,6 +3,7 @@
 
 #include "server/model/message_handlers.hpp"
 #include "message/register_account_response.hpp"
+#include "message/list_accounts_response.hpp"
 #include "server/db/database.hpp"
 #include "server/model/client_handler.hpp"
 #include "message/login_response.hpp"
@@ -98,7 +99,7 @@ void delete_account(DeleteAccountMessage &msg)
     db.remove_user(user_uid.value());
 }
 
-void list_accounts(ListAccountsMessage &msg)
+void list_accounts(QTcpSocket *socket, ListAccountsMessage &msg)
 {
     std::string regex_string = msg.get_regex();
     std::regex re(regex_string);
@@ -115,6 +116,13 @@ void list_accounts(ListAccountsMessage &msg)
             users.push_back(user.value());
         }
     }
+
+    ListAccountsResponse response(users);
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    socket->write(reinterpret_cast<const char *>(buf.data()), buf.size());
+    socket->flush();
+
 }
 
 void send_message(SendMessageMessage &msg)

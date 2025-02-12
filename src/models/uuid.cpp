@@ -17,6 +17,8 @@ UUID::UUID()
     }
 }
 
+UUID::UUID(const std::array<uint8_t, 16> &value) : value(value) {}
+
 void UUID::serialize(std::vector<uint8_t> &buf) const
 {
     for (auto byte : this->value)
