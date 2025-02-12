@@ -5,6 +5,7 @@
 #include <QGroupBox>
 #include <QValidator>
 #include <QString>
+#include <QPushButton>
 
 #include "client/gui/components/spinner.hpp"
 

@@ -5,6 +5,7 @@
 
 #include "client/gui/registration_tab.hpp"
 #include "client/gui/components/validated_text_input.hpp"
+#include "client/model/session.hpp"
 
 RegistrationTab::RegistrationTab(QWidget *parent) : QWidget(parent)
 {
@@ -44,6 +45,12 @@ RegistrationTab::RegistrationTab(QWidget *parent) : QWidget(parent)
     loginButton->setObjectName("registrationButton");
     connect(loginButton, &QPushButton::clicked, this, &RegistrationTab::on_submit);
 
+    QPushButton *disconnectButton = new QPushButton("Disconnect", this);
+    disconnectButton->setObjectName("disconnectButton");
+    connect(disconnectButton, &QPushButton::clicked, this, [this]()
+            { Session &session = Session::getInstance();
+                session.tcp_client->disconnectFromServer(); });
+
     spinner = new Spinner(this);
     spinner->hide();
 
@@ -58,6 +65,7 @@ RegistrationTab::RegistrationTab(QWidget *parent) : QWidget(parent)
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(inputGroup);
     mainLayout->addWidget(loginButton);
+    mainLayout->addWidget(disconnectButton);
     mainLayout->addWidget(spinner);
     mainLayout->setAlignment(Qt::AlignCenter);
 

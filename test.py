@@ -34,4 +34,8 @@ def start_server():
     server_socket.close()
 
 if __name__ == "__main__":
-    start_server()
+    while True:
+        try:
+            start_server()
+        except e:
+            print("Error: " + e)

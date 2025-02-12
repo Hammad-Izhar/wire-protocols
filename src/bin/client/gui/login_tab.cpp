@@ -5,6 +5,7 @@
 
 #include "client/gui/login_tab.hpp"
 #include "client/gui/components/validated_text_input.hpp"
+#include "client/model/session.hpp"
 
 LoginTab::LoginTab(QWidget *parent) : QWidget(parent)
 {
@@ -34,6 +35,12 @@ LoginTab::LoginTab(QWidget *parent) : QWidget(parent)
     loginButton->setObjectName("loginButton");
     connect(loginButton, &QPushButton::clicked, this, &LoginTab::on_submit);
 
+    QPushButton *disconnectButton = new QPushButton("Disconnect", this);
+    disconnectButton->setObjectName("disconnectButton");
+    connect(disconnectButton, &QPushButton::clicked, this, [this]()
+            { Session &session = Session::getInstance();
+                session.tcp_client->disconnectFromServer(); });
+
     spinner = new Spinner(this);
     spinner->hide();
 
@@ -46,6 +53,7 @@ LoginTab::LoginTab(QWidget *parent) : QWidget(parent)
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(inputGroup);
     mainLayout->addWidget(loginButton);
+    mainLayout->addWidget(disconnectButton);
     mainLayout->addWidget(spinner);
     mainLayout->setAlignment(Qt::AlignCenter);
 
