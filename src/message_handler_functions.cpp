@@ -53,3 +53,20 @@ void list_accounts(ListAccountsMessage &msg)
         }
     }
 }
+
+void send_message(SendMessageMessage &msg)
+{
+    Database &db = Database::get_instance();
+    std::optional<UUID> channel_uid = db.get_channel_uid_from_name(msg.get_channel_name());
+    if (!channel_uid.has_value())
+    {
+        return;
+    }
+    std::optional<UUID> sender_uid = db.get_uid_from_username(msg.get_sender_username());
+    if (!sender_uid.has_value())
+    {
+        return;
+    }
+
+    db.add_message_to_channel(channel_uid.value(), sender_uid.value(), msg.get_text());
+}
