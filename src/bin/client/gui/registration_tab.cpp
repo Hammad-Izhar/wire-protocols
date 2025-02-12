@@ -2,14 +2,13 @@
 #include <QFormLayout>
 #include <QVBoxLayout>
 #include <QTimer>
-#include <QTabWidget>
 
 #include "client/gui/authentication_window.hpp"
 #include "client/gui/registration_tab.hpp"
 #include "client/gui/components/validated_text_input.hpp"
 #include "client/model/session.hpp"
 
-RegistrationTab::RegistrationTab(QWidget *parent) : QWidget(parent)
+RegistrationTab::RegistrationTab(QWidget *parent, QTabWidget *tabWidget) : QWidget(parent), tabWidget(tabWidget)
 {
     inputGroup = new QGroupBox("", this);
 
@@ -104,7 +103,7 @@ void RegistrationTab::on_submit()
 void RegistrationTab::onRegistrationSuccess()
 {
     set_loading(false);
-    qobject_cast<QTabWidget *>(parentWidget())->setCurrentIndex(Tab::Login);
+    tabWidget->setCurrentIndex(Tab::Login);
 }
 
 void RegistrationTab::onRegistrationFailure(const QString &errorMessage)

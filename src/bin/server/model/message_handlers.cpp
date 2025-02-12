@@ -1,14 +1,16 @@
-#include "db/database.hpp"
 #include <string>
 #include <regex>
 
 #include "server/model/message_handlers.hpp"
 #include "message/register_account_response.hpp"
+#include "server/db/database.hpp"
 
 void on_register_account(QTcpSocket *socket, RegisterAccountMessage &msg)
 {
     Database &db = Database::get_instance();
-    User::SharedPtr user = std::make_shared<User>(msg.get_username(), msg.get_password(), msg.get_display_name());
+    User::SharedPtr user = std::make_shared<User>(msg.get_username(), msg.get_display_name());
+
+    // TODO: add password to the password table
 
     RegisterAccountResponse response(db.add_user(user));
     std::vector<uint8_t> buf;

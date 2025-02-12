@@ -1,5 +1,6 @@
 #include "message/register_account_response.hpp"
 #include "message/header.hpp"
+#include "constants.hpp"
 
 RegisterAccountResponse::RegisterAccountResponse(std::variant<std::monostate, std::string> error_message) : error_message(std::move(error_message)) {}
 
@@ -20,9 +21,7 @@ void RegisterAccountResponse::serialize(std::vector<uint8_t> &buf) const
 
 void RegisterAccountResponse::serialize_msg(std::vector<uint8_t> &buf) const
 {
-    Header header;
-    header.set_operation(Operation::REGISTER_ACCOUNT);
-    header.set_packet_length(size());
+    Header header(PROTOCOL_VERSION, Operation::REGISTER_ACCOUNT, this->size());
     header.serialize(buf);
     serialize(buf);
 }

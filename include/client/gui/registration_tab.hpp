@@ -6,6 +6,7 @@
 #include <QValidator>
 #include <QString>
 #include <QPushButton>
+#include <QTabWidget>
 
 #include "client/gui/components/spinner.hpp"
 
@@ -13,7 +14,7 @@ class RegistrationTab : public QWidget
 {
     Q_OBJECT
 public:
-    explicit RegistrationTab(QWidget *parent = nullptr);
+    explicit RegistrationTab(QWidget *parent = nullptr, QTabWidget *tabWidget);
 
 private slots:
     void onRegistrationSuccess();
@@ -21,6 +22,7 @@ private slots:
 
 private:
     QGroupBox *inputGroup;
+    QTabWidget *tabWidget;
     Spinner *spinner;
 
     void on_submit();

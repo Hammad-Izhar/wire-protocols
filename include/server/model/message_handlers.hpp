@@ -16,9 +16,5 @@ void delete_account(DeleteAccountMessage &msg);
 void list_accounts(ListAccountsMessage &msg);
 
 void send_message(SendMessageMessage &msg);
-<<<<<<< HEAD:include/server/model/message_handlers.hpp
-=======
 
 void delete_message(DeleteMessageMessage &msg);
-
->>>>>>> refs/remotes/origin/main:include/message_handler_functions.hpp

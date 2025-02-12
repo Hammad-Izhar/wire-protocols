@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     session.main_window->setCurrentIndex(0);
     session.main_window->show();
 
-    MessageHandler messageHandler;
+    MessageHandler &messageHandler = MessageHandler::get_instance();
     messageHandler.register_handler<RegisterAccountResponse>(on_register_account_response);
 
     return app.exec();
