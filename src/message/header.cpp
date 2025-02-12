@@ -17,7 +17,7 @@ void Header::serialize(std::vector<uint8_t> &buf) const
     buf.push_back(static_cast<uint8_t>(packet_length & 0xFF));
 }
 
-void Header::deserialize(const std::vector<uint8_t> &buf)
+void Header::deserialize(const std::vector<const uint8_t> &buf)
 {
     uint16_t packet_length_be;
     memcpy(&packet_length_be, &buf[2], sizeof(uint16_t));

@@ -1,6 +1,13 @@
 #include <iostream>
+#include <vector>
+#include <QThread>
 
 #include "server/model/client_handler.hpp"
+#include "server/model/message_handler.hpp"
+#include "message/header.hpp"
+#include "message/register_account.hpp"
+#include "message/login.hpp"
+#include "message/delete_account.hpp"
 
 ClientHandler::ClientHandler(qintptr socketDescriptor, QObject *parent) : QObject(parent), socketDescriptor(socketDescriptor)
 {
@@ -19,10 +26,56 @@ void ClientHandler::handleClient()
 
 void ClientHandler::onReadyRead()
 {
-    while (socket->bytesAvailable() > 0)
+    if (socket->bytesAvailable() < Header::size())
+        return;
+
+    QByteArray headerData = socket->read(Header::size());
+    std::vector<const uint8_t> vec(headerData.size());
+    std::transform(headerData.begin(), headerData.end(), vec.begin(), [](char c)
+                   { return static_cast<uint8_t>(c); });
+    Header header;
+    header.deserialize(vec);
+    qDebug() << "Received header: " << header.get_version() << " " << header.get_operation() << " " << header.get_packet_length();
+
+    while (socket->bytesAvailable() < header.get_packet_length())
     {
-        QByteArray data = socket->readAll();
-        qDebug() << "Received data: " << data.toStdString().c_str();
+        QThread::msleep(100);
+    }
+
+    QByteArray data = socket->read(header.get_packet_length());
+    std::vector<const uint8_t> msg(headerData.size());
+    std::transform(data.begin(), data.end(), msg.begin(), [](char c)
+                   { return static_cast<uint8_t>(c); });
+
+    MessageHandler &messageHandler = MessageHandler::get_instance();
+    switch (header.get_operation())
+    {
+    case Operation::REGISTER_ACCOUNT:
+    {
+        RegisterAccountMessage registerAccount;
+        registerAccount.deserialize(msg);
+        messageHandler.dispatch(registerAccount);
+        break;
+    }
+    case Operation::LOGIN:
+    {
+        LoginMessage login;
+        login.deserialize(msg);
+        messageHandler.dispatch(login);
+        break;
+    }
+    case Operation::DELETE_ACCOUNT:
+    {
+
+        DeleteAccountMessage deleteAccount;
+        deleteAccount.deserialize(msg);
+        messageHandler.dispatch(deleteAccount);
+        break;
+    }
+
+    default:
+        qDebug() << "Unknown operation";
+        break;
     }
 }
 
