@@ -5,6 +5,7 @@
 #include <QValidator>
 #include <QString>
 #include <QPushButton>
+#include <QTabWidget>
 
 #include "client/gui/components/spinner.hpp"
 
@@ -12,13 +13,19 @@ class LoginTab : public QWidget
 {
     Q_OBJECT
 public:
-    explicit LoginTab(QWidget *parent = nullptr);
+    explicit LoginTab(QTabWidget *tabWidget, QWidget *parent = nullptr);
 
 private:
     QGroupBox *inputGroup;
     Spinner *spinner;
+    QTabWidget *tabWidget;
 
-    void on_submit();
+    void
+    on_submit();
+
+private slots:
+    void onLoginSuccess();
+    void onLoginFailure(const QString &errorMessage);
 
     void set_loading(bool isLoading);
 

@@ -23,7 +23,8 @@ int main(int argc, char *argv[])
     session.main_window->show();
 
     MessageHandler &messageHandler = MessageHandler::get_instance();
-    messageHandler.register_handler<RegisterAccountResponse>(on_register_account_response);
+    messageHandler.register_handler<RegisterAccountResponse>(&on_register_account_response);
+    messageHandler.register_handler<LoginResponse>(&on_login_response);
 
     return app.exec();
 }

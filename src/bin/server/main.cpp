@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
     MessageHandler &handler = MessageHandler::get_instance();
 
     handler.register_handler<RegisterAccountMessage>(&on_register_account);
+    handler.register_handler<LoginMessage>(&on_login);
 
     if (!server.listen(QHostAddress::Any, 12345))
     {

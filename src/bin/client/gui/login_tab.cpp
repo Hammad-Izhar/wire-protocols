@@ -7,7 +7,7 @@
 #include "client/gui/components/validated_text_input.hpp"
 #include "client/model/session.hpp"
 
-LoginTab::LoginTab(QWidget *parent) : QWidget(parent)
+LoginTab::LoginTab(QTabWidget *tabWidget, QWidget *parent) : QWidget(parent), tabWidget(tabWidget)
 {
     inputGroup = new QGroupBox("", this);
 
@@ -57,6 +57,10 @@ LoginTab::LoginTab(QWidget *parent) : QWidget(parent)
     mainLayout->addWidget(spinner);
     mainLayout->setAlignment(Qt::AlignCenter);
 
+    Session &session = Session::getInstance();
+    connect(session.tcp_client, &TcpClient::loginSuccess, this, &LoginTab::onLoginSuccess);
+    connect(session.tcp_client, &TcpClient::loginFailure, this, &LoginTab::onLoginFailure);
+
     setFixedSize(450, sizeHint().height());
 }
 
@@ -76,8 +80,21 @@ void LoginTab::on_submit()
     }
 
     set_loading(true);
-    QTimer::singleShot(5000, this, [this]()
-                       { set_loading(false); });
+    Session &session = Session::getInstance();
+    session.tcp_client->login_user(username.toStdString(), password.toStdString());
+}
+
+void LoginTab::onLoginSuccess()
+{
+    set_loading(false);
+    Session &session = Session::getInstance();
+    session.main_window->animatePageTransition(Window::MAIN);
+}
+
+void LoginTab::onLoginFailure(const QString &errorMessage)
+{
+    set_loading(false);
+    qDebug() << "Login failed: " << errorMessage;
 }
 
 void LoginTab::set_loading(bool isLoading)
