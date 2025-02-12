@@ -15,11 +15,16 @@ public:
 
     void register_user(const std::string &username, const std::string &displayName, const std::string &password);
 
+    void login_user(const std::string &username, const std::string &password);
+
     [[nodiscard]] QAbstractSocket::SocketState getConnectionStatus() const;
 
 signals:
     void registrationSuccess();
     void registrationFailure(const QString &errorMessage);
+
+    void loginSuccess();
+    void loginFailure(const QString &errorMessage);
 
 private:
     QTcpSocket *socket;

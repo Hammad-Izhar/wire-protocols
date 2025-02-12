@@ -4,6 +4,8 @@
 #include "server/model/message_handlers.hpp"
 #include "message/register_account_response.hpp"
 #include "server/db/database.hpp"
+#include "server/model/client_handler.hpp"
+#include "message/login_response.hpp"
 
 void on_register_account(QTcpSocket *socket, RegisterAccountMessage &msg)
 {
@@ -24,6 +26,47 @@ void on_register_account(QTcpSocket *socket, RegisterAccountMessage &msg)
         // Try to add the password to the password table
         User::SharedPtr user = std::make_shared<User>(msg.get_username(), msg.get_display_name());
         response = RegisterAccountResponse(db.add_user(user, msg.get_password()));
+    }
+
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    socket->write(reinterpret_cast<const char *>(buf.data()), buf.size());
+    socket->flush();
+}
+
+void on_login(QTcpSocket *socket, LoginMessage &msg)
+{
+    Database &db = Database::get_instance();
+    ClientHandler *client = qobject_cast<ClientHandler *>(socket->parent());
+    if (client == nullptr)
+    {
+        qDebug() << "ClientHandler is null";
+        return;
+    }
+
+    LoginResponse response;
+    std::optional<UUID> user_uid = db.get_uid_from_username(msg.get_username());
+    if (!user_uid.has_value())
+    {
+        response = LoginResponse("Username does not exist");
+    }
+    else
+    {
+        std::variant<bool, std::string> res = db.verify_password(user_uid.value(), msg.get_password());
+        if (std::holds_alternative<std::string>(res))
+        {
+            response = LoginResponse(std::get<std::string>(res));
+        }
+        else if (!std::get<bool>(res))
+        {
+            response = LoginResponse("Incorrect password");
+        }
+        else
+        {
+            User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
+            client->setAuthenticatedUser(user);
+            response = LoginResponse();
+        }
     }
 
     std::vector<uint8_t> buf;

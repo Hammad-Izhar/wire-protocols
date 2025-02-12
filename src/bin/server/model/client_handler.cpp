@@ -21,6 +21,7 @@ void ClientHandler::handleClient()
 {
     socket = new QTcpSocket(this);
     socket->setSocketDescriptor(socketDescriptor);
+    authenticated_user = std::nullopt;
 
     connect(socket, &QTcpSocket::readyRead, this, &ClientHandler::onReadyRead);
     connect(socket, &QTcpSocket::disconnected, this, &ClientHandler::onDisconnected);
@@ -121,4 +122,9 @@ void ClientHandler::onDisconnected()
     qDebug() << "Client disconnected";
     socket->deleteLater();
     emit finished();
+}
+
+void ClientHandler::setAuthenticatedUser(const User::SharedPtr &user)
+{
+    authenticated_user = user;
 }

@@ -3,7 +3,9 @@
 #include "client/model/tcp_client.hpp"
 #include "client/model/session.hpp"
 #include "message/register_account_response.hpp"
+#include "message/login_response.hpp"
 #include "message/register_account.hpp"
+#include "message/login.hpp"
 #include "message/header.hpp"
 #include "models/message_handler.hpp"
 #include "constants.hpp"
@@ -39,6 +41,15 @@ void TcpClient::connectToServer(const QString &host, quint16 port)
 void TcpClient::register_user(const std::string &username, const std::string &displayName, const std::string &password)
 {
     RegisterAccountMessage message(username, displayName, password);
+    std::vector<uint8_t> data;
+    message.serialize_msg(data);
+    socket->write(reinterpret_cast<const char *>(data.data()), data.size());
+    socket->flush();
+}
+
+void TcpClient::login_user(const std::string &username, const std::string &password)
+{
+    LoginMessage message(username, password);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char *>(data.data()), data.size());
@@ -88,6 +99,13 @@ void TcpClient::onReadyRead()
     case Operation::REGISTER_ACCOUNT:
     {
         RegisterAccountResponse response;
+        response.deserialize(msg);
+        messageHandler.dispatch(socket, response);
+        break;
+    }
+    case Operation::LOGIN:
+    {
+        LoginResponse response;
         response.deserialize(msg);
         messageHandler.dispatch(socket, response);
         break;

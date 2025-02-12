@@ -9,7 +9,7 @@
 
 void on_register_account(QTcpSocket *socket, RegisterAccountMessage &msg);
 
-void login(LoginMessage &msg);
+void on_login(QTcpSocket *socket, LoginMessage &msg);
 
 void delete_account(DeleteAccountMessage &msg);
 
