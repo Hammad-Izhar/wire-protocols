@@ -3,7 +3,6 @@
 #include <iostream>
 #include <typeindex>
 #include <unordered_map>
-#include <variant>
 
 class MessageHandler {
    public:

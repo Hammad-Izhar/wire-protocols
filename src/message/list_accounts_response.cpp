@@ -1,7 +1,6 @@
 #include "message/list_accounts_response.hpp"
 #include "constants.hpp"
 #include "message/header.hpp"
-#include "models/uuid.hpp"
 
 ListAccountsResponse::ListAccountsResponse(std::vector<User::SharedPtr> data)
     : data(std::move(data)) {}

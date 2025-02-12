@@ -1,5 +1,6 @@
-#include "models/snowflake.hpp"
 #include <stdexcept>
+
+#include "models/snowflake.hpp"
 
 SnowflakeIDGenerator::SnowflakeIDGenerator(int64_t machineId, int64_t processId) {
     if (machineId > maxMachineId || machineId < 0) {

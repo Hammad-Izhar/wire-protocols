@@ -1,5 +1,4 @@
 #include <QThread>
-#include <iostream>
 #include <vector>
 
 #include "constants.hpp"

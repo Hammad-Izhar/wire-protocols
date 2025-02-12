@@ -1,5 +1,4 @@
 #include "models/message.hpp"
-
 #include "models/snowflake.hpp"
 
 Message::Message(UUID sender_id, UUID channel_id, std::string text)

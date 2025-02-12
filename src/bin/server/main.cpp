@@ -1,12 +1,8 @@
 #include <QCoreApplication>
 #include <iostream>
 
-#include "message/delete_account.hpp"
-#include "message/delete_message.hpp"
-#include "message/list_accounts.hpp"
 #include "message/login.hpp"
 #include "message/register_account.hpp"
-#include "message/send_message.hpp"
 #include "models/message_handler.hpp"
 #include "server/model/message_handlers.hpp"
 #include "server/model/tcp_server.hpp"

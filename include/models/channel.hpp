@@ -1,12 +1,9 @@
 #pragma once
 #include <stdint.h>
-#include <array>
 #include <memory>
 #include <mutex>
 #include <string>
 
-#include "models/message.hpp"
-#include "models/user.hpp"
 #include "models/uuid.hpp"
 
 class Channel {

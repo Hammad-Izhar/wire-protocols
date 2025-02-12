@@ -1,8 +1,6 @@
 #include <arpa/inet.h>
-#include <algorithm>
 #include <cstring>
 
-#include "constants.hpp"
 #include "message/header.hpp"
 
 Header::Header(uint8_t version, enum Operation operation, uint16_t packet_length)
@@ -18,11 +16,10 @@ void Header::serialize(std::vector<uint8_t>& buf) const {
 void Header::deserialize(const std::vector<uint8_t>& buf) {
     uint16_t packet_length_be;
     memcpy(&packet_length_be, &buf[2], sizeof(uint16_t));
-    packet_length = ntohs(packet_length_be);
 
     this->version = buf[0] >> 4;
     this->operation = static_cast<enum Operation>(buf[1]);
-    this->packet_length = packet_length;
+    this->packet_length = ntohs(packet_length_be);
 }
 
 size_t Header::size() {

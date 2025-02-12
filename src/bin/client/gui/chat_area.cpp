@@ -1,4 +1,5 @@
 #include "client/gui/chat_area.hpp"
+#include "client/gui/components/message_widget.hpp"
 
 ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
     QVBoxLayout* layout = new QVBoxLayout(this);

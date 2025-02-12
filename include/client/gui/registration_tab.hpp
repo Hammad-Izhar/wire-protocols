@@ -1,33 +1,31 @@
 #pragma once
-#include <QWidget>
-#include <QWidget>
-#include <QLineEdit>
 #include <QGroupBox>
-#include <QValidator>
-#include <QString>
+#include <QLineEdit>
 #include <QPushButton>
+#include <QString>
 #include <QTabWidget>
+#include <QValidator>
+#include <QWidget>
 
 #include "client/gui/components/spinner.hpp"
 
-class RegistrationTab : public QWidget
-{
+class RegistrationTab : public QWidget {
     Q_OBJECT
-public:
-    explicit RegistrationTab(QTabWidget *tabWidget, QWidget *parent = nullptr);
+   public:
+    explicit RegistrationTab(QTabWidget* tabWidget, QWidget* parent = nullptr);
 
-private slots:
+   private slots:
     void onRegistrationSuccess();
-    void onRegistrationFailure(const QString &errorMessage);
+    void onRegistrationFailure(const QString& errorMessage);
 
-private:
-    QGroupBox *inputGroup;
-    QTabWidget *tabWidget;
-    Spinner *spinner;
+   private:
+    QGroupBox* inputGroup;
+    QTabWidget* tabWidget;
+    Spinner* spinner;
 
     void on_submit();
 
     void set_loading(bool isLoading);
 
-    static std::function<bool(const QString &, QWidget *)> validate_text(const QValidator *validator);
+    static std::function<bool(const QString&, QWidget*)> validate_text(const QValidator* validator);
 };

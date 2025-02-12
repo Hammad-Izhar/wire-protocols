@@ -1,6 +1,5 @@
 #pragma once
 #include <stdint.h>
-#include <string>
 
 #include "message/serialize.hpp"
 #include "models/uuid.hpp"

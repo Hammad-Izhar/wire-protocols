@@ -4,45 +4,7 @@
 #include <QVBoxLayout>
 
 #include "client/gui/chat_sidebar.hpp"
-
-// ChatSidebar::ChatSidebar(QWidget *parent) : QWidget(parent)
-// {
-//     tabWidget = new QTabWidget(this);
-
-//     // Active Chats Tab
-//     activeChatsTab = new QWidget();
-//     QVBoxLayout *activeChatsLayout = new QVBoxLayout(activeChatsTab);
-
-//     QScrollArea *scrollArea = new QScrollArea();
-//     QWidget *chatListWidget = new QWidget();
-//     QVBoxLayout *chatListLayout = new QVBoxLayout(chatListWidget);
-
-//     chatListWidget->setLayout(chatListLayout);
-//     scrollArea->setWidget(chatListWidget);
-//     scrollArea->setWidgetResizable(true);
-
-//     activeChatsLayout->addWidget(scrollArea);
-//     activeChatsTab->setLayout(activeChatsLayout);
-
-//     // Search Tab
-//     searchTab = new QWidget();
-//     QVBoxLayout *searchLayout = new QVBoxLayout(searchTab);
-
-//     QLineEdit *searchField = new QLineEdit();
-//     QPushButton *searchButton = new QPushButton("Search");
-
-//     searchLayout->addWidget(searchField);
-//     searchLayout->addWidget(searchButton);
-//     searchTab->setLayout(searchLayout);
-
-//     // Add tabs
-//     tabWidget->addTab(activeChatsTab, "Chats");
-//     tabWidget->addTab(searchTab, "Search");
-
-//     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-//     mainLayout->addWidget(tabWidget);
-//     setLayout(mainLayout);
-// }
+#include "client/gui/components/profile_widget.hpp"
 
 ChatSidebar::ChatSidebar(QWidget* parent) : QWidget(parent) {
     tabWidget = new QTabWidget(this);

@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "models/channel.hpp"
 
 Channel::Channel(std::string name, std::vector<UUID> user_uids)
@@ -42,13 +44,19 @@ void Channel::add_message(const uint64_t& message_snowflake) {
 
 void Channel::remove_user(const UUID& user_uid) {
     std::lock_guard<std::mutex> lock(this->mutex);
-    std::remove_if(this->user_uids.begin(), this->user_uids.end(),
-                   [&user_uid](const UUID& uid) { return uid == user_uid; });
+    this->user_uids.erase(std::remove_if(this->user_uids.begin(), this->user_uids.end(),
+                                         [&user_uid](const UUID& uid) { return uid == user_uid; }),
+                          this->user_uids.end());
 }
 
 void Channel::remove_message(const uint64_t& message_snowflake) {
     std::lock_guard<std::mutex> lock(this->mutex);
-    std::remove_if(
-        this->message_snowflakes.begin(), this->message_snowflakes.end(),
-        [&message_snowflake](const uint64_t& snowflake) { return snowflake == message_snowflake; });
+    this->message_snowflakes.erase(
+        std::remove_if(this->message_snowflakes.begin(), this->message_snowflakes.end(),
+                       [&message_snowflake](const uint64_t& snowflake) {
+                           return snowflake == message_snowflake;
+                       }),
+        this->message_snowflakes.end());
+    this->message_snowflakes.begin(), this->message_snowflakes.end(),
+        [&message_snowflake](const uint64_t& snowflake) { return snowflake == message_snowflake; };
 }

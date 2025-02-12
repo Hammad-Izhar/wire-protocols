@@ -1,8 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include <array>
 #include <mutex>
-#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>

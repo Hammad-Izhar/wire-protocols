@@ -1,18 +1,20 @@
 #include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QSizePolicy>
 #include <QPainter>
 #include <QPainterPath>
+#include <QSizePolicy>
+#include <QVBoxLayout>
 
 #include "client/gui/components/profile_widget.hpp"
 
-ProfileWidget::ProfileWidget(const QString &profilePicPath, const QString &displayName, const QString &username, QWidget *parent)
-    : QWidget(parent)
-{
-
+ProfileWidget::ProfileWidget(const QString& profilePicPath,
+                             const QString& displayName,
+                             const QString& username,
+                             QWidget* parent)
+    : QWidget(parent) {
     // Apply border and padding to the entire widget
-    setStyleSheet("border: 2px solid #ccc; border-radius: 10px; background-color: white; padding: 5px;");
-    setFixedHeight(70); // Ensure all profile widgets have a uniform height
+    setStyleSheet(
+        "border: 2px solid #ccc; border-radius: 10px; background-color: white; padding: 5px;");
+    setFixedHeight(70);  // Ensure all profile widgets have a uniform height
 
     // Profile picture
     profilePicLabel = new QLabel(this);
@@ -50,7 +52,7 @@ ProfileWidget::ProfileWidget(const QString &profilePicPath, const QString &displ
     usernameLabel = new QLabel("@" + username, this);
     usernameLabel->setStyleSheet("color: gray; font-size: 12px;");
 
-    QVBoxLayout *nameLayout = new QVBoxLayout;
+    QVBoxLayout* nameLayout = new QVBoxLayout;
     nameLayout->addWidget(displayNameLabel);
     nameLayout->addWidget(usernameLabel);
     nameLayout->setSpacing(2);
@@ -58,17 +60,18 @@ ProfileWidget::ProfileWidget(const QString &profilePicPath, const QString &displ
     // Message button
     messageButton = new QPushButton("Message", this);
     messageButton->setStyleSheet("padding: 5px 10px;");
-    messageButton->setStyleSheet("QPushButton { background-color: #007BFF; color: white; border: none; border-radius: 5px; }"
-                                 "QPushButton:hover { background-color: #0056b3; }"
-                                 "QPushButton:pressed { background-color: #004085; }");
+    messageButton->setStyleSheet(
+        "QPushButton { background-color: #007BFF; color: white; border: none; border-radius: 5px; }"
+        "QPushButton:hover { background-color: #0056b3; }"
+        "QPushButton:pressed { background-color: #004085; }");
 
     // Main layout with padding
-    QHBoxLayout *mainLayout = new QHBoxLayout(this);
+    QHBoxLayout* mainLayout = new QHBoxLayout(this);
     mainLayout->addWidget(profilePicLabel);
     mainLayout->addLayout(nameLayout);
     mainLayout->addStretch();
     mainLayout->addWidget(messageButton);
-    mainLayout->setContentsMargins(10, 5, 10, 5); // Padding inside the border
+    mainLayout->setContentsMargins(10, 5, 10, 5);  // Padding inside the border
 
     setLayout(mainLayout);
 }

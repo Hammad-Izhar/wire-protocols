@@ -1,6 +1,5 @@
 #pragma once
 #include <stdint.h>
-#include <span>
 #include <vector>
 
 class Serializable {

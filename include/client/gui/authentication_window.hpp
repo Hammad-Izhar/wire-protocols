@@ -4,19 +4,14 @@
 #include "client/gui/login_tab.hpp"
 #include "client/gui/registration_tab.hpp"
 
-enum Tab
-{
-    Login = 0,
-    Register = 1
-};
+enum Tab { Login = 0, Register = 1 };
 
-class AuthenticationWindow : public QWidget
-{
+class AuthenticationWindow : public QWidget {
     Q_OBJECT
-public:
-    explicit AuthenticationWindow(QWidget *parent = nullptr);
+   public:
+    explicit AuthenticationWindow(QWidget* parent = nullptr);
 
-private:
-    LoginTab *loginTab;
-    RegistrationTab *registrationTab;
+   private:
+    LoginTab* loginTab;
+    RegistrationTab* registrationTab;
 };

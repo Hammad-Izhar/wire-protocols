@@ -1,18 +1,15 @@
 #pragma once
-#include <QWidget>
 #include <QTabWidget>
+#include <QWidget>
 
-#include "client/gui/components/profile_widget.hpp"
-
-class ChatSidebar : public QWidget
-{
+class ChatSidebar : public QWidget {
     Q_OBJECT
 
-public:
-    explicit ChatSidebar(QWidget *parent = nullptr);
+   public:
+    explicit ChatSidebar(QWidget* parent = nullptr);
 
-private:
-    QTabWidget *tabWidget;
-    QWidget *activeChatsTab;
-    QWidget *searchTab;
+   private:
+    QTabWidget* tabWidget;
+    QWidget* activeChatsTab;
+    QWidget* searchTab;
 };
