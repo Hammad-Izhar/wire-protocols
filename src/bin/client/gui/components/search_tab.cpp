@@ -53,7 +53,7 @@ void SearchTab::search() {
 }
 
 void SearchTab::onSearchSuccess(const std::vector<User::SharedPtr>& accounts) {
-    set_loading(true);
+    set_loading(false);
     for (const auto& account : accounts) {
         qDebug() << account->get_username().c_str();
     }
@@ -61,7 +61,7 @@ void SearchTab::onSearchSuccess(const std::vector<User::SharedPtr>& accounts) {
 }
 
 void SearchTab::onSearchFailure(const QString& errorMessage) {
-    set_loading(true);
+    set_loading(false);
     qDebug() << "search failed" << errorMessage;
     // TODO: update gui
 }
