@@ -6,7 +6,6 @@
 #include "client/gui/connection_window.hpp"
 #include "client/model/message_handlers.hpp"
 #include "client/model/session.hpp"
-#include "models/message_handler.hpp"
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
@@ -21,9 +20,7 @@ int main(int argc, char* argv[]) {
     session.main_window->setCurrentIndex(0);
     session.main_window->show();
 
-    MessageHandler& messageHandler = MessageHandler::get_instance();
-    messageHandler.register_handler<RegisterAccountResponse>(&on_register_account_response);
-    messageHandler.register_handler<LoginResponse>(&on_login_response);
+    init_message_handlers();
 
     return app.exec();
 }

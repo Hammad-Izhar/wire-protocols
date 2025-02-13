@@ -1,9 +1,16 @@
-#include <regex>
+#include <QTcpSocket>
 #include <string>
 
+#include "message/delete_account.hpp"
+#include "message/delete_message.hpp"
+#include "message/list_accounts.hpp"
 #include "message/list_accounts_response.hpp"
+#include "message/login.hpp"
 #include "message/login_response.hpp"
+#include "message/register_account.hpp"
 #include "message/register_account_response.hpp"
+#include "message/send_message.hpp"
+#include "models/message_handler.hpp"
 #include "server/db/database.hpp"
 #include "server/model/client_handler.hpp"
 #include "server/model/message_handlers.hpp"
@@ -63,7 +70,28 @@ void on_login(QTcpSocket* socket, LoginMessage& msg) {
     socket->flush();
 }
 
-void delete_account(DeleteAccountMessage& msg) {
+void on_list_accounts(QTcpSocket* socket, ListAccountsMessage& msg) {
+    std::string regex_string = msg.get_regex();
+    Database& db = Database::get_instance();
+
+    // TODO: Paginate this
+    std::vector<UUID> uuids = db.get_uuids_matching_regex(regex_string);
+    std::vector<User::SharedPtr> users = {};
+    for (const auto& uuid : uuids) {
+        std::optional<const User::SharedPtr> user = db.get_user_by_uid(uuid);
+        if (user.has_value()) {
+            users.push_back(user.value());
+        }
+    }
+
+    ListAccountsResponse response(users);
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
+    socket->flush();
+}
+
+void on_delete_account(QTcpSocket* socket, DeleteAccountMessage& msg) {
     Database& db = Database::get_instance();
 
     std::optional<UUID> user_uid = db.get_uid_from_username(msg.get_username());
@@ -82,29 +110,7 @@ void delete_account(DeleteAccountMessage& msg) {
     db.remove_user(user_uid.value());
 }
 
-void list_accounts(QTcpSocket* socket, ListAccountsMessage& msg) {
-    std::string regex_string = msg.get_regex();
-    std::regex re(regex_string);
-    Database& db = Database::get_instance();
-
-    std::vector<UUID> uuids = db.get_uuids_matching_regex(regex_string);
-
-    std::vector<User::SharedPtr> users = {};
-    for (const auto& uuid : uuids) {
-        std::optional<const User::SharedPtr> user = db.get_user_by_uid(uuid);
-        if (user.has_value()) {
-            users.push_back(user.value());
-        }
-    }
-
-    ListAccountsResponse response(users);
-    std::vector<uint8_t> buf;
-    response.serialize_msg(buf);
-    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
-    socket->flush();
-}
-
-void send_message(SendMessageMessage& msg) {
+void on_send_message(QTcpSocket* socket, SendMessageMessage& msg) {
     Database& db = Database::get_instance();
 
     std::shared_ptr<Message> message =
@@ -113,7 +119,18 @@ void send_message(SendMessageMessage& msg) {
     db.add_message(message);
 }
 
-void delete_message(DeleteMessageMessage& msg) {
+void on_delete_message(QTcpSocket* socket, DeleteMessageMessage& msg) {
     Database& db = Database::get_instance();
     db.remove_message(msg.get_message_snowflake());
+}
+
+void init_message_handlers() {
+    MessageHandler& messageHandler = MessageHandler::get_instance();
+
+    messageHandler.register_handler<RegisterAccountMessage>(&on_register_account);
+    messageHandler.register_handler<LoginMessage>(&on_login);
+    messageHandler.register_handler<ListAccountsMessage>(&on_list_accounts);
+    messageHandler.register_handler<DeleteAccountMessage>(&on_delete_account);
+    messageHandler.register_handler<SendMessageMessage>(&on_send_message);
+    messageHandler.register_handler<DeleteMessageMessage>(&on_delete_message);
 }

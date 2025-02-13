@@ -4,6 +4,8 @@
 #include "client/model/tcp_client.hpp"
 #include "constants.hpp"
 #include "message/header.hpp"
+#include "message/list_accounts.hpp"
+#include "message/list_accounts_response.hpp"
 #include "message/login.hpp"
 #include "message/login_response.hpp"
 #include "message/register_account.hpp"
@@ -46,6 +48,14 @@ void TcpClient::register_user(const std::string& username,
 
 void TcpClient::login_user(const std::string& username, const std::string& password) {
     LoginMessage message(username, password);
+    std::vector<uint8_t> data;
+    message.serialize_msg(data);
+    socket->write(reinterpret_cast<const char*>(data.data()), data.size());
+    socket->flush();
+}
+
+void TcpClient::search_accounts(const std::string& regex) {
+    ListAccountsMessage message(regex);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
@@ -95,6 +105,12 @@ void TcpClient::onReadyRead() {
         }
         case Operation::LOGIN: {
             LoginResponse response;
+            response.deserialize(msg);
+            messageHandler.dispatch(socket, response);
+            break;
+        }
+        case Operation::LIST_ACCOUNTS: {
+            ListAccountsResponse response;
             response.deserialize(msg);
             messageHandler.dispatch(socket, response);
             break;

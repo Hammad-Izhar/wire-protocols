@@ -2,6 +2,8 @@
 #include <QHostAddress>
 #include <QTcpSocket>
 
+#include "models/user.hpp"
+
 class TcpClient : public QObject {
     Q_OBJECT
 
@@ -18,6 +20,8 @@ class TcpClient : public QObject {
 
     void login_user(const std::string& username, const std::string& password);
 
+    void search_accounts(const std::string& regex);
+
     [[nodiscard]] QAbstractSocket::SocketState getConnectionStatus() const;
 
    signals:
@@ -26,6 +30,9 @@ class TcpClient : public QObject {
 
     void loginSuccess();
     void loginFailure(const QString& errorMessage);
+
+    void searchSuccess(const std::vector<User::SharedPtr>& accounts);
+    void searchFailure(const QString& errorMessage);
 
    private:
     QTcpSocket* socket;

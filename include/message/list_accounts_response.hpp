@@ -19,13 +19,13 @@ class ListAccountsResponse : public Serializable {
 
     void deserialize(const std::vector<uint8_t>& buf) override;
 
-    [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t size() const override;
 
     [[nodiscard]] bool is_success() const;
 
-    [[nodiscard]] const std::optional<std::string> get_error_message() const;
+    [[nodiscard]] std::optional<std::string> get_error_message() const;
 
-    [[nodiscard]] std::vector<User::SharedPtr>& get_users();
+    [[nodiscard]] std::optional<std::vector<User::SharedPtr>> get_users();
 
    private:
     std::variant<std::vector<User::SharedPtr>, std::string> data;

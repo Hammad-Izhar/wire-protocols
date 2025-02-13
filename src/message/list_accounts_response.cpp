@@ -1,4 +1,5 @@
 #include "message/list_accounts_response.hpp"
+#include <memory>
 #include "constants.hpp"
 #include "message/header.hpp"
 
@@ -35,7 +36,7 @@ void ListAccountsResponse::deserialize(const std::vector<uint8_t>& buf) {
         std::vector<User::SharedPtr> users = {};
         uint8_t users_length = buf[offset++];
         for (int i = 0; i < users_length; i++) {
-            User::SharedPtr user;
+            User::SharedPtr user = std::make_shared<User>();
             user->deserialize(std::vector<uint8_t>(buf.begin() + offset, buf.end()));
             offset += user->size();
             users.push_back(user);
@@ -67,6 +68,16 @@ void ListAccountsResponse::deserialize(const std::vector<uint8_t>& buf) {
     return std::holds_alternative<std::vector<User::SharedPtr>>(data);
 }
 
-std::vector<User::SharedPtr>& ListAccountsResponse::get_users() {
-    return std::get<std::vector<User::SharedPtr>>(data);
+std::optional<std::vector<User::SharedPtr>> ListAccountsResponse::get_users() {
+    if (std::holds_alternative<std::vector<User::SharedPtr>>(data)) {
+        return std::get<std::vector<User::SharedPtr>>(data);
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> ListAccountsResponse::get_error_message() const {
+    if (std::holds_alternative<std::string>(data)) {
+        return std::get<std::string>(data);
+    }
+    return std::nullopt;
 }
