@@ -9,7 +9,7 @@ enum Operation : uint8_t {
     LIST_ACCOUNTS = 2,
     DELETE_ACCOUNT = 3,
     SEND_MESSAGE = 4,
-    RECEIVE_MESSAGE = 5,
+    READ_MESSAGE = 5,
     DELETE_MESSAGE = 6,
     EDIT_MESSAGE = 7,
     UNREAD_MESSAGE = 8,
