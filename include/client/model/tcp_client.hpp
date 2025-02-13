@@ -22,6 +22,8 @@ class TcpClient : public QObject {
 
     void search_accounts(const std::string& regex);
 
+    void delete_account(const std::string& username, const std::string& password);
+
     [[nodiscard]] QAbstractSocket::SocketState getConnectionStatus() const;
 
    signals:
@@ -33,6 +35,9 @@ class TcpClient : public QObject {
 
     void searchSuccess(const std::vector<User::SharedPtr>& accounts);
     void searchFailure(const QString& errorMessage);
+
+    void deleteAccountSuccess();
+    void deleteAccountFailure(const QString& errorMessage);
 
    private:
     QTcpSocket* socket;

@@ -2,6 +2,7 @@
 #include <string>
 
 #include "message/delete_account.hpp"
+#include "message/delete_account_response.hpp"
 #include "message/delete_message.hpp"
 #include "message/list_accounts.hpp"
 #include "message/list_accounts_response.hpp"
@@ -93,21 +94,27 @@ void on_list_accounts(QTcpSocket* socket, ListAccountsMessage& msg) {
 
 void on_delete_account(QTcpSocket* socket, DeleteAccountMessage& msg) {
     Database& db = Database::get_instance();
+    DeleteAccountResponse response;
 
     std::optional<UUID> user_uid = db.get_uid_from_username(msg.get_username());
     if (!user_uid.has_value()) {
-        return;
-    }
-    // verify the password
-    std::variant<bool, std::string> res = db.verify_password(user_uid.value(), msg.get_password());
-    if (std::holds_alternative<std::string>(res)) {
-        return;
-    }
-    if (!std::get<bool>(res)) {
-        return;
+        response = DeleteAccountResponse("Username does not exist");
+    } else {
+        std::variant<bool, std::string> res =
+            db.verify_password(user_uid.value(), msg.get_password());
+        if (std::holds_alternative<std::string>(res)) {
+            response = DeleteAccountResponse(std::get<std::string>(res));
+        } else if (!std::get<bool>(res)) {
+            response = DeleteAccountResponse("Username and password do not match");
+        } else {
+            response = DeleteAccountResponse(db.remove_user(user_uid.value()));
+        }
     }
 
-    db.remove_user(user_uid.value());
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
+    socket->flush();
 }
 
 void on_send_message(QTcpSocket* socket, SendMessageMessage& msg) {

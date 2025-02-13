@@ -1,5 +1,6 @@
 #include "client/model/message_handlers.hpp"
 #include "client/model/session.hpp"
+#include "message/delete_account_response.hpp"
 #include "message/list_accounts_response.hpp"
 #include "message/login_response.hpp"
 #include "message/register_account_response.hpp"
@@ -42,9 +43,22 @@ void on_list_accounts_response(QTcpSocket* socket, ListAccountsResponse& msg) {
     }
 };
 
+void on_delete_account_response(QTcpSocket* socket, DeleteAccountResponse& msg) {
+    Session& session = Session::getInstance();
+    if (msg.is_success()) {
+        session.authenticated_user.reset();
+        session.main_window->animatePageTransition(Window::AUTHENTICATION);
+        emit session.tcp_client->deleteAccountSuccess();
+    } else {
+        emit session.tcp_client->deleteAccountFailure(
+            QString::fromStdString(msg.get_error_message().value()));
+    }
+};
+
 void init_message_handlers() {
     MessageHandler& messageHandler = MessageHandler::get_instance();
     messageHandler.register_handler<RegisterAccountResponse>(&on_register_account_response);
     messageHandler.register_handler<LoginResponse>(&on_login_response);
     messageHandler.register_handler<ListAccountsResponse>(&on_list_accounts_response);
+    messageHandler.register_handler<DeleteAccountResponse>(&on_delete_account_response);
 }

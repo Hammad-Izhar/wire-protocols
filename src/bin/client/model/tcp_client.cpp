@@ -3,6 +3,8 @@
 #include "client/model/session.hpp"
 #include "client/model/tcp_client.hpp"
 #include "constants.hpp"
+#include "message/delete_account.hpp"
+#include "message/delete_account_response.hpp"
 #include "message/header.hpp"
 #include "message/list_accounts.hpp"
 #include "message/list_accounts_response.hpp"
@@ -62,6 +64,14 @@ void TcpClient::search_accounts(const std::string& regex) {
     socket->flush();
 }
 
+void TcpClient::delete_account(const std::string& username, const std::string& password) {
+    DeleteAccountMessage message(username, password);
+    std::vector<uint8_t> data;
+    message.serialize_msg(data);
+    socket->write(reinterpret_cast<const char*>(data.data()), data.size());
+    socket->flush();
+}
+
 void TcpClient::onReadyRead() {
     Header header;
     if (socket->bytesAvailable() < header.size()) {
@@ -111,6 +121,12 @@ void TcpClient::onReadyRead() {
         }
         case Operation::LIST_ACCOUNTS: {
             ListAccountsResponse response;
+            response.deserialize(msg);
+            messageHandler.dispatch(socket, response);
+            break;
+        }
+        case Operation::DELETE_ACCOUNT: {
+            DeleteAccountResponse response;
             response.deserialize(msg);
             messageHandler.dispatch(socket, response);
             break;
