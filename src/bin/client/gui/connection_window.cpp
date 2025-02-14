@@ -81,7 +81,7 @@ void ConnectionWindow::on_submit() {
         return;
     }
 
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     session.tcp_client->connectToServer(QString::fromStdString(hostname.toStdString()),
                                         port.toUInt());
 

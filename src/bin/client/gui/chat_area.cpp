@@ -1,23 +1,19 @@
 #include "client/gui/chat_area.hpp"
 #include "client/gui/components/message_widget.hpp"
+#include "client/model/session.hpp"
 
 ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
+    Session& session = Session::get_instance();
     QVBoxLayout* layout = new QVBoxLayout(this);
 
     // Chat title at the top
-    chatTitle = new QLabel("Chat Name", this);
+    chatTitle = new QLabel("", this);
     chatTitle->setStyleSheet("font-size: 16px; font-weight: bold; padding: 5px;");
 
     // Scrollable message area
     messageScrollArea = new QScrollArea(this);
     messageContainer = new QWidget();
     messageLayout = new QVBoxLayout(messageContainer);
-
-    // Example messages
-    messageLayout->addWidget(new MessageWidget("Hello!", false));
-    messageLayout->addWidget(new MessageWidget("Hi there!", true));
-    messageLayout->addWidget(new MessageWidget("How are you?", false));
-    messageLayout->addWidget(new MessageWidget("I'm good, thanks!", true));
 
     messageContainer->setLayout(messageLayout);
     messageScrollArea->setWidget(messageContainer);
@@ -49,9 +45,20 @@ ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
     layout->addLayout(inputLayout);  // Add input field + send button
 
     setLayout(layout);
+
+    connect(&session, &Session::updateActiveChannel, this, &ChatArea::onActiveChannelChanged);
 }
 
 // Validates input to ensure it's within 280 characters
 void ChatArea::validateMessage() {
     sendButton->setEnabled(!messageInput->text().isEmpty());
+}
+
+void ChatArea::onActiveChannelChanged() {
+    Session& session = Session::get_instance();
+    if (session.open_channel.has_value()) {
+        chatTitle->setText(QString::fromStdString(session.open_channel.value()->get_name()));
+    } else {
+        chatTitle->setText("");
+    }
 }

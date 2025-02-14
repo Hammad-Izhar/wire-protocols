@@ -21,7 +21,7 @@ class SendMessageMessage : public Serializable {
     [[nodiscard]] UUID get_sender_uid() const;
     [[nodiscard]] UUID get_channel_uid() const;
 
-    [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t size() const override;
 
     void set_regex(std::string regex);
 

@@ -6,13 +6,21 @@
 #include <string>
 #include <vector>
 
+#include "message/serialize.hpp"
 #include "models/uuid.hpp"
 
-class Message {
+class Message : public Serializable {
    public:
     typedef std::shared_ptr<Message> SharedPtr;
 
     Message(UUID sender_id, UUID channel_id, std::string text);
+
+    Message() = default;
+
+    void serialize(std::vector<uint8_t>& buf) const override;
+    void serialize_msg(std::vector<uint8_t>& buf) const;
+    void deserialize(const std::vector<uint8_t>& buf) override;
+    [[nodiscard]] size_t size() const override;
 
     // Getters
     [[nodiscard]] const uint64_t get_snowflake();

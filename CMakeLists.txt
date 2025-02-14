@@ -18,7 +18,7 @@ file(GLOB_RECURSE SOURCE_FILES src/**/*.cpp)
 file(GLOB_RECURSE CLIENT_SOURCE_FILES src/bin/client/*.cpp)
 file(GLOB_RECURSE SERVER_SOURCE_FILES src/bin/server/*.cpp)
 file(GLOB_RECURSE TEST_SOURCE_FILES test/*.cpp src/bin/server/db/*.cpp)
-file(GLOB_RECURSE CLIENT_QT_HEADERS include/client/gui/*.hpp include/client/gui/*.h include/client/model/tcp_client.hpp)
+file(GLOB_RECURSE CLIENT_QT_HEADERS include/client/gui/*.hpp include/client/gui/*.h include/client/model/tcp_client.hpp include/client/model/session.hpp)
 file(GLOB_RECURSE SERVER_QT_HEADERS include/server/model/client_handler.hpp include/server/model/tcp_server.hpp)
 
 foreach (FILE ${SOURCE_FILES})

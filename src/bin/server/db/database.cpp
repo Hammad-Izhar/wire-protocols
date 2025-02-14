@@ -1,4 +1,5 @@
 #include "server/db/database.hpp"
+#include "models/message.hpp"
 
 Database::Database() {
     this->users = std::make_unique<UserTable>();
@@ -62,7 +63,7 @@ std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr use
     return this->users->add_user(user);
 }
 
-std::variant<std::monostate, std::string> Database::add_message(Message::SharedPtr message) {
+std::variant<Message::SharedPtr, std::string> Database::add_message(Message::SharedPtr message) {
     std::optional<Channel::SharedPtr> channel =
         this->channels->get_mut_by_uid(message->get_channel_id());
     if (!channel.has_value()) {
@@ -75,10 +76,10 @@ std::variant<std::monostate, std::string> Database::add_message(Message::SharedP
     }
 
     channel.value()->add_message(message->get_snowflake());
-    return {};
+    return this->messages->get_by_uid(message->get_snowflake()).value();
 }
 
-std::variant<std::monostate, std::string> Database::add_channel(Channel::SharedPtr channel) {
+std::variant<Channel::SharedPtr, std::string> Database::add_channel(Channel::SharedPtr channel) {
     auto res = this->channels->add_channel(channel);
     if (std::holds_alternative<std::string>(res)) {
         return std::get<std::string>(res);
@@ -92,7 +93,7 @@ std::variant<std::monostate, std::string> Database::add_channel(Channel::SharedP
         user.value()->add_channel(channel->get_uid());
     }
 
-    return {};
+    return this->get_channel_by_uid(channel->get_uid()).value();
 }
 
 std::variant<std::monostate, std::string> Database::add_user_to_channel(UUID user_uid,

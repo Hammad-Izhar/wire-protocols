@@ -3,6 +3,8 @@
 #include "client/model/session.hpp"
 #include "client/model/tcp_client.hpp"
 #include "constants.hpp"
+#include "message/create_channel.hpp"
+#include "message/create_channel_response.hpp"
 #include "message/delete_account.hpp"
 #include "message/delete_account_response.hpp"
 #include "message/header.hpp"
@@ -12,6 +14,8 @@
 #include "message/login_response.hpp"
 #include "message/register_account.hpp"
 #include "message/register_account_response.hpp"
+#include "message/send_message.hpp"
+#include "message/send_message_response.hpp"
 #include "models/message_handler.hpp"
 
 TcpClient::TcpClient(QObject* parent) : QObject(parent) {
@@ -66,6 +70,24 @@ void TcpClient::search_accounts(const std::string& regex) {
 
 void TcpClient::delete_account(const std::string& username, const std::string& password) {
     DeleteAccountMessage message(username, password);
+    std::vector<uint8_t> data;
+    message.serialize_msg(data);
+    socket->write(reinterpret_cast<const char*>(data.data()), data.size());
+    socket->flush();
+}
+
+void TcpClient::create_channel(const std::string& channelName, const std::vector<UUID>& members) {
+    CreateChannelMessage message(channelName, members);
+    std::vector<uint8_t> data;
+    message.serialize_msg(data);
+    socket->write(reinterpret_cast<const char*>(data.data()), data.size());
+    socket->flush();
+}
+
+void TcpClient::send_text_message(const UUID& channel_uid,
+                                  const UUID& sender_uid,
+                                  const std::string& text) {
+    SendMessageMessage message(channel_uid, sender_uid, text);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
@@ -131,6 +153,12 @@ void TcpClient::onReadyRead() {
             messageHandler.dispatch(socket, response);
             break;
         }
+        case Operation::SEND_MESSAGE: {
+            SendMessageResponse response;
+            response.deserialize(msg);
+            messageHandler.dispatch(socket, response);
+            break;
+        }
         default:
             qDebug() << "Unknown operation";
             break;
@@ -146,12 +174,12 @@ QAbstractSocket::SocketState TcpClient::getConnectionStatus() const {
 }
 
 void TcpClient::onConnected() {
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     qDebug() << "Connected to server";
     session.main_window->animatePageTransition(Window::AUTHENTICATION);
 }
 void TcpClient::onDisconnected() {
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     qDebug() << "Disconnected from server";
     session.main_window->animatePageTransition(Window::CONNECTION);
 }

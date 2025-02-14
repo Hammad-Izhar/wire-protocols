@@ -1,5 +1,6 @@
 #include "client/model/message_handlers.hpp"
 #include "client/model/session.hpp"
+#include "message/create_channel_response.hpp"
 #include "message/delete_account_response.hpp"
 #include "message/list_accounts_response.hpp"
 #include "message/login_response.hpp"
@@ -7,7 +8,7 @@
 #include "models/message_handler.hpp"
 
 void on_register_account_response(QTcpSocket* socket, RegisterAccountResponse& msg) {
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     if (msg.is_success()) {
         emit session.tcp_client->registrationSuccess();
     } else {
@@ -17,7 +18,7 @@ void on_register_account_response(QTcpSocket* socket, RegisterAccountResponse& m
 };
 
 void on_login_response(QTcpSocket* socket, LoginResponse& msg) {
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     if (msg.is_success()) {
         User::SharedPtr usr = msg.get_data().value();
         session.authenticated_user = usr;
@@ -34,7 +35,7 @@ void on_login_response(QTcpSocket* socket, LoginResponse& msg) {
 };
 
 void on_list_accounts_response(QTcpSocket* socket, ListAccountsResponse& msg) {
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     if (msg.is_success()) {
         emit session.tcp_client->searchSuccess(msg.get_users().value());
     } else {
@@ -44,13 +45,26 @@ void on_list_accounts_response(QTcpSocket* socket, ListAccountsResponse& msg) {
 };
 
 void on_delete_account_response(QTcpSocket* socket, DeleteAccountResponse& msg) {
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     if (msg.is_success()) {
         session.authenticated_user.reset();
         session.main_window->animatePageTransition(Window::AUTHENTICATION);
         emit session.tcp_client->deleteAccountSuccess();
     } else {
         emit session.tcp_client->deleteAccountFailure(
+            QString::fromStdString(msg.get_error_message().value()));
+    }
+};
+
+void on_create_channel_response(QTcpSocket* socket, CreateChannelResponse& msg) {
+    Session& session = Session::get_instance();
+    if (msg.is_success()) {
+        session.authenticated_user.value()->add_channel(msg.get_data().value()->get_uid());
+        session.channels[msg.get_data().value()->get_uid()] = msg.get_data().value();
+        emit session.updateActiveChannel();
+        emit session.tcp_client->createChannelSuccess(msg.get_data().value());
+    } else {
+        emit session.tcp_client->createChannelFailure(
             QString::fromStdString(msg.get_error_message().value()));
     }
 };

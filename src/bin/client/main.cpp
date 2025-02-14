@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     ConnectionWindow* connectionWindow = new ConnectionWindow();
     AuthenticationWindow* authenticationWindow = new AuthenticationWindow();
     ChatWindow* chatWindow = new ChatWindow();

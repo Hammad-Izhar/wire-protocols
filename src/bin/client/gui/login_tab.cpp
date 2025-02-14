@@ -29,7 +29,7 @@ LoginTab::LoginTab(QTabWidget* tabWidget, QWidget* parent) : QWidget(parent), ta
     QPushButton* disconnectButton = new QPushButton("Disconnect", this);
     disconnectButton->setObjectName("disconnectButton");
     connect(disconnectButton, &QPushButton::clicked, this, [this]() {
-        Session& session = Session::getInstance();
+        Session& session = Session::get_instance();
         session.tcp_client->disconnectFromServer();
     });
 
@@ -49,7 +49,7 @@ LoginTab::LoginTab(QTabWidget* tabWidget, QWidget* parent) : QWidget(parent), ta
     mainLayout->addWidget(spinner);
     mainLayout->setAlignment(Qt::AlignCenter);
 
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     connect(session.tcp_client, &TcpClient::loginSuccess, this, &LoginTab::onLoginSuccess);
     connect(session.tcp_client, &TcpClient::loginFailure, this, &LoginTab::onLoginFailure);
 
@@ -72,13 +72,13 @@ void LoginTab::on_submit() {
     }
 
     set_loading(true);
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     session.tcp_client->login_user(username.toStdString(), password.toStdString());
 }
 
 void LoginTab::onLoginSuccess() {
     set_loading(false);
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     session.main_window->animatePageTransition(Window::MAIN);
 }
 

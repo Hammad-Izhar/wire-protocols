@@ -3,14 +3,13 @@
 #include <QPainterPath>
 #include <QSizePolicy>
 #include <QVBoxLayout>
+#include "client/model/session.hpp"
 
+#include <qobject.h>
 #include "client/gui/components/profile_widget.hpp"
 
-ProfileWidget::ProfileWidget(const QString& profilePicPath,
-                             const QString& displayName,
-                             const QString& username,
-                             QWidget* parent)
-    : QWidget(parent) {
+ProfileWidget::ProfileWidget(const User::SharedPtr& user, QWidget* parent)
+    : QWidget(parent), user(user) {
     // Apply border and padding to the entire widget
     setStyleSheet(
         "border: 2px solid #ccc; border-radius: 10px; background-color: white; padding: 5px;");
@@ -20,7 +19,7 @@ ProfileWidget::ProfileWidget(const QString& profilePicPath,
     profilePicLabel = new QLabel(this);
 
     // Load the image
-    QPixmap pixmap(profilePicPath);
+    QPixmap pixmap(QString::fromStdString(user->get_profile_pic()));
     pixmap = pixmap.scaled(50, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     // Create a circular mask
@@ -46,10 +45,10 @@ ProfileWidget::ProfileWidget(const QString& profilePicPath,
     profilePicLabel->setAlignment(Qt::AlignCenter);
 
     // Name and username labels
-    displayNameLabel = new QLabel(displayName, this);
+    displayNameLabel = new QLabel(QString::fromStdString(user->get_display_name()), this);
     displayNameLabel->setStyleSheet("font-weight: bold; font-size: 14px;");
 
-    usernameLabel = new QLabel("@" + username, this);
+    usernameLabel = new QLabel("@" + QString::fromStdString(user->get_username()), this);
     usernameLabel->setStyleSheet("color: gray; font-size: 12px;");
 
     QVBoxLayout* nameLayout = new QVBoxLayout;
@@ -64,6 +63,7 @@ ProfileWidget::ProfileWidget(const QString& profilePicPath,
         "QPushButton { background-color: #007BFF; color: white; border: none; border-radius: 5px; }"
         "QPushButton:hover { background-color: #0056b3; }"
         "QPushButton:pressed { background-color: #004085; }");
+    connect(messageButton, &QPushButton::clicked, this, &ProfileWidget::onMessageButtonClicked);
 
     // Main layout with padding
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
@@ -74,4 +74,13 @@ ProfileWidget::ProfileWidget(const QString& profilePicPath,
     mainLayout->setContentsMargins(10, 5, 10, 5);  // Padding inside the border
 
     setLayout(mainLayout);
+}
+
+void ProfileWidget::onMessageButtonClicked() {
+    Session& session = Session::get_instance();
+
+    session.tcp_client->create_channel(
+        session.authenticated_user.value()->get_display_name() + ", " +
+            this->user->get_display_name(),
+        {session.authenticated_user.value()->get_uid(), this->user->get_uid()});
 }

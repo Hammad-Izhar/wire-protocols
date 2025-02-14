@@ -1,6 +1,8 @@
 #include <QTcpSocket>
 #include <string>
 
+#include "message/create_channel.hpp"
+#include "message/create_channel_response.hpp"
 #include "message/delete_account.hpp"
 #include "message/delete_account_response.hpp"
 #include "message/delete_message.hpp"
@@ -11,6 +13,7 @@
 #include "message/register_account.hpp"
 #include "message/register_account_response.hpp"
 #include "message/send_message.hpp"
+#include "message/send_message_response.hpp"
 #include "models/message_handler.hpp"
 #include "server/db/database.hpp"
 #include "server/model/client_handler.hpp"
@@ -117,18 +120,34 @@ void on_delete_account(QTcpSocket* socket, DeleteAccountMessage& msg) {
     socket->flush();
 }
 
+void on_delete_message(QTcpSocket* socket, DeleteMessageMessage& msg) {
+    Database& db = Database::get_instance();
+    db.remove_message(msg.get_message_snowflake());
+}
+
+void on_create_channel(QTcpSocket* socket, CreateChannelMessage& msg) {
+    Database& db = Database::get_instance();
+
+    std::shared_ptr<Channel> channel =
+        std::make_shared<Channel>(msg.get_channel_name(), msg.get_members());
+
+    CreateChannelResponse response(db.add_channel(channel));
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
+    socket->flush();
+}
+
 void on_send_message(QTcpSocket* socket, SendMessageMessage& msg) {
     Database& db = Database::get_instance();
 
     std::shared_ptr<Message> message =
         std::make_shared<Message>(msg.get_channel_uid(), msg.get_sender_uid(), msg.get_text());
 
-    db.add_message(message);
-}
-
-void on_delete_message(QTcpSocket* socket, DeleteMessageMessage& msg) {
-    Database& db = Database::get_instance();
-    db.remove_message(msg.get_message_snowflake());
+    SendMessageResponse response(db.add_message(message));
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
 }
 
 void init_message_handlers() {
@@ -140,4 +159,6 @@ void init_message_handlers() {
     messageHandler.register_handler<DeleteAccountMessage>(&on_delete_account);
     messageHandler.register_handler<SendMessageMessage>(&on_send_message);
     messageHandler.register_handler<DeleteMessageMessage>(&on_delete_message);
+    messageHandler.register_handler<CreateChannelMessage>(&on_create_channel);
+    messageHandler.register_handler<SendMessageMessage>(&on_send_message);
 }

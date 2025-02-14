@@ -1,3 +1,8 @@
+#include <cstdint>
+#include <mutex>
+
+#include "constants.hpp"
+#include "message/header.hpp"
 #include "models/message.hpp"
 #include "models/snowflake.hpp"
 
@@ -11,6 +16,68 @@ Message::Message(UUID sender_id, UUID channel_id, std::string text)
                            .count();
     this->modified_at = this->created_at;
     this->read_by = {this->sender_id};
+}
+
+void Message::serialize(std::vector<uint8_t>& buf) const {
+    sender_id.serialize(buf);
+    channel_id.serialize(buf);
+    buf.insert(buf.end(), reinterpret_cast<const uint8_t*>(&snowflake),
+               reinterpret_cast<const uint8_t*>(&snowflake) + sizeof(snowflake));
+    buf.insert(buf.end(), reinterpret_cast<const uint8_t*>(&created_at),
+               reinterpret_cast<const uint8_t*>(&created_at) + sizeof(created_at));
+    buf.insert(buf.end(), reinterpret_cast<const uint8_t*>(&modified_at),
+               reinterpret_cast<const uint8_t*>(&modified_at) + sizeof(modified_at));
+    uint8_t text_length = text.size();
+    buf.push_back(text_length);
+    buf.insert(buf.end(), text.begin(), text.end());
+    uint8_t read_by_size = read_by.size();
+    buf.push_back(read_by_size);
+    for (const auto& user_id : read_by) {
+        user_id.serialize(buf);
+    }
+}
+
+void Message::serialize_msg(std::vector<uint8_t>& buf) const {
+    Header header(PROTOCOL_VERSION, Operation::SEND_MESSAGE, this->size());
+    header.serialize(buf);
+    serialize(buf);
+}
+
+void Message::deserialize(const std::vector<uint8_t>& buf) {
+    size_t offset = 0;
+    sender_id.deserialize(std::vector<uint8_t>(buf.begin() + offset, buf.begin() + offset + 16));
+    offset += 16;
+    channel_id.deserialize(std::vector<uint8_t>(buf.begin() + offset, buf.begin() + offset + 16));
+    offset += 16;
+    snowflake = *reinterpret_cast<const uint64_t*>(&buf[offset]);
+    offset += sizeof(snowflake);
+    created_at = *reinterpret_cast<const uint64_t*>(&buf[offset]);
+    offset += sizeof(created_at);
+    modified_at = *reinterpret_cast<const uint64_t*>(&buf[offset]);
+    offset += sizeof(modified_at);
+    uint8_t text_length = buf[offset++];
+    text = std::string(buf.begin() + offset, buf.begin() + offset + text_length);
+    offset += text_length;
+    uint8_t read_by_size = buf[offset++];
+    read_by.clear();
+    for (uint32_t i = 0; i < read_by_size; ++i) {
+        UUID user_id;
+        user_id.deserialize(std::vector<uint8_t>(buf.begin() + offset, buf.begin() + offset + 16));
+        read_by.push_back(user_id);
+        offset += 16;
+    }
+}
+
+[[nodiscard]] size_t Message::size() const {
+    size_t size =
+        sender_id.size() + channel_id.size();  // sender_id (16 bytes) + channel_id (16 bytes)
+    size += sizeof(snowflake) + sizeof(created_at) + sizeof(modified_at);
+    size += 1 + text.size();   // 1 for the text length + text length
+    size += sizeof(uint32_t);  // read_by_size
+    for (const auto& user_id : read_by) {
+        size += 16;  // user_id (16 bytes)
+    }
+    return size;
 }
 
 const uint64_t Message::get_snowflake() {

@@ -32,7 +32,7 @@ SearchTab::SearchTab(QWidget* parent) : QWidget(parent) {
 
     searchLayout->addStretch();  // Pushes everything up
 
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     connect(session.tcp_client, &TcpClient::searchSuccess, this, &SearchTab::onSearchSuccess);
     connect(session.tcp_client, &TcpClient::searchFailure, this, &SearchTab::onSearchFailure);
 
@@ -48,7 +48,7 @@ void SearchTab::search() {
     QString query = searchField->text();
 
     set_loading(true);
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     session.tcp_client->search_accounts(query.toStdString());
 }
 

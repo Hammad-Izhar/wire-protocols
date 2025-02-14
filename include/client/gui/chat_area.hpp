@@ -14,6 +14,7 @@ class ChatArea : public QWidget {
 
    private slots:
     void validateMessage();
+    void onActiveChannelChanged();
 
    private:
     QLabel* chatTitle;

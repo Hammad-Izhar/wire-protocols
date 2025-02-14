@@ -4,13 +4,22 @@
 #include <mutex>
 #include <string>
 
+#include "message/serialize.hpp"
 #include "models/uuid.hpp"
 
-class Channel {
+class Channel : public Serializable {
    public:
     typedef std::shared_ptr<Channel> SharedPtr;
 
+    Channel() = default;
+
     Channel(std::string name, std::vector<UUID> user_uids);
+
+    void serialize(std::vector<uint8_t>& buf) const override;
+
+    void deserialize(const std::vector<uint8_t>& buf) override;
+
+    [[nodiscard]] size_t size() const override;
 
     // Getters
     [[nodiscard]] const UUID& get_uid();

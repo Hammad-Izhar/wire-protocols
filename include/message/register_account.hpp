@@ -16,7 +16,7 @@ class RegisterAccountMessage : public Serializable {
 
     void deserialize(const std::vector<uint8_t>& buf) override;
 
-    [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t size() const override;
 
     [[nodiscard]] const std::string& get_username() const;
 

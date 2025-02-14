@@ -38,7 +38,7 @@ RegistrationTab::RegistrationTab(QTabWidget* tabWidget, QWidget* parent)
     QPushButton* disconnectButton = new QPushButton("Disconnect", this);
     disconnectButton->setObjectName("disconnectButton");
     connect(disconnectButton, &QPushButton::clicked, this, [this]() {
-        Session& session = Session::getInstance();
+        Session& session = Session::get_instance();
         session.tcp_client->disconnectFromServer();
     });
 
@@ -62,7 +62,7 @@ RegistrationTab::RegistrationTab(QTabWidget* tabWidget, QWidget* parent)
 
     setFixedSize(450, sizeHint().height());
 
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     connect(session.tcp_client, &TcpClient::registrationSuccess, this,
             &RegistrationTab::onRegistrationSuccess);
     connect(session.tcp_client, &TcpClient::registrationFailure, this,
@@ -90,7 +90,7 @@ void RegistrationTab::on_submit() {
     }
 
     set_loading(true);
-    Session& session = Session::getInstance();
+    Session& session = Session::get_instance();
     session.tcp_client->register_user(username.toStdString(), displayName.toStdString(),
                                       password.toStdString());
 }
