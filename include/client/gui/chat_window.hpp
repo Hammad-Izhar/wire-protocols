@@ -16,4 +16,8 @@ class ChatWindow : public QWidget {
     ChatSidebar* sidebar;
     ChatArea* chatArea;
     QStackedLayout* chatStack;
+
+   private slots:
+    void onDisconnect();
+    void onDeleteAccount();
 };
