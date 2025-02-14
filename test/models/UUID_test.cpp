@@ -6,7 +6,7 @@
 
 TEST(UUIDTest, DefaultConstructor) {
     UUID uuid;
-    EXPECT_EQ(uuid.value.size(), 16);
+    EXPECT_EQ(uuid.size(), 16);
 }
 
 TEST(UUIDTest, EqualityOperator) {
