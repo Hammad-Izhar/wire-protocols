@@ -60,11 +60,13 @@ void DeleteAccountResponse::from_json(const std::string& json) {
 }
 
 size_t DeleteAccountResponse::size() const {
+    size_t size = 1;
     if (is_success()) {
-        return std::get<User::SharedPtr>(data)->size();
+        size += std::get<User::SharedPtr>(data)->size();
     } else {
-        return 1 + std::get<std::string>(data).size();
+        size += 1 + std::get<std::string>(data).size();
     }
+    return size;
 }
 
 bool DeleteAccountResponse::is_success() const {

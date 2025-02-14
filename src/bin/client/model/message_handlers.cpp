@@ -50,6 +50,7 @@ void on_delete_account_response(QTcpSocket* socket, DeleteAccountResponse& msg) 
     Session& session = Session::get_instance();
     if (msg.is_success()) {
         session.reset();
+        session.main_window->animatePageTransition(Window::AUTHENTICATION);
         emit session.tcp_client->deleteAccountSuccess();
     } else {
         emit session.tcp_client->deleteAccountFailure(
