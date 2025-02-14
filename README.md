@@ -93,7 +93,7 @@ xhost +localhost
 
 # Classes
 
-Below we describe the classes used for 
+Below we describe the classes used for comprehending messages, users, and channels.
 
 ## UUID
 
