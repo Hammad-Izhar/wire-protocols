@@ -6,6 +6,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include "models/message.hpp"
+
 class ChatArea : public QWidget {
     Q_OBJECT
 
@@ -15,6 +17,9 @@ class ChatArea : public QWidget {
    private slots:
     void validateMessage();
     void onActiveChannelChanged();
+    void sendMessage();
+    void onSendMessageSuccess(Message::SharedPtr message);
+    void onSendMessageError(const QString& error);
 
    private:
     QLabel* chatTitle;

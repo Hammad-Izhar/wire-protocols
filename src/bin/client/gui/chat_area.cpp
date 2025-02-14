@@ -1,7 +1,10 @@
+#include <QScrollBar>
+#include <QTimer>
+
 #include "client/gui/chat_area.hpp"
-#include <qglobal.h>
 #include "client/gui/components/message_widget.hpp"
 #include "client/model/session.hpp"
+#include "client/model/tcp_client.hpp"
 
 ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -28,14 +31,12 @@ ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
     messageInput->setMaxLength(255);  // Enforces max length
     messageInput->setEnabled(false);  // Initially disabled
     connect(messageInput, &QLineEdit::textChanged, this, &ChatArea::validateMessage);
+    connect(messageInput, &QLineEdit::returnPressed, this, &ChatArea::sendMessage);
 
     sendButton = new QPushButton("Send", this);
     sendButton->setStyleSheet("padding: 5px 10px;");
     sendButton->setEnabled(false);  // Initially disabled
-    connect(sendButton, &QPushButton::clicked, this, [this]() {
-        // Handle sending message (for now, just clear input)
-        messageInput->clear();
-    });
+    connect(sendButton, &QPushButton::clicked, this, &ChatArea::sendMessage);
 
     inputLayout->addWidget(messageInput);
     inputLayout->addWidget(sendButton);
@@ -49,12 +50,24 @@ ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
 
     Session& session = Session::get_instance();
     connect(&session, &Session::updateActiveChannel, this, &ChatArea::onActiveChannelChanged);
+    connect(session.tcp_client, &TcpClient::sendMessageSuccess, this,
+            &ChatArea::onSendMessageSuccess);
 }
 
 void ChatArea::validateMessage() {
     Session& session = Session::get_instance();
     sendButton->setEnabled(session.get_active_channel().has_value() &&
                            !messageInput->text().isEmpty());
+}
+
+void ChatArea::sendMessage() {
+    Session& session = Session::get_instance();
+    if (session.get_active_channel().has_value()) {
+        session.tcp_client->send_text_message(session.get_active_channel().value()->get_uid(),
+                                              session.authenticated_user.value()->get_uid(),
+                                              messageInput->text().toStdString());
+        messageInput->clear();
+    }
 }
 
 void ChatArea::onActiveChannelChanged() {
@@ -67,4 +80,27 @@ void ChatArea::onActiveChannelChanged() {
     } else {
         chatTitle->setText("");
     }
+}
+
+void ChatArea::onSendMessageSuccess(Message::SharedPtr message) {
+    Session& session = Session::get_instance();
+    MessageWidget* messageWidget =
+        new MessageWidget(QString::fromStdString(message->get_text()),
+                          message->get_sender_id() == session.authenticated_user.value()->get_uid(),
+                          messageContainer);
+    messageLayout->addWidget(messageWidget);
+
+    // Ensure the layout updates properly
+    messageLayout->update();
+    messageContainer->adjustSize();
+
+    // Auto-scroll to the bottom
+    QTimer::singleShot(50, [this]() {
+        messageScrollArea->verticalScrollBar()->setValue(
+            messageScrollArea->verticalScrollBar()->maximum());
+    });
+}
+
+void ChatArea::onSendMessageError(const QString& error) {
+    qDebug() << "Failed to send message:" << error;
 }

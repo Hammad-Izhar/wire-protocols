@@ -1,5 +1,7 @@
-#include "server/db/database.hpp"
+#include <QDebug>
+
 #include "models/message.hpp"
+#include "server/db/database.hpp"
 
 Database::Database() {
     this->users = std::make_unique<UserTable>();
@@ -80,6 +82,7 @@ std::variant<Message::SharedPtr, std::string> Database::add_message(Message::Sha
 }
 
 std::variant<Channel::SharedPtr, std::string> Database::add_channel(Channel::SharedPtr channel) {
+    qDebug() << "Adding channel" << QString::fromStdString(channel->to_json());
     auto res = this->channels->add_channel(channel);
     if (std::holds_alternative<std::string>(res)) {
         return std::get<std::string>(res);
