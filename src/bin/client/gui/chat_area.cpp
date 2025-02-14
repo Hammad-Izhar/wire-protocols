@@ -26,6 +26,7 @@ ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
     messageInput->setPlaceholderText("Type a message...");
     messageInput->setStyleSheet("padding: 5px;");
     messageInput->setMaxLength(255);  // Enforces max length
+    messageInput->setEnabled(false);  // Initially disabled
     connect(messageInput, &QLineEdit::textChanged, this, &ChatArea::validateMessage);
 
     sendButton = new QPushButton("Send", this);
@@ -49,14 +50,15 @@ ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
     connect(&session, &Session::updateActiveChannel, this, &ChatArea::onActiveChannelChanged);
 }
 
-// Validates input to ensure it's within 280 characters
 void ChatArea::validateMessage() {
-    sendButton->setEnabled(!messageInput->text().isEmpty());
+    Session& session = Session::get_instance();
+    sendButton->setEnabled(session.open_channel.has_value() && !messageInput->text().isEmpty());
 }
 
 void ChatArea::onActiveChannelChanged() {
     Session& session = Session::get_instance();
     if (session.open_channel.has_value()) {
+        messageInput->setEnabled(true);
         chatTitle->setText(QString::fromStdString(session.open_channel.value()->get_name()));
     } else {
         chatTitle->setText("");

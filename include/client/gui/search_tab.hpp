@@ -1,4 +1,5 @@
 #include <QLineEdit>
+#include <QListWidget>
 #include <QWidget>
 
 #include "client/gui/components/spinner.hpp"
@@ -12,6 +13,7 @@ class SearchTab : public QWidget {
 
    private:
     QLineEdit* searchField;
+    QListWidget* searchResults;
     Spinner* spinner;
     void set_loading(bool loading);
 

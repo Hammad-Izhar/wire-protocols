@@ -8,7 +8,7 @@ User::User(std::string username, std::string display_name)
     : username(username),
       display_name(display_name),
       uid(UUID()),
-      profile_pic("./assets/profile_pics/blank_profile_pic.png") {
+      profile_pic(":/assets/profile_pics/blank_profile_pic.png") {
     // Generate a public/private key pair
     // TBD to friday
 }

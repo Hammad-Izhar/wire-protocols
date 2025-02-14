@@ -43,7 +43,7 @@ std::string UUID::to_string() const {
     }
 
     std::string hex_str = ss.str();
-    qDebug() << "UUID::to_string(): " << QString::fromStdString(hex_str);
+
     return hex_str;
 }
 
