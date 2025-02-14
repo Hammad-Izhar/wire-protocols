@@ -8,15 +8,36 @@
 
 #include "models/message.hpp"
 
+/**
+ * @brief ChatArea class
+ * This class is responsible for displaying the chat area of the application.
+ * It contains the chat title, the messages, the message input and the send button.
+ * It also handles the sending of messages and the display of messages.
+
+ */
 class ChatArea : public QWidget {
     Q_OBJECT
 
    public:
+    /**
+     * @brief Construct a new Chat Area object
+     * 
+     * @param parent 
+     */
     explicit ChatArea(QWidget* parent = nullptr);
 
+    /**
+     * @brief Destroy the Chat Area object
+     * 
+     */
     void reset();
 
    private:
+    /**
+     * @brief Add a message to the layout
+     * 
+     * @param message 
+     */
     void addMessageToLayout(Message::SharedPtr message);
 
    private slots:
