@@ -97,6 +97,7 @@ Below we describe the classes used for comprehending messages, users, and channe
 
 In general, class headers are initialized in the `/include/` directory, and implementations in the `/src/` directory. The full project structure is outlined below:
 
+```
 .
 ├── assets
 │   └── [Files including profile pictures, loading gifs, etc.]
@@ -142,6 +143,7 @@ In general, class headers are initialized in the `/include/` directory, and impl
     │   └── [Tests for sending/receiving messages]
     └── models
         └── [Tests for individual backend components]
+```
 
 ## UUID
 
