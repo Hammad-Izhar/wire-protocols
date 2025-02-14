@@ -8,6 +8,10 @@ RegisterAccountResponse::RegisterAccountResponse(
     : error_message(std::move(error_message)) {}
 
 void RegisterAccountResponse::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     if (std::holds_alternative<std::monostate>(error_message)) {
         buf.push_back(0);
     } else {
@@ -16,6 +20,7 @@ void RegisterAccountResponse::serialize(std::vector<uint8_t>& buf) const {
         buf.push_back(error.size());
         buf.insert(buf.end(), error.begin(), error.end());
     }
+#endif
 }
 
 void RegisterAccountResponse::serialize_msg(std::vector<uint8_t>& buf) const {
@@ -25,6 +30,10 @@ void RegisterAccountResponse::serialize_msg(std::vector<uint8_t>& buf) const {
 }
 
 void RegisterAccountResponse::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    from_json(msg);
+#else
     size_t offset = 0;
     uint8_t has_error = buf[offset++];
     if (has_error == 0) {
@@ -34,13 +43,15 @@ void RegisterAccountResponse::deserialize(const std::vector<uint8_t>& buf) {
         std::string error(buf.begin() + offset, buf.begin() + offset + error_length);
         error_message = error;
     }
+#endif
 }
 
 std::string RegisterAccountResponse::to_json() const {
     nlohmann::json j;
     if (std::holds_alternative<std::monostate>(error_message)) {
-        j["error"] = nullptr;
+        j["success"] = true;
     } else {
+        j["success"] = false;
         j["error"] = std::get<std::string>(error_message);
     }
     return j.dump();
@@ -48,7 +59,7 @@ std::string RegisterAccountResponse::to_json() const {
 
 void RegisterAccountResponse::from_json(const std::string& json) {
     nlohmann::json j = nlohmann::json::parse(json);
-    if (j["error"].is_null()) {
+    if (j["success"].get<bool>()) {
         error_message = std::monostate();
     } else {
         error_message = j["error"].get<std::string>();
@@ -56,12 +67,16 @@ void RegisterAccountResponse::from_json(const std::string& json) {
 }
 
 [[nodiscard]] size_t RegisterAccountResponse::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     size_t size = 1;  // for the has_error byte
     if (std::holds_alternative<std::string>(error_message)) {
         const std::string& error = std::get<std::string>(error_message);
         size += 1 + error.size();  // 1 for the error length + error length
     }
     return size;
+#endif
 }
 
 [[nodiscard]] bool RegisterAccountResponse::is_success() const {

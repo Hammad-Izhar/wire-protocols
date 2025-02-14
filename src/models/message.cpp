@@ -20,6 +20,10 @@ Message::Message(UUID sender_id, UUID channel_id, std::string text)
 }
 
 void Message::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     sender_id.serialize(buf);
     channel_id.serialize(buf);
     buf.insert(buf.end(), reinterpret_cast<const uint8_t*>(&snowflake),
@@ -36,6 +40,7 @@ void Message::serialize(std::vector<uint8_t>& buf) const {
     for (const auto& user_id : read_by) {
         user_id.serialize(buf);
     }
+#endif
 }
 
 void Message::serialize_msg(std::vector<uint8_t>& buf) const {
@@ -45,6 +50,10 @@ void Message::serialize_msg(std::vector<uint8_t>& buf) const {
 }
 
 void Message::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    from_json(msg);
+#else
     size_t offset = 0;
     sender_id.deserialize(std::vector<uint8_t>(buf.begin() + offset, buf.begin() + offset + 16));
     offset += 16;
@@ -67,6 +76,7 @@ void Message::deserialize(const std::vector<uint8_t>& buf) {
         read_by.push_back(user_id);
         offset += 16;
     }
+#endif
 }
 
 std::string Message::to_json() const {
@@ -100,6 +110,9 @@ void Message::from_json(const std::string& json) {
 }
 
 [[nodiscard]] size_t Message::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     size_t size =
         sender_id.size() + channel_id.size();  // sender_id (16 bytes) + channel_id (16 bytes)
     size += sizeof(snowflake) + sizeof(created_at) + sizeof(modified_at);
@@ -109,6 +122,7 @@ void Message::from_json(const std::string& json) {
         size += 16;  // user_id (16 bytes)
     }
     return size;
+#endif
 }
 
 const uint64_t Message::get_snowflake() {

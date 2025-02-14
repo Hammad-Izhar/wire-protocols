@@ -9,6 +9,10 @@ RegisterAccountMessage::RegisterAccountMessage(std::string username,
     : username(username), password(password), display_name(display_name) {}
 
 void RegisterAccountMessage::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = this->to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     uint8_t username_length = this->username.size();
     uint8_t password_length = this->password.size();
     uint8_t display_name_length = this->display_name.size();
@@ -27,6 +31,7 @@ void RegisterAccountMessage::serialize(std::vector<uint8_t>& buf) const {
     for (const auto& c : this->display_name) {
         buf.push_back(c);
     }
+#endif
 }
 
 void RegisterAccountMessage::serialize_msg(std::vector<uint8_t>& buf) const {
@@ -36,6 +41,10 @@ void RegisterAccountMessage::serialize_msg(std::vector<uint8_t>& buf) const {
 }
 
 void RegisterAccountMessage::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    this->from_json(msg);
+#else
     uint8_t username_length = buf[0];
     uint8_t password_length = buf[username_length + 1];
     uint8_t display_name_length = buf[username_length + password_length + 2];
@@ -46,6 +55,7 @@ void RegisterAccountMessage::deserialize(const std::vector<uint8_t>& buf) {
     this->display_name =
         std::string(buf.begin() + username_length + password_length + 3,
                     buf.begin() + username_length + password_length + 3 + display_name_length);
+#endif
 }
 
 std::string RegisterAccountMessage::to_json() const {
@@ -64,7 +74,11 @@ void RegisterAccountMessage::from_json(const std::string& json) {
 }
 
 size_t RegisterAccountMessage::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     return 3 + this->username.size() + this->password.size() + this->display_name.size();
+#endif
 }
 
 const std::string& RegisterAccountMessage::get_username() const {

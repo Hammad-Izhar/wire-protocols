@@ -3,7 +3,7 @@
 #include <random>
 #include <sstream>
 
-// #include <QDebug>
+#include <QDebug>
 #include "models/uuid.hpp"
 
 UUID::UUID() {
@@ -48,11 +48,17 @@ std::string UUID::to_string() const {
 }
 
 UUID UUID::from_string(const std::string& str) {
-    UUID uuid;
+    UUID uuid;  // Creates a new UUID instance
+
+    qDebug() << "Parsing UUID from string: " << str.c_str();
+
     for (size_t i = 0; i < str.size(); i += 2) {
         std::string byteString = str.substr(i, 2);
         uint8_t byte = static_cast<uint8_t>(std::stoul(byteString, nullptr, 16));
         uuid.value[i / 2] = byte;
     }
+
+    qDebug() << "Parsed UUID: " << uuid.to_string().c_str();
+
     return uuid;
 }

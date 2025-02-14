@@ -9,6 +9,10 @@ Channel::Channel(std::string name, std::vector<UUID> user_uids)
 }
 
 void Channel::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     this->uid.serialize(buf);
 
     uint8_t name_length = this->name.size();
@@ -26,9 +30,14 @@ void Channel::serialize(std::vector<uint8_t>& buf) const {
     for (const uint64_t& message_snowflake : this->message_snowflakes) {
         buf.push_back(message_snowflake);
     }
+#endif
 }
 
 void Channel::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    from_json(msg);
+#else
     size_t offset = 0;
     this->uid.deserialize(
         std::vector<uint8_t>(buf.begin() + offset, buf.begin() + offset + this->uid.size()));
@@ -52,6 +61,7 @@ void Channel::deserialize(const std::vector<uint8_t>& buf) {
         uint64_t message_snowflake = buf[offset++];
         this->message_snowflakes.push_back(message_snowflake);
     }
+#endif
 }
 
 std::string Channel::to_json() const {
@@ -71,7 +81,7 @@ std::string Channel::to_json() const {
 
 void Channel::from_json(const std::string& json) {
     nlohmann::json j = nlohmann::json::parse(json);
-    this->uid.from_string(j["uid"].get<std::string>());
+    this->uid = UUID::from_string(j["uid"].get<std::string>());
     this->name = j["name"].get<std::string>();
 
     for (const std::string& user_uid : j["user_uids"]) {

@@ -139,7 +139,6 @@ void ClientHandler::on_read_data() {
             messageHandler.dispatch(socket, deleteMessage);
             break;
         }
-
         default:
             qDebug() << "Unknown operation";
             break;
@@ -154,6 +153,7 @@ void ClientHandler::on_disconnected() {
 
 void ClientHandler::on_message_received(std::variant<Message::SharedPtr, std::string> message) {
     SendMessageResponse response(message);
+    qDebug() << "Message received" << response.to_json().c_str();
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
     emit MessageHandler::get_instance().write_data(buf);
@@ -161,6 +161,7 @@ void ClientHandler::on_message_received(std::variant<Message::SharedPtr, std::st
 
 void ClientHandler::on_message_deleted(std::variant<Message::SharedPtr, std::string> message) {
     DeleteMessageResponse response(message);
+    qDebug() << "Message deleted" << response.to_json().c_str();
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
     emit MessageHandler::get_instance().write_data(buf);
@@ -168,6 +169,7 @@ void ClientHandler::on_message_deleted(std::variant<Message::SharedPtr, std::str
 
 void ClientHandler::on_channel_added(std::variant<Channel::SharedPtr, std::string> channel) {
     CreateChannelResponse response(channel);
+    qDebug() << "Channel added" << response.to_json().c_str();
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
     emit MessageHandler::get_instance().write_data(buf);

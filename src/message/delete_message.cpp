@@ -7,21 +7,31 @@ DeleteMessageMessage::DeleteMessageMessage(UUID channel_uid, uint64_t message_sn
     : channel_uid(channel_uid), message_snowflake(message_snowflake) {}
 
 void DeleteMessageMessage::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     // Encode channel UUID
     this->channel_uid.serialize(buf);
     // Encode message snowflake
     for (int i = 56; i >= 0; i -= 8) {
         buf.push_back((this->message_snowflake >> i));
     }
+#endif
 }
 
 void DeleteMessageMessage::serialize_msg(std::vector<uint8_t>& buf) const {
     Header header(PROTOCOL_VERSION, Operation::DELETE_MESSAGE, this->size());
     header.serialize(buf);
+
     this->serialize(buf);
 }
 
 void DeleteMessageMessage::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    from_json(msg);
+#else
     // Decode channel UUID
     this->channel_uid.deserialize(std::vector<uint8_t>(buf.begin(), buf.begin() + 16));
     // Decode message snowflake
@@ -29,6 +39,7 @@ void DeleteMessageMessage::deserialize(const std::vector<uint8_t>& buf) {
     for (int i = 0; i < 8; i++) {
         this->message_snowflake = (this->message_snowflake << 8) | buf[16 + i];
     }
+#endif
 }
 
 std::string DeleteMessageMessage::to_json() const {
@@ -45,7 +56,11 @@ void DeleteMessageMessage::from_json(const std::string& json) {
 }
 
 size_t DeleteMessageMessage::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     return 24;
+#endif
 }
 
 uint64_t DeleteMessageMessage::get_message_snowflake() const {

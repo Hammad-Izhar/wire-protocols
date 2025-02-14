@@ -7,6 +7,10 @@ LoginResponse::LoginResponse(std::variant<User::SharedPtr, std::string> data)
     : data(std::move(data)) {}
 
 void LoginResponse::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     if (std::holds_alternative<User::SharedPtr>(data)) {
         buf.push_back(0);
         std::get<User::SharedPtr>(data)->serialize(buf);
@@ -16,6 +20,7 @@ void LoginResponse::serialize(std::vector<uint8_t>& buf) const {
         buf.push_back(error.size());
         buf.insert(buf.end(), error.begin(), error.end());
     }
+#endif
 }
 
 void LoginResponse::serialize_msg(std::vector<uint8_t>& buf) const {
@@ -25,6 +30,10 @@ void LoginResponse::serialize_msg(std::vector<uint8_t>& buf) const {
 }
 
 void LoginResponse::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    from_json(msg);
+#else
     size_t offset = 0;
     uint8_t has_error = buf[offset++];
     if (has_error == 0) {
@@ -36,6 +45,7 @@ void LoginResponse::deserialize(const std::vector<uint8_t>& buf) {
         std::string error(buf.begin() + offset, buf.begin() + offset + error_length);
         data = error;
     }
+#endif
 }
 
 std::string LoginResponse::to_json() const {
@@ -52,7 +62,7 @@ void LoginResponse::from_json(const std::string& json) {
     nlohmann::json j = nlohmann::json::parse(json);
     if (j.contains("user")) {
         User::SharedPtr user = std::make_shared<User>();
-        user->from_json(j["user"].dump());
+        user->from_json(j["user"]);
         data = user;
     } else {
         data = j["error"].get<std::string>();
@@ -60,6 +70,9 @@ void LoginResponse::from_json(const std::string& json) {
 }
 
 [[nodiscard]] size_t LoginResponse::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     size_t size = 1;  // for the has_error byte
     if (std::holds_alternative<User::SharedPtr>(data)) {
         size += std::get<User::SharedPtr>(data)->size();
@@ -68,6 +81,7 @@ void LoginResponse::from_json(const std::string& json) {
         size += 1 + error.size();  // 1 for the error length + error length
     }
     return size;
+#endif
 }
 
 [[nodiscard]] bool LoginResponse::is_success() const {

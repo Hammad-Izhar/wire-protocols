@@ -7,6 +7,10 @@ SendMessageResponse::SendMessageResponse(std::variant<Message::SharedPtr, std::s
     : data(std::move(data)) {}
 
 void SendMessageResponse::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     if (std::holds_alternative<Message::SharedPtr>(data)) {
         buf.push_back(0);
         std::get<Message::SharedPtr>(data)->serialize(buf);
@@ -16,6 +20,7 @@ void SendMessageResponse::serialize(std::vector<uint8_t>& buf) const {
         buf.push_back(error.size());
         buf.insert(buf.end(), error.begin(), error.end());
     }
+#endif
 }
 
 void SendMessageResponse::serialize_msg(std::vector<uint8_t>& buf) const {
@@ -54,7 +59,7 @@ void SendMessageResponse::from_json(const std::string& json) {
     auto j = nlohmann::json::parse(json);
     if (j["success"].get<bool>()) {
         Message::SharedPtr message = std::make_shared<Message>();
-        message->from_json(j["message"].dump());
+        message->from_json(j["message"]);
         data = message;
     } else {
         data = j["error"].get<std::string>();
@@ -62,6 +67,9 @@ void SendMessageResponse::from_json(const std::string& json) {
 }
 
 [[nodiscard]] size_t SendMessageResponse::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     size_t size = 1;  // for the has_error byte
     if (std::holds_alternative<std::string>(data)) {
         const std::string& error = std::get<std::string>(data);
@@ -70,6 +78,7 @@ void SendMessageResponse::from_json(const std::string& json) {
         size += std::get<Message::SharedPtr>(data)->size();
     }
     return size;
+#endif
 }
 
 [[nodiscard]] bool SendMessageResponse::is_success() const {

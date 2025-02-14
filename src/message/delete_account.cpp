@@ -7,6 +7,10 @@ DeleteAccountMessage::DeleteAccountMessage(std::string username, std::string pas
     : username(username), password(password) {}
 
 void DeleteAccountMessage::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     uint8_t username_length = this->username.size();
     uint8_t password_length = this->password.size();
 
@@ -19,6 +23,7 @@ void DeleteAccountMessage::serialize(std::vector<uint8_t>& buf) const {
     for (const auto& c : this->password) {
         buf.push_back(c);
     }
+#endif
 }
 
 void DeleteAccountMessage::serialize_msg(std::vector<uint8_t>& buf) const {
@@ -28,12 +33,17 @@ void DeleteAccountMessage::serialize_msg(std::vector<uint8_t>& buf) const {
 }
 
 void DeleteAccountMessage::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    from_json(msg);
+#else
     uint8_t username_length = buf[0];
     uint8_t password_length = buf[username_length + 1];
 
     this->username = std::string(buf.begin() + 1, buf.begin() + 1 + username_length);
     this->password = std::string(buf.begin() + username_length + 2,
                                  buf.begin() + username_length + 2 + password_length);
+#endif
 }
 
 std::string DeleteAccountMessage::to_json() const {
@@ -50,7 +60,11 @@ void DeleteAccountMessage::from_json(const std::string& json) {
 }
 
 size_t DeleteAccountMessage::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     return 2 + this->username.size() + this->password.size();
+#endif
 }
 
 const std::string& DeleteAccountMessage::get_username() const {

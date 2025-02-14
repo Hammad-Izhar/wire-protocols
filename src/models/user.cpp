@@ -14,6 +14,10 @@ User::User(std::string username, std::string display_name, UUID uid, std::string
     : username(username), display_name(display_name), uid(uid), profile_pic(profile_pic) {}
 
 void User::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     uint8_t username_length = this->username.size();
     uint8_t display_name_length = this->display_name.size();
     uint8_t profile_pic_length = this->profile_pic.size();
@@ -28,9 +32,14 @@ void User::serialize(std::vector<uint8_t>& buf) const {
 
     buf.push_back(profile_pic_length);
     buf.insert(buf.end(), this->profile_pic.begin(), this->profile_pic.end());
+#endif
 }
 
 void User::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    from_json(msg);
+#else
     size_t offset = 0;
     this->uid.deserialize(buf);
     offset += this->uid.size();
@@ -48,6 +57,7 @@ void User::deserialize(const std::vector<uint8_t>& buf) {
     this->profile_pic =
         std::string(buf.begin() + offset, buf.begin() + offset + profile_pic_length);
     offset += profile_pic_length;
+#endif
 }
 
 std::string User::to_json() const {
@@ -61,19 +71,23 @@ std::string User::to_json() const {
 
 void User::from_json(const std::string& json) {
     nlohmann::json j = nlohmann::json::parse(json);
-    this->uid.from_string(j["uid"].get<std::string>());
+    this->uid = UUID::from_string(j["uid"].get<std::string>());
     this->username = j["username"].get<std::string>();
     this->display_name = j["display_name"].get<std::string>();
     this->profile_pic = j["profile_pic"].get<std::string>();
 }
 
 size_t User::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     size_t size = this->uid.size();
     size += 1 + this->username.size();      // for the username and its length byte
     size += 1 + this->display_name.size();  // for the display name and its length byte
     size += 1 + this->profile_pic.size();   // for the profile pic and its length byte
 
     return size;
+#endif
 }
 
 const std::string& User::get_username() {

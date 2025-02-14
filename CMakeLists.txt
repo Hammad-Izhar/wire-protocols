@@ -101,6 +101,28 @@ set_target_properties(server PROPERTIES
 target_link_libraries(server PRIVATE Qt6::Core Qt6::Network)
 target_link_libraries(server PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
+qt_add_executable(server_json
+    src/bin/server/main.cpp
+    ${SERVER_SOURCE_FILES}
+    ${SOURCE_FILES}
+    ${SERVER_QT_HEADERS}
+)
+
+set_target_properties(server_json PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+    AUTOMOC ON  # Ensures Q_OBJECT macro is processed
+    AUTOUIC ON  # Enable Qt UI file processing (if needed)
+    AUTORCC ON  # Enable Qt resource processing (if needed)
+)
+
+# Define `PROTOCOL_JSON` for `server_json`
+target_compile_definitions(server_json PRIVATE PROTOCOL_JSON)
+
+# Link libraries (same as server)
+target_link_libraries(server_json PRIVATE Qt6::Widgets Qt6::Network)
+target_link_libraries(server_json PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+
 # Define Test executable
 qt_add_executable(test
    ${SOURCE_FILES}

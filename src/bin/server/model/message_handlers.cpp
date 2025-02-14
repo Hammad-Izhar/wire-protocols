@@ -39,6 +39,7 @@ void on_register_account(QTcpSocket* socket, RegisterAccountMessage& msg) {
 
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
+    qDebug() << "RegisterAccountResponse: " << response.to_json().c_str();
     emit MessageHandler::get_instance().write_data(buf);
 }
 
@@ -52,6 +53,7 @@ void on_login(QTcpSocket* socket, LoginMessage& msg) {
 
     LoginResponse response;
     std::optional<UUID> user_uid = db.get_uid_from_username(msg.get_username());
+    qDebug() << "User uid: " << user_uid.value().to_string().c_str();
     if (!user_uid.has_value()) {
         response = LoginResponse("Username does not exist");
     } else {
@@ -64,12 +66,14 @@ void on_login(QTcpSocket* socket, LoginMessage& msg) {
         } else {
             User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
             client->set_authenticated_user(user);
+            qDebug() << "User uid: " << user->get_uid().to_string().c_str();
             response = LoginResponse(user);
         }
     }
 
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
+    qDebug() << "LoginResponse: " << response.to_json().c_str();
     emit MessageHandler::get_instance().write_data(buf);
 
     if (!response.is_success()) {
@@ -85,6 +89,7 @@ void on_login(QTcpSocket* socket, LoginMessage& msg) {
         CreateChannelResponse create_channel_response(channel.value());
         std::vector<uint8_t> buf;
         create_channel_response.serialize_msg(buf);
+        qDebug() << "CreateChannelResponse: " << create_channel_response.to_json().c_str();
         emit MessageHandler::get_instance().write_data(buf);
 
         for (auto message_snowflake : channel.value()->get_message_snowflakes()) {
@@ -95,6 +100,7 @@ void on_login(QTcpSocket* socket, LoginMessage& msg) {
             SendMessageResponse send_message_response(message.value());
             std::vector<uint8_t> buf;
             send_message_response.serialize_msg(buf);
+            qDebug() << "SendMessageResponse: " << send_message_response.to_json().c_str();
             emit MessageHandler::get_instance().write_data(buf);
         }
     }
@@ -122,6 +128,7 @@ void on_list_accounts(QTcpSocket* socket, ListAccountsMessage& msg) {
 
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
+    qDebug() << "ListAccountsResponse: " << response.to_json().c_str();
     emit MessageHandler::get_instance().write_data(buf);
 }
 
@@ -146,6 +153,7 @@ void on_delete_account(QTcpSocket* socket, DeleteAccountMessage& msg) {
 
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
+    qDebug() << "DeleteAccountResponse: " << response.to_json().c_str();
     emit MessageHandler::get_instance().write_data(buf);
 }
 

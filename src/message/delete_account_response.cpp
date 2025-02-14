@@ -7,6 +7,10 @@ DeleteAccountResponse::DeleteAccountResponse(std::variant<User::SharedPtr, std::
     : data(data) {}
 
 void DeleteAccountResponse::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     if (is_success()) {
         buf.push_back(0);
         std::get<User::SharedPtr>(data)->serialize(buf);
@@ -16,6 +20,7 @@ void DeleteAccountResponse::serialize(std::vector<uint8_t>& buf) const {
         buf.push_back(error.size());
         buf.insert(buf.end(), error.begin(), error.end());
     }
+#endif
 }
 
 void DeleteAccountResponse::serialize_msg(std::vector<uint8_t>& buf) const {
@@ -25,6 +30,10 @@ void DeleteAccountResponse::serialize_msg(std::vector<uint8_t>& buf) const {
 }
 
 void DeleteAccountResponse::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    from_json(msg);
+#else
     if (buf[0] == 0) {
         User::SharedPtr user = std::make_shared<User>();
         user->deserialize(std::vector<uint8_t>(buf.begin() + 1, buf.end()));
@@ -34,6 +43,7 @@ void DeleteAccountResponse::deserialize(const std::vector<uint8_t>& buf) {
         std::string error(buf.begin() + 2, buf.begin() + 2 + len);
         data = error;
     }
+#endif
 }
 
 std::string DeleteAccountResponse::to_json() const {
@@ -52,7 +62,7 @@ void DeleteAccountResponse::from_json(const std::string& json) {
     auto j = nlohmann::json::parse(json);
     if (j["success"].get<bool>()) {
         User::SharedPtr user = std::make_shared<User>();
-        user->from_json(j["user"].dump());
+        user->from_json(j["user"]);
         data = user;
     } else {
         data = j["error"].get<std::string>();
@@ -60,6 +70,9 @@ void DeleteAccountResponse::from_json(const std::string& json) {
 }
 
 size_t DeleteAccountResponse::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     size_t size = 1;
     if (is_success()) {
         size += std::get<User::SharedPtr>(data)->size();
@@ -67,6 +80,7 @@ size_t DeleteAccountResponse::size() const {
         size += 1 + std::get<std::string>(data).size();
     }
     return size;
+#endif
 }
 
 bool DeleteAccountResponse::is_success() const {

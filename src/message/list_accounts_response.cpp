@@ -8,10 +8,15 @@
 ListAccountsResponse::ListAccountsResponse(std::vector<User::SharedPtr> data)
     : data(std::move(data)) {}
 
-ListAccountsResponse::ListAccountsResponse(std::variant<std::vector<User::SharedPtr>, std::string> data)
+ListAccountsResponse::ListAccountsResponse(
+    std::variant<std::vector<User::SharedPtr>, std::string> data)
     : data(data) {}
 
 void ListAccountsResponse::serialize(std::vector<uint8_t>& buf) const {
+#if PROTOCOL_JSON
+    std::string msg = to_json();
+    buf.insert(buf.end(), msg.begin(), msg.end());
+#else
     if (std::holds_alternative<std::vector<User::SharedPtr>>(data)) {
         buf.push_back(0);
         // Push back length of vector
@@ -26,6 +31,7 @@ void ListAccountsResponse::serialize(std::vector<uint8_t>& buf) const {
         buf.push_back(error.size());
         buf.insert(buf.end(), error.begin(), error.end());
     }
+#endif
 }
 
 void ListAccountsResponse::serialize_msg(std::vector<uint8_t>& buf) const {
@@ -35,6 +41,10 @@ void ListAccountsResponse::serialize_msg(std::vector<uint8_t>& buf) const {
 }
 
 void ListAccountsResponse::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    std::string msg(buf.begin(), buf.end());
+    from_json(msg);
+#else
     size_t offset = 0;
     uint8_t has_error = buf[offset++];
     if (has_error == 0) {
@@ -52,6 +62,7 @@ void ListAccountsResponse::deserialize(const std::vector<uint8_t>& buf) {
         std::string error(buf.begin() + offset, buf.begin() + offset + error_length);
         data = error;
     }
+#endif
 }
 
 std::string ListAccountsResponse::to_json() const {
@@ -74,7 +85,7 @@ void ListAccountsResponse::from_json(const std::string& json) {
         std::vector<User::SharedPtr> users;
         for (const auto& user : j["users"]) {
             User::SharedPtr u = std::make_shared<User>();
-            u->from_json(user.dump());
+            u->from_json(user);
             users.push_back(u);
         }
         data = users;
@@ -84,6 +95,9 @@ void ListAccountsResponse::from_json(const std::string& json) {
 }
 
 [[nodiscard]] size_t ListAccountsResponse::size() const {
+#if PROTOCOL_JSON
+    return to_json().size();
+#else
     size_t size = 1;  // for the has_error byte
     if (std::holds_alternative<std::vector<User::SharedPtr>>(data)) {
         size += 1;  // for the users length
@@ -96,6 +110,7 @@ void ListAccountsResponse::from_json(const std::string& json) {
         size += 1 + error.size();  // 1 for the error length + error length
     }
     return size;
+#endif
 }
 
 [[nodiscard]] bool ListAccountsResponse::is_success() const {
