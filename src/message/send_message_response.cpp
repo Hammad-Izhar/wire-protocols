@@ -30,6 +30,9 @@ void SendMessageResponse::serialize_msg(std::vector<uint8_t>& buf) const {
 }
 
 void SendMessageResponse::deserialize(const std::vector<uint8_t>& buf) {
+#if PROTOCOL_JSON
+    from_json(std::string(buf.begin(), buf.end()));
+#else
     size_t offset = 0;
     uint8_t has_error = buf[offset++];
     if (has_error == 0) {
@@ -41,6 +44,7 @@ void SendMessageResponse::deserialize(const std::vector<uint8_t>& buf) {
         std::string error(buf.begin() + offset, buf.begin() + offset + error_length);
         data = error;
     }
+#endif
 }
 
 std::string SendMessageResponse::to_json() const {
