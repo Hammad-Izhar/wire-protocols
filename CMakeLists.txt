@@ -57,6 +57,32 @@ set_target_properties(client PROPERTIES
 
 target_link_libraries(client PRIVATE Qt6::Widgets Qt6::Network)
 
+# Define Client_JSON executable
+qt_add_executable(client_json
+    src/bin/client/main.cpp
+    ${CLIENT_SOURCE_FILES}
+    ${SOURCE_FILES}
+    ${CLIENT_QT_HEADERS}
+)
+
+qt_add_resources(client_json_resources "resources.qrc")
+
+target_sources(client_json PRIVATE ${client_json_resources})
+
+set_target_properties(client_json PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+    AUTOMOC ON  # Ensures Q_OBJECT macro is processed
+    AUTOUIC ON  # Enable Qt UI file processing (if needed)
+    AUTORCC ON  # Enable Qt resource processing (if needed)
+)
+
+# Define `PROTOCOL_JSON` for `client_json`
+target_compile_definitions(client_json PRIVATE PROTOCOL_JSON)
+
+# Link libraries (same as client)
+target_link_libraries(client_json PRIVATE Qt6::Widgets Qt6::Network)
+
 # Define Server executable
 qt_add_executable(server
     src/bin/server/main.cpp
