@@ -3,13 +3,13 @@
 #include "server/db/database.hpp"
 #include <regex>
 
-TEST(UserDbTest, AddUser) {
+TEST(UserTableTest, AddUser) {
     UserTable db;
     User::SharedPtr user = std::make_shared<User>("thomask", "Thomas");
     EXPECT_NO_THROW(db.add_user(user));
 }
 
-TEST(UserDbTest, AddUserAndGetByUid) {
+TEST(UserTableTest, AddUserAndGetByUid) {
     UserTable db;
     User::SharedPtr user = std::make_shared<User>("thomask", "Thomas");
     db.add_user(user);
@@ -19,7 +19,7 @@ TEST(UserDbTest, AddUserAndGetByUid) {
     EXPECT_EQ(user_ref->get_username(), "thomask");
 }
 
-TEST(UserDbTest, AddUserAndRemoveByUid) {
+TEST(UserTableTest, AddUserAndRemoveByUid) {
     UserTable db;
     User::SharedPtr user = std::make_shared<User>("thomask", "Thomas");
     db.add_user(user);
@@ -29,7 +29,7 @@ TEST(UserDbTest, AddUserAndRemoveByUid) {
     EXPECT_NO_THROW(db.remove_user(user_ref->get_uid()));
 }
 
-TEST(UserDBTest, GetUsersMatchingRegex) {
+TEST(UserTableTest, GetUsersMatchingRegex) {
     UserTable db;
     User::SharedPtr user1 = std::make_shared<User>("thomask", "Thomas");
     User::SharedPtr user2 = std::make_shared<User>("thomas", "Tom");
@@ -43,7 +43,7 @@ TEST(UserDBTest, GetUsersMatchingRegex) {
     EXPECT_EQ(uuids.size(), 2);
 }
 
-TEST(UserDBTest, HandlesInvalidRegex) {
+TEST(UserTableTest, HandlesInvalidRegex) {
     UserTable db;
     User::SharedPtr user1 = std::make_shared<User>("thomask", "Thomas");
     User::SharedPtr user2 = std::make_shared<User>("thomas", "Tom");
