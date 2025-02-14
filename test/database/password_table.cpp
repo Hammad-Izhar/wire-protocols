@@ -1,15 +1,14 @@
 #include <gtest/gtest.h>
 #include "server/db/password_table.hpp"
 #include "models/uuid.hpp"
-
-TEST(AddPasswordSuccessfully, PasswordTableTest) {
+TEST(PasswordTableTest, AddPasswordSuccessfully) {
     PasswordTable passwordTable;
     UUID user1;
     auto result = passwordTable.add_password(user1, "securePass123");
     EXPECT_TRUE(std::holds_alternative<std::monostate>(result));
 }
 
-TEST(VerifyCorrectPassword, PasswordTableTest) {
+TEST(PasswordTableTest, VerifyCorrectPassword) {
     PasswordTable passwordTable;
     UUID user1;
     passwordTable.add_password(user1, "correctPass");
@@ -18,7 +17,7 @@ TEST(VerifyCorrectPassword, PasswordTableTest) {
     EXPECT_TRUE(std::get<bool>(result));
 }
 
-TEST(VerifyIncorrectPassword, PasswordTableTest) {
+TEST(PasswordTableTest, VerifyIncorrectPassword) {
     PasswordTable passwordTable;
     UUID user1;
     passwordTable.add_password(user1, "correctPass");
@@ -27,7 +26,7 @@ TEST(VerifyIncorrectPassword, PasswordTableTest) {
     EXPECT_FALSE(std::get<bool>(result));
 }
 
-TEST(RemovePasswordSuccessfully, PasswordTableTest) {
+TEST(PasswordTableTest, RemovePasswordSuccessfully) {
     PasswordTable passwordTable;
     UUID user1;
     passwordTable.add_password(user1, "securePass123");
@@ -38,7 +37,7 @@ TEST(RemovePasswordSuccessfully, PasswordTableTest) {
     EXPECT_TRUE(std::holds_alternative<std::string>(verifyResult));
 }
 
-TEST(RemoveNonexistentPassword, PasswordTableTest) {
+TEST(PasswordTableTest, RemoveNonexistentPassword) {
     PasswordTable passwordTable;
     UUID user1;
     UUID user2;
@@ -50,7 +49,7 @@ TEST(RemoveNonexistentPassword, PasswordTableTest) {
     EXPECT_TRUE(std::get<bool>(verification));
 }
 
-TEST(VerifyNonexistentUser, PasswordTableTest) {
+TEST(PasswordTableTest, VerifyNonexistentUser) {
     PasswordTable passwordTable;
     UUID user1;
     auto result = passwordTable.verify_password(user1, "somePass");
