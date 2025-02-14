@@ -65,38 +65,50 @@ std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr use
     return this->users->add_user(user);
 }
 
-std::variant<Message::SharedPtr, std::string> Database::add_message(Message::SharedPtr message) {
-    std::optional<Channel::SharedPtr> channel =
-        this->channels->get_mut_by_uid(message->get_channel_id());
+std::variant<Message::SharedPtr, std::string> Database::add_message(UUID sender_uid,
+                                                                    UUID channel_uid,
+                                                                    std::string content) {
+    std::optional<Channel::SharedPtr> channel = this->channels->get_mut_by_uid(channel_uid);
     if (!channel.has_value()) {
         return "Channel does not exist";
     }
 
-    auto res = this->messages->add_message(message);
+    auto res = this->messages->add_message(sender_uid, channel_uid, content);
     if (std::holds_alternative<std::string>(res)) {
         return std::get<std::string>(res);
     }
+    Message::SharedPtr message = std::get<Message::SharedPtr>(res);
 
     channel.value()->add_message(message->get_snowflake());
-    return this->messages->get_by_uid(message->get_snowflake()).value();
+    for (auto user_uid : channel.value()->get_user_uids()) {
+        std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
+        if (!user.has_value()) {
+            continue;
+        }
+        emit user.value()->message_received(message);
+    }
+
+    return message;
 }
 
-std::variant<Channel::SharedPtr, std::string> Database::add_channel(Channel::SharedPtr channel) {
-    qDebug() << "Adding channel" << QString::fromStdString(channel->to_json());
-    auto res = this->channels->add_channel(channel);
+std::variant<Channel::SharedPtr, std::string> Database::add_channel(std::string channel_name,
+                                                                    std::vector<UUID> members) {
+    auto res = this->channels->add_channel(channel_name, members);
     if (std::holds_alternative<std::string>(res)) {
         return std::get<std::string>(res);
     }
-    // Add channel to all users
+    Channel::SharedPtr channel = std::get<Channel::SharedPtr>(res);
+
     for (auto& user_uid : channel->get_user_uids()) {
         std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
         if (!user.has_value()) {
             continue;
         }
         user.value()->add_channel(channel->get_uid());
+        emit user.value()->channel_added(channel);
     }
 
-    return this->get_channel_by_uid(channel->get_uid()).value();
+    return channel;
 }
 
 std::variant<std::monostate, std::string> Database::add_user_to_channel(UUID user_uid,

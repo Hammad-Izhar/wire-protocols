@@ -43,18 +43,30 @@ class Database {
 
     // Setters -- Add
     std::variant<std::monostate, std::string> add_user(User::SharedPtr user, std::string password);
-    std::variant<Message::SharedPtr, std::string> add_message(Message::SharedPtr message);
-    std::variant<Channel::SharedPtr, std::string> add_channel(Channel::SharedPtr channel);
+
+    std::variant<Message::SharedPtr, std::string> add_message(UUID sender_uid,
+                                                              UUID channel_uid,
+                                                              std::string content);
+
+    std::variant<Channel::SharedPtr, std::string> add_channel(std::string channel_name,
+                                                              std::vector<UUID> members);
+
     std::variant<std::monostate, std::string> add_user_to_channel(UUID user_uid, UUID channel_uid);
 
     // Setters -- Remove
+
     std::variant<std::monostate, std::string> remove_user(UUID user_uid);
+
     std::variant<std::monostate, std::string> remove_message(uint64_t message_snowflake);
+
     std::variant<std::monostate, std::string> remove_channel(UUID channel_uid);
 
    private:
     std::unique_ptr<UserTable> users;
+
     std::unique_ptr<MessageTable> messages;
+
     std::unique_ptr<ChannelTable> channels;
+
     std::unique_ptr<PasswordTable> passwords;
 };

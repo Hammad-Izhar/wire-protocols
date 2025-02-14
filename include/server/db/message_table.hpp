@@ -16,7 +16,9 @@ class MessageTable {
     [[nodiscard]] std::optional<Message::SharedPtr> get_mut_by_uid(uint64_t message_snowflake);
 
     // Setters
-    std::variant<std::monostate, std::string> add_message(Message::SharedPtr message);
+    std::variant<Message::SharedPtr, std::string> add_message(UUID sender_uid,
+                                                              UUID channel_uid,
+                                                              std::string content);
     std::variant<std::monostate, std::string> remove_message(uint64_t message_snowflake);
 
    private:

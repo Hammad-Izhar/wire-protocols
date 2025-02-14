@@ -8,16 +8,10 @@ User::User(std::string username, std::string display_name)
     : username(username),
       display_name(display_name),
       uid(UUID()),
-      profile_pic(":/assets/profile_pics/blank_profile_pic.png") {
-    // Generate a public/private key pair
-    // TBD to friday
-}
+      profile_pic(":/assets/profile_pics/blank_profile_pic.png") {}
 
 User::User(std::string username, std::string display_name, UUID uid, std::string profile_pic)
-    : username(username), display_name(display_name), uid(uid), profile_pic(profile_pic) {
-    // Generate a public/private key pair
-    // TBD to friday
-}
+    : username(username), display_name(display_name), uid(uid), profile_pic(profile_pic) {}
 
 void User::serialize(std::vector<uint8_t>& buf) const {
     uint8_t username_length = this->username.size();

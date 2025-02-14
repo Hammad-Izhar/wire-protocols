@@ -1,14 +1,18 @@
 #pragma once
 #include <stdint.h>
+#include <QObject>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
 
 #include "message/serialize.hpp"
+#include "models/channel.hpp"
+#include "models/message.hpp"
 #include "models/uuid.hpp"
 
-class User : public Serializable {
+class User : public QObject, public Serializable {
+    Q_OBJECT
    public:
     typedef std::shared_ptr<User> SharedPtr;
 
@@ -50,6 +54,15 @@ class User : public Serializable {
     void add_channel(UUID channel);
 
     void remove_channel(UUID channel_id);
+
+   signals:
+    void channel_added(Channel::SharedPtr channel);
+
+    void channel_removed(Channel::SharedPtr channel);
+
+    void message_received(Message::SharedPtr message);
+
+    void message_deleted(Message::SharedPtr message);
 
    private:
     UUID uid;                    // User ID

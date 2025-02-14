@@ -3,31 +3,60 @@
 
 #include "constants.hpp"
 #include "message/create_channel.hpp"
+#include "message/create_channel_response.hpp"
 #include "message/delete_account.hpp"
 #include "message/delete_message.hpp"
+// #include "message/delete_message_response.hpp"
 #include "message/header.hpp"
 #include "message/list_accounts.hpp"
 #include "message/login.hpp"
 #include "message/register_account.hpp"
 #include "message/send_message.hpp"
+#include "message/send_message_response.hpp"
 #include "models/message_handler.hpp"
 #include "server/model/client_handler.hpp"
 
 ClientHandler::ClientHandler(qintptr socketDescriptor, QObject* parent)
-    : QObject(parent), socketDescriptor(socketDescriptor) {}
+    : QObject(parent), socket_descriptor(socketDescriptor) {}
 
-void ClientHandler::handleClient() {
+void ClientHandler::set_authenticated_user(const User::SharedPtr user) {
+    if (authenticated_user.has_value()) {
+        disconnect(authenticated_user.value().get(), &User::channel_added, this,
+                   &ClientHandler::on_channel_added);
+        // disconnect(authenticated_user.value().get(), &User::channel_removed, this,
+        // &on_channel_removed);
+        disconnect(authenticated_user.value().get(), &User::message_received, this,
+                   &ClientHandler::on_message_received);
+        // disconnect(authenticated_user.value().get(), &User::message_deleted, this,
+        // &on_message_deleted);
+    }
+
+    authenticated_user = user;
+    connect(user.get(), &User::channel_added, this, &ClientHandler::on_channel_added);
+    // connect(user.get(), &User::channel_removed, this, &on_channel_removed);
+    connect(user.get(), &User::message_received, this, &ClientHandler::on_message_received);
+    // connect(user.get(), &User::message_deleted, this, &on_message_deleted);
+}
+
+void ClientHandler::handle_client() {
     socket = new QTcpSocket(this);
-    socket->setSocketDescriptor(socketDescriptor);
+    socket->setSocketDescriptor(socket_descriptor);
     authenticated_user = std::nullopt;
 
-    connect(socket, &QTcpSocket::readyRead, this, &ClientHandler::onReadyRead);
-    connect(socket, &QTcpSocket::disconnected, this, &ClientHandler::onDisconnected);
+    connect(&MessageHandler::get_instance(), &MessageHandler::write_data, this,
+            &ClientHandler::on_write_data);
+    connect(socket, &QTcpSocket::readyRead, this, &ClientHandler::on_read_data);
+    connect(socket, &QTcpSocket::disconnected, this, &ClientHandler::on_disconnected);
 
     qDebug() << "New Client: " << socket->peerAddress() << ":" << socket->peerPort();
 }
 
-void ClientHandler::onReadyRead() {
+void ClientHandler::on_write_data(std::vector<uint8_t> data) {
+    socket->write(reinterpret_cast<const char*>(data.data()), data.size());
+    socket->flush();
+}
+
+void ClientHandler::on_read_data() {
     Header header;
     if (socket->bytesAvailable() < header.size())
         return;
@@ -117,12 +146,36 @@ void ClientHandler::onReadyRead() {
     }
 }
 
-void ClientHandler::onDisconnected() {
+void ClientHandler::on_disconnected() {
     qDebug() << "Client disconnected";
     socket->deleteLater();
     emit finished();
 }
 
-void ClientHandler::setAuthenticatedUser(const User::SharedPtr& user) {
-    authenticated_user = user;
+void ClientHandler::on_message_received(std::variant<Message::SharedPtr, std::string> message) {
+    SendMessageResponse response(message);
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    emit MessageHandler::get_instance().write_data(buf);
 }
+
+// void ClientHandler::on_message_deleted(std::variant<Message::SharedPtr, std::string> message) {
+//     DeleteMessageResponse response(message);
+//     std::vector<uint8_t> buf;
+//     response.serialize_msg(buf);
+//     emit MessageHandler::get_instance().write_data(buf);
+// }
+
+void ClientHandler::on_channel_added(std::variant<Channel::SharedPtr, std::string> channel) {
+    CreateChannelResponse response(channel);
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    emit MessageHandler::get_instance().write_data(buf);
+}
+
+// void ClientHandler::on_channel_removed(std::variant<Channel::SharedPtr, std::string> channel) {
+//     DeleteChannelResponse response(channel);
+//     std::vector<uint8_t> buf;
+//     response.serialize_msg(buf);
+//     emit MessageHandler::get_instance().write_data(buf);
+// }

@@ -12,7 +12,7 @@ void TcpServer::incomingConnection(qintptr socketDescriptor) {
 
     handler->moveToThread(thread);
 
-    connect(thread, &QThread::started, handler, &ClientHandler::handleClient);
+    connect(thread, &QThread::started, handler, &ClientHandler::handle_client);
     connect(handler, &ClientHandler::finished, thread, &QThread::quit);
     connect(handler, &ClientHandler::finished, handler, &ClientHandler::deleteLater);
     connect(thread, &QThread::finished, thread, &QThread::deleteLater);

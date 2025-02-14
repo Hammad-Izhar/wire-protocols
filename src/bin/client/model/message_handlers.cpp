@@ -5,6 +5,7 @@
 #include "message/list_accounts_response.hpp"
 #include "message/login_response.hpp"
 #include "message/register_account_response.hpp"
+#include "message/send_message_response.hpp"
 #include "models/message_handler.hpp"
 
 void on_register_account_response(QTcpSocket* socket, RegisterAccountResponse& msg) {
@@ -70,11 +71,21 @@ void on_create_channel_response(QTcpSocket* socket, CreateChannelResponse& msg) 
     }
 };
 
-void init_message_handlers() {
-    MessageHandler& messageHandler = MessageHandler::get_instance();
+void on_send_message_response(QTcpSocket* socket, SendMessageResponse& msg) {
+    Session& session = Session::get_instance();
+    if (msg.is_success()) {
+        emit session.tcp_client->sendMessageSuccess(msg.get_data().value());
+    } else {
+        emit session.tcp_client->sendMessageFailure(
+            QString::fromStdString(msg.get_error_message().value()));
+    }
+};
+
+void init_message_handlers(MessageHandler& messageHandler) {
     messageHandler.register_handler<RegisterAccountResponse>(&on_register_account_response);
     messageHandler.register_handler<LoginResponse>(&on_login_response);
     messageHandler.register_handler<ListAccountsResponse>(&on_list_accounts_response);
     messageHandler.register_handler<DeleteAccountResponse>(&on_delete_account_response);
     messageHandler.register_handler<CreateChannelResponse>(&on_create_channel_response);
+    messageHandler.register_handler<SendMessageResponse>(&on_send_message_response);
 }

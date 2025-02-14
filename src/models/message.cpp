@@ -103,8 +103,8 @@ void Message::from_json(const std::string& json) {
     size_t size =
         sender_id.size() + channel_id.size();  // sender_id (16 bytes) + channel_id (16 bytes)
     size += sizeof(snowflake) + sizeof(created_at) + sizeof(modified_at);
-    size += 1 + text.size();   // 1 for the text length + text length
-    size += sizeof(uint32_t);  // read_by_size
+    size += 1 + text.size();  // 1 for the text length + text length
+    size += 1;                // read_by_size
     for (const auto& user_id : read_by) {
         size += 16;  // user_id (16 bytes)
     }

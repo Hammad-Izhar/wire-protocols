@@ -20,7 +20,5 @@ int main(int argc, char* argv[]) {
     session.main_window->setCurrentIndex(0);
     session.main_window->show();
 
-    init_message_handlers();
-
     return app.exec();
 }

@@ -66,6 +66,8 @@ void SendMessageResponse::from_json(const std::string& json) {
     if (std::holds_alternative<std::string>(data)) {
         const std::string& error = std::get<std::string>(data);
         size += 1 + error.size();  // 1 for the error length + error length
+    } else {
+        size += std::get<Message::SharedPtr>(data)->size();
     }
     return size;
 }

@@ -4,13 +4,20 @@
 #include <typeindex>
 #include <unordered_map>
 
-class MessageHandler {
+#include "models/message_handlers.hpp"
+
+class MessageHandler : public QObject {
+    Q_OBJECT
    public:
     using HandlerFunction = std::function<void(void*, void*)>;
     MessageHandler() = default;
 
     static MessageHandler& get_instance() {
-        static MessageHandler instance;
+        thread_local MessageHandler instance;
+        if (!instance.handlers_initialized) {
+            init_message_handlers(instance);
+        }
+
         return instance;
     }
 
@@ -36,6 +43,10 @@ class MessageHandler {
         }
     }
 
+   signals:
+    void write_data(std::vector<uint8_t> data);
+
    private:
     std::unordered_map<std::type_index, HandlerFunction> handlers;
+    bool handlers_initialized = false;
 };

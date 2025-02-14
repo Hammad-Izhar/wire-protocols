@@ -1,6 +1,7 @@
 #include <QTcpSocket>
 #include <string>
 
+#include <qdebug.h>
 #include "message/create_channel.hpp"
 #include "message/create_channel_response.hpp"
 #include "message/delete_account.hpp"
@@ -15,9 +16,9 @@
 #include "message/send_message.hpp"
 #include "message/send_message_response.hpp"
 #include "models/message_handler.hpp"
+#include "models/message_handlers.hpp"
 #include "server/db/database.hpp"
 #include "server/model/client_handler.hpp"
-#include "server/model/message_handlers.hpp"
 
 void on_register_account(QTcpSocket* socket, RegisterAccountMessage& msg) {
     Database& db = Database::get_instance();
@@ -38,8 +39,7 @@ void on_register_account(QTcpSocket* socket, RegisterAccountMessage& msg) {
 
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
-    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
-    socket->flush();
+    emit MessageHandler::get_instance().write_data(buf);
 }
 
 void on_login(QTcpSocket* socket, LoginMessage& msg) {
@@ -63,15 +63,14 @@ void on_login(QTcpSocket* socket, LoginMessage& msg) {
             response = LoginResponse("Incorrect password");
         } else {
             User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
-            client->setAuthenticatedUser(user);
+            client->set_authenticated_user(user);
             response = LoginResponse(user);
         }
     }
 
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
-    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
-    socket->flush();
+    emit MessageHandler::get_instance().write_data(buf);
 }
 
 void on_list_accounts(QTcpSocket* socket, ListAccountsMessage& msg) {
@@ -91,8 +90,7 @@ void on_list_accounts(QTcpSocket* socket, ListAccountsMessage& msg) {
     ListAccountsResponse response(users);
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
-    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
-    socket->flush();
+    emit MessageHandler::get_instance().write_data(buf);
 }
 
 void on_delete_account(QTcpSocket* socket, DeleteAccountMessage& msg) {
@@ -116,8 +114,7 @@ void on_delete_account(QTcpSocket* socket, DeleteAccountMessage& msg) {
 
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
-    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
-    socket->flush();
+    // emit MessageHandler::get_instance().write_data(buf);
 }
 
 void on_delete_message(QTcpSocket* socket, DeleteMessageMessage& msg) {
@@ -127,32 +124,15 @@ void on_delete_message(QTcpSocket* socket, DeleteMessageMessage& msg) {
 
 void on_create_channel(QTcpSocket* socket, CreateChannelMessage& msg) {
     Database& db = Database::get_instance();
-
-    std::shared_ptr<Channel> channel =
-        std::make_shared<Channel>(msg.get_channel_name(), msg.get_members());
-
-    CreateChannelResponse response(db.add_channel(channel));
-    std::vector<uint8_t> buf;
-    response.serialize_msg(buf);
-    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
-    socket->flush();
+    db.add_channel(msg.get_channel_name(), msg.get_members());
 }
 
 void on_send_message(QTcpSocket* socket, SendMessageMessage& msg) {
     Database& db = Database::get_instance();
-
-    std::shared_ptr<Message> message =
-        std::make_shared<Message>(msg.get_channel_uid(), msg.get_sender_uid(), msg.get_text());
-
-    SendMessageResponse response(db.add_message(message));
-    std::vector<uint8_t> buf;
-    response.serialize_msg(buf);
-    socket->write(reinterpret_cast<const char*>(buf.data()), buf.size());
+    db.add_message(msg.get_sender_uid(), msg.get_channel_uid(), msg.get_text());
 }
 
-void init_message_handlers() {
-    MessageHandler& messageHandler = MessageHandler::get_instance();
-
+void init_message_handlers(MessageHandler& messageHandler) {
     messageHandler.register_handler<RegisterAccountMessage>(&on_register_account);
     messageHandler.register_handler<LoginMessage>(&on_login);
     messageHandler.register_handler<ListAccountsMessage>(&on_list_accounts);

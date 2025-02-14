@@ -14,11 +14,13 @@ std::optional<Channel::SharedPtr> ChannelTable::get_mut_by_uid(UUID channel_uid)
                : std::nullopt;
 }
 
-std::variant<std::monostate, std::string> ChannelTable::add_channel(Channel::SharedPtr channel) {
+std::variant<Channel::SharedPtr, std::string> ChannelTable::add_channel(std::string channel_name,
+                                                                        std::vector<UUID> members) {
     std::lock_guard<std::mutex> lock(this->mutex);
+    Channel::SharedPtr channel = std::make_shared<Channel>(channel_name, members);
     this->data.insert({channel->get_uid(), channel});
 
-    return {};
+    return channel;
 }
 
 std::variant<std::monostate, std::string> ChannelTable::remove_channel(UUID channel_uid) {
