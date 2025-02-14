@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <stdexcept>
 
 #include "server/db/message_table.hpp"
 #include "server/db/user_table.hpp"

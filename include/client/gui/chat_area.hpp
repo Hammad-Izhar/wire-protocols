@@ -23,6 +23,8 @@ class ChatArea : public QWidget {
     void sendMessage();
     void onSendMessageSuccess(Message::SharedPtr message);
     void onSendMessageFailure(const QString& error_message);
+    void onDeleteMessageSuccess(Message::SharedPtr message);
+    void onDeleteMessageFailure(const QString& error_message);
 
    private:
     QLabel* chatTitle;

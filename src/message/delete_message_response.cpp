@@ -20,7 +20,7 @@ void DeleteMessageResponse::serialize(std::vector<uint8_t>& buf) const {
 }
 
 void DeleteMessageResponse::serialize_msg(std::vector<uint8_t>& buf) const {
-    Header header(PROTOCOL_VERSION, Operation::DELETE_ACCOUNT, size());
+    Header header(PROTOCOL_VERSION, Operation::DELETE_MESSAGE, size());
     header.serialize(buf);
     serialize(buf);
 }
@@ -41,7 +41,7 @@ std::string DeleteMessageResponse::to_json() const {
     nlohmann::json j;
     if (is_success()) {
         j["success"] = true;
-        j["Message"] = std::get<Message::SharedPtr>(data)->to_json();
+        j["message"] = std::get<Message::SharedPtr>(data)->to_json();
     } else {
         j["success"] = false;
         j["error"] = std::get<std::string>(data);
@@ -53,7 +53,7 @@ void DeleteMessageResponse::from_json(const std::string& json) {
     auto j = nlohmann::json::parse(json);
     if (j["success"].get<bool>()) {
         Message::SharedPtr message = std::make_shared<Message>();
-        message->from_json(j["Message"].dump());
+        message->from_json(j["message"].dump());
         data = message;
     } else {
         data = j["error"].get<std::string>();

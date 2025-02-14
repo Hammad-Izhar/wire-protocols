@@ -56,6 +56,10 @@ ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
             &ChatArea::onSendMessageSuccess);
     connect(session.tcp_client, &TcpClient::sendMessageFailure, this,
             &ChatArea::onSendMessageFailure);
+    connect(session.tcp_client, &TcpClient::deleteMessageSuccess, this,
+            &ChatArea::onDeleteMessageSuccess);
+    connect(session.tcp_client, &TcpClient::deleteMessageFailure, this,
+            &ChatArea::onDeleteMessageFailure);
 }
 
 void ChatArea::validateMessage() {
@@ -124,4 +128,29 @@ void ChatArea::onSendMessageSuccess(Message::SharedPtr message) {
 
 void ChatArea::onSendMessageFailure(const QString& error) {
     qDebug() << "Failed to send message: " << error;
+}
+
+void ChatArea::onDeleteMessageSuccess(Message::SharedPtr message) {
+    Session& session = Session::get_instance();
+    if (session.get_active_channel().has_value() &&
+        session.get_active_channel().value()->get_uid() == message->get_channel_id()) {
+        // Find and remove the corresponding MessageWidget
+        for (int i = 0; i < messageLayout->count(); ++i) {
+            MessageWidget* widget =
+                dynamic_cast<MessageWidget*>(messageLayout->itemAt(i)->widget());
+            if (widget && widget->getMessage()->get_snowflake() == message->get_snowflake()) {
+                QWidget* itemWidget = messageLayout->itemAt(i)->widget();
+                messageLayout->removeWidget(itemWidget);
+                delete itemWidget;
+                break;
+            }
+        }
+    }
+
+    messageLayout->update();
+    messageContainer->adjustSize();
+}
+
+void ChatArea::onDeleteMessageFailure(const QString& error) {
+    qDebug() << "Failed to delete message: " << error;
 }

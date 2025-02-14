@@ -10,6 +10,8 @@ class MessageWidget : public QWidget {
    public:
     explicit MessageWidget(Message::SharedPtr message, QWidget* parent = nullptr);
 
+    Message::SharedPtr getMessage() const { return message; }
+
    protected:
     void paintEvent(QPaintEvent* event) override;
 
