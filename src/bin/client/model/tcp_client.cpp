@@ -45,7 +45,7 @@ void TcpClient::connectToServer(const QString& host, quint16 port) {
 void TcpClient::register_user(const std::string& username,
                               const std::string& displayName,
                               const std::string& password) {
-    RegisterAccountMessage message(username, displayName, password);
+    RegisterAccountMessage message(username, password, displayName);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
