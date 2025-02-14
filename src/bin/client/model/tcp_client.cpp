@@ -106,92 +106,94 @@ void TcpClient::delete_message(Message::SharedPtr message) {
 }
 
 void TcpClient::onReadyRead() {
-    Header header;
-    if (socket->bytesAvailable() < header.size()) {
-        return;
-    }
-    QByteArray headerData = socket->read(header.size());
-    std::vector<uint8_t> vec(headerData.size());
-    std::transform(headerData.begin(), headerData.end(), vec.begin(),
-                   [](char c) { return static_cast<uint8_t>(c); });
-    header.deserialize(vec);
-    qDebug() << "Received header: " << header.get_version() << " " << header.get_operation() << " "
-             << header.get_packet_length();
-
-    if (header.get_version() != PROTOCOL_VERSION) {
-        qDebug() << "Protocol version mismatch";
-        return;
-    }
-
-    static constexpr uint8_t MAX_RETRIES = 100;
-    uint8_t retries = 0;
-    while (socket->bytesAvailable() < header.get_packet_length()) {
-        if (++retries > MAX_RETRIES) {
-            qDebug() << "Timeout waiting for message data";
+    while (true) {
+        Header header;
+        if (socket->bytesAvailable() < header.size()) {
             return;
         }
-        QThread::msleep(100);
-    }
+        QByteArray headerData = socket->read(header.size());
+        std::vector<uint8_t> vec(headerData.size());
+        std::transform(headerData.begin(), headerData.end(), vec.begin(),
+                       [](char c) { return static_cast<uint8_t>(c); });
+        header.deserialize(vec);
+        qDebug() << "Received header: " << header.get_version() << " " << header.get_operation()
+                 << " " << header.get_packet_length();
 
-    QByteArray data = socket->read(header.get_packet_length());
-    std::vector<uint8_t> msg(header.get_packet_length());
-    std::transform(data.begin(), data.end(), msg.begin(),
-                   [](char c) { return static_cast<uint8_t>(c); });
+        if (header.get_version() != PROTOCOL_VERSION) {
+            qDebug() << "Protocol version mismatch";
+            return;
+        }
 
-    MessageHandler& messageHandler = MessageHandler::get_instance();
-    switch (header.get_operation()) {
-        case Operation::REGISTER_ACCOUNT: {
-            RegisterAccountResponse response;
-            response.deserialize(msg);
-            qDebug() << response.to_json().c_str();
-            messageHandler.dispatch(socket, response);
-            break;
+        static constexpr uint8_t MAX_RETRIES = 100;
+        uint8_t retries = 0;
+        while (socket->bytesAvailable() < header.get_packet_length()) {
+            if (++retries > MAX_RETRIES) {
+                qDebug() << "Timeout waiting for message data";
+                return;
+            }
+            QThread::msleep(100);
         }
-        case Operation::LOGIN: {
-            LoginResponse response;
-            response.deserialize(msg);
-            qDebug() << response.to_json().c_str();
-            messageHandler.dispatch(socket, response);
-            break;
+
+        QByteArray data = socket->read(header.get_packet_length());
+        std::vector<uint8_t> msg(header.get_packet_length());
+        std::transform(data.begin(), data.end(), msg.begin(),
+                       [](char c) { return static_cast<uint8_t>(c); });
+
+        MessageHandler& messageHandler = MessageHandler::get_instance();
+        switch (header.get_operation()) {
+            case Operation::REGISTER_ACCOUNT: {
+                RegisterAccountResponse response;
+                response.deserialize(msg);
+                qDebug() << response.to_json().c_str();
+                messageHandler.dispatch(socket, response);
+                break;
+            }
+            case Operation::LOGIN: {
+                LoginResponse response;
+                response.deserialize(msg);
+                qDebug() << response.to_json().c_str();
+                messageHandler.dispatch(socket, response);
+                break;
+            }
+            case Operation::LIST_ACCOUNTS: {
+                ListAccountsResponse response;
+                response.deserialize(msg);
+                qDebug() << response.to_json().c_str();
+                messageHandler.dispatch(socket, response);
+                break;
+            }
+            case Operation::DELETE_ACCOUNT: {
+                DeleteAccountResponse response;
+                response.deserialize(msg);
+                qDebug() << response.to_json().c_str();
+                messageHandler.dispatch(socket, response);
+                break;
+            }
+            case Operation::DELETE_MESSAGE: {
+                DeleteMessageResponse response;
+                response.deserialize(msg);
+                qDebug() << response.to_json().c_str();
+                messageHandler.dispatch(socket, response);
+                break;
+            }
+            case Operation::CREATE_CHANNEL: {
+                CreateChannelResponse response;
+                response.deserialize(msg);
+                qDebug() << response.to_json().c_str();
+                messageHandler.dispatch(socket, response);
+                break;
+            }
+            case Operation::SEND_MESSAGE: {
+                SendMessageResponse response;
+                response.deserialize(msg);
+                qDebug() << response.to_json().c_str();
+                messageHandler.dispatch(socket, response);
+                break;
+            }
+            default:
+                qDebug() << "Unknown operation";
+                break;
         }
-        case Operation::LIST_ACCOUNTS: {
-            ListAccountsResponse response;
-            response.deserialize(msg);
-            qDebug() << response.to_json().c_str();
-            messageHandler.dispatch(socket, response);
-            break;
-        }
-        case Operation::DELETE_ACCOUNT: {
-            DeleteAccountResponse response;
-            response.deserialize(msg);
-            qDebug() << response.to_json().c_str();
-            messageHandler.dispatch(socket, response);
-            break;
-        }
-        case Operation::DELETE_MESSAGE: {
-            DeleteMessageResponse response;
-            response.deserialize(msg);
-            qDebug() << response.to_json().c_str();
-            messageHandler.dispatch(socket, response);
-            break;
-        }
-        case Operation::CREATE_CHANNEL: {
-            CreateChannelResponse response;
-            response.deserialize(msg);
-            qDebug() << response.to_json().c_str();
-            messageHandler.dispatch(socket, response);
-            break;
-        }
-        case Operation::SEND_MESSAGE: {
-            SendMessageResponse response;
-            response.deserialize(msg);
-            qDebug() << response.to_json().c_str();
-            messageHandler.dispatch(socket, response);
-            break;
-        }
-        default:
-            qDebug() << "Unknown operation";
-            break;
     }
 }
 

@@ -138,6 +138,10 @@ void on_delete_account(QTcpSocket* socket, DeleteAccountMessage& msg) {
             response = DeleteAccountResponse(db.remove_user(user_uid.value()));
         }
     }
+
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    emit MessageHandler::get_instance().write_data(buf);
 }
 
 void on_delete_message(QTcpSocket* socket, DeleteMessageMessage& msg) {
