@@ -13,6 +13,8 @@ class ListAccountsResponse : public Serializable {
 
     ListAccountsResponse(std::vector<User::SharedPtr> data);
 
+    ListAccountsResponse(std::variant<std::vector<User::SharedPtr>, std::string> data);
+
     void serialize(std::vector<uint8_t>& buf) const override;
 
     void serialize_msg(std::vector<uint8_t>& buf) const;

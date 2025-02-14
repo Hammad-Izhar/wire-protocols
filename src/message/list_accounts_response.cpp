@@ -3,9 +3,13 @@
 #include "constants.hpp"
 #include "json.hpp"
 #include "message/header.hpp"
+#include "models/user.hpp"
 
 ListAccountsResponse::ListAccountsResponse(std::vector<User::SharedPtr> data)
     : data(std::move(data)) {}
+
+ListAccountsResponse::ListAccountsResponse(std::variant<std::vector<User::SharedPtr>, std::string> data)
+    : data(data) {}
 
 void ListAccountsResponse::serialize(std::vector<uint8_t>& buf) const {
     if (std::holds_alternative<std::vector<User::SharedPtr>>(data)) {
