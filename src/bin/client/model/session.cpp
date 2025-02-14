@@ -15,6 +15,13 @@ std::optional<Channel::SharedPtr> Session::get_active_channel() const {
     return open_channel;
 }
 
+void Session::reset() {
+    authenticated_user = std::nullopt;
+    channels.clear();
+    channel_messages.clear();
+    open_channel = std::nullopt;
+}
+
 void Session::add_message(const Message::SharedPtr& message) {
     if (channel_messages.find(message->get_channel_id()) == channel_messages.end()) {
         return;
@@ -36,4 +43,19 @@ const std::vector<Message::SharedPtr>& Session::get_active_channel_messages() co
 void Session::set_active_channel(const Channel::SharedPtr& channel) {
     open_channel = channel;
     emit updateActiveChannel();
+}
+
+void Session::add_channel(const Channel::SharedPtr& channel) {
+    channels[channel->get_uid()] = channel;
+    channel_messages[channel->get_uid()] = {};
+}
+
+void Session::remove_message(const Message::SharedPtr& message) {
+    if (channel_messages.find(message->get_channel_id()) == channel_messages.end()) {
+        return;
+    }
+
+    auto& messages = channel_messages[message->get_channel_id()];
+    messages.erase(std::remove(messages.begin(), messages.end(), message), messages.end());
+    channels[message->get_channel_id()]->remove_message(message->get_snowflake());
 }

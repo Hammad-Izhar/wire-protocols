@@ -54,6 +54,9 @@ class TcpClient : public QObject {
     void sendMessageSuccess(Message::SharedPtr message);
     void sendMessageFailure(const QString& error_message);
 
+    void deleteMessageSuccess(Message::SharedPtr message);
+    void deleteMessageFailure(const QString& error_message);
+
    private:
     QTcpSocket* socket;
 

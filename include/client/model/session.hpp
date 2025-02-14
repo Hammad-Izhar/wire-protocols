@@ -19,8 +19,6 @@ class Session : public QObject {
    public:
     std::optional<std::pair<std::string, uint16_t>> connection_address;
     std::optional<User::SharedPtr> authenticated_user;
-    std::unordered_map<UUID, Channel::SharedPtr> channels;
-    std::unordered_map<UUID, std::vector<Message::SharedPtr>> channel_messages;
 
     TcpClient* tcp_client;
     StackedWindow* main_window;
@@ -31,12 +29,20 @@ class Session : public QObject {
 
     void set_active_channel(const Channel::SharedPtr& channel);
 
+    void add_channel(const Channel::SharedPtr& channel);
+
     void add_message(const Message::SharedPtr& message);
+
+    void remove_message(const Message::SharedPtr& message);
+
+    void reset();
 
     const std::vector<Message::SharedPtr>& get_active_channel_messages() const;
 
    private:
     std::optional<Channel::SharedPtr> open_channel;
+    std::unordered_map<UUID, Channel::SharedPtr> channels;
+    std::unordered_map<UUID, std::vector<Message::SharedPtr>> channel_messages;
 
     Session() = default;
     ~Session() = default;

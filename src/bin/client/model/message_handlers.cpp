@@ -2,6 +2,7 @@
 #include "client/model/session.hpp"
 #include "message/create_channel_response.hpp"
 #include "message/delete_account_response.hpp"
+#include "message/delete_message_response.hpp"
 #include "message/list_accounts_response.hpp"
 #include "message/login_response.hpp"
 #include "message/register_account_response.hpp"
@@ -48,8 +49,7 @@ void on_list_accounts_response(QTcpSocket* socket, ListAccountsResponse& msg) {
 void on_delete_account_response(QTcpSocket* socket, DeleteAccountResponse& msg) {
     Session& session = Session::get_instance();
     if (msg.is_success()) {
-        session.authenticated_user.reset();
-        session.main_window->animatePageTransition(Window::AUTHENTICATION);
+        session.reset();
         emit session.tcp_client->deleteAccountSuccess();
     } else {
         emit session.tcp_client->deleteAccountFailure(
@@ -61,8 +61,7 @@ void on_create_channel_response(QTcpSocket* socket, CreateChannelResponse& msg) 
     Session& session = Session::get_instance();
     if (msg.is_success()) {
         session.authenticated_user.value()->add_channel(msg.get_data().value()->get_uid());
-        session.channels[msg.get_data().value()->get_uid()] = msg.get_data().value();
-        session.channel_messages[msg.get_data().value()->get_uid()] = {};
+        session.add_channel(msg.get_data().value());
 
         session.set_active_channel(msg.get_data().value());
 
@@ -84,11 +83,23 @@ void on_send_message_response(QTcpSocket* socket, SendMessageResponse& msg) {
     }
 };
 
+void on_delete_message_response(QTcpSocket* socket, DeleteMessageResponse& msg) {
+    Session& session = Session::get_instance();
+    if (msg.is_success()) {
+        session.remove_message(msg.get_data().value());
+        emit session.tcp_client->deleteMessageSuccess(msg.get_data().value());
+    } else {
+        emit session.tcp_client->deleteMessageFailure(
+            QString::fromStdString(msg.get_error_message().value()));
+    }
+};
+
 void init_message_handlers(MessageHandler& messageHandler) {
     messageHandler.register_handler<RegisterAccountResponse>(&on_register_account_response);
     messageHandler.register_handler<LoginResponse>(&on_login_response);
     messageHandler.register_handler<ListAccountsResponse>(&on_list_accounts_response);
     messageHandler.register_handler<DeleteAccountResponse>(&on_delete_account_response);
+    messageHandler.register_handler<DeleteMessageResponse>(&on_delete_message_response);
     messageHandler.register_handler<CreateChannelResponse>(&on_create_channel_response);
     messageHandler.register_handler<SendMessageResponse>(&on_send_message_response);
 }
