@@ -71,6 +71,33 @@ void on_login(QTcpSocket* socket, LoginMessage& msg) {
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
     emit MessageHandler::get_instance().write_data(buf);
+
+    if (!response.is_success()) {
+        return;
+    }
+
+    User::SharedPtr user = response.get_data().value();
+    for (auto channel_uid : user->get_channels()) {
+        std::optional<Channel::SharedPtr> channel = db.get_channel_by_uid(channel_uid);
+        if (!channel.has_value()) {
+            continue;
+        }
+        CreateChannelResponse create_channel_response(channel.value());
+        std::vector<uint8_t> buf;
+        create_channel_response.serialize_msg(buf);
+        emit MessageHandler::get_instance().write_data(buf);
+
+        for (auto message_snowflake : channel.value()->get_message_snowflakes()) {
+            std::optional<Message::SharedPtr> message = db.get_message_by_uid(message_snowflake);
+            if (!message.has_value()) {
+                continue;
+            }
+            SendMessageResponse send_message_response(message.value());
+            std::vector<uint8_t> buf;
+            send_message_response.serialize_msg(buf);
+            emit MessageHandler::get_instance().write_data(buf);
+        }
+    }
 }
 
 void on_list_accounts(QTcpSocket* socket, ListAccountsMessage& msg) {

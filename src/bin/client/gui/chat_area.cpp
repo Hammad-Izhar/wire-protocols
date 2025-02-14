@@ -1,10 +1,12 @@
 #include <QScrollBar>
 #include <QTimer>
 
+#include <qdebug.h>
 #include "client/gui/chat_area.hpp"
 #include "client/gui/components/message_widget.hpp"
 #include "client/model/session.hpp"
 #include "client/model/tcp_client.hpp"
+#include "models/message.hpp"
 
 ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -50,6 +52,10 @@ ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
 
     Session& session = Session::get_instance();
     connect(&session, &Session::updateActiveChannel, this, &ChatArea::onActiveChannelChanged);
+    connect(session.tcp_client, &TcpClient::sendMessageSuccess, this,
+            &ChatArea::onSendMessageSuccess);
+    connect(session.tcp_client, &TcpClient::sendMessageFailure, this,
+            &ChatArea::onSendMessageFailure);
 }
 
 void ChatArea::validateMessage() {
@@ -60,7 +66,7 @@ void ChatArea::validateMessage() {
 
 void ChatArea::sendMessage() {
     Session& session = Session::get_instance();
-    if (session.get_active_channel().has_value()) {
+    if (session.get_active_channel().has_value() && !messageInput->text().isEmpty()) {
         session.tcp_client->send_text_message(session.get_active_channel().value()->get_uid(),
                                               session.authenticated_user.value()->get_uid(),
                                               messageInput->text().toStdString());
@@ -75,18 +81,16 @@ void ChatArea::onActiveChannelChanged() {
         chatTitle->setText(
             QString::fromStdString(session.get_active_channel().value()->get_name()));
 
-        messageLayout = new QVBoxLayout(messageContainer);
-        messageContainer->setLayout(messageLayout);
-        for (auto& message : session.get_active_channel_messages()) {
-            MessageWidget* messageWidget = new MessageWidget(
-                QString::fromStdString(message->get_text()),
-                message->get_sender_id() == session.authenticated_user.value()->get_uid(),
-                messageContainer);
-            messageLayout->addWidget(messageWidget);
+        // Clear existing messages
+        QLayoutItem* child;
+        while ((child = messageLayout->takeAt(0)) != nullptr) {
+            delete child->widget();
+            delete child;
         }
 
-        messageLayout->update();
-        messageContainer->adjustSize();
+        for (auto& message : session.get_active_channel_messages()) {
+            addMessageToLayout(message);
+        }
 
         // Auto-scroll to the bottom
         QTimer::singleShot(50, [this]() {
@@ -96,4 +100,34 @@ void ChatArea::onActiveChannelChanged() {
     } else {
         chatTitle->setText("");
     }
+}
+
+void ChatArea::addMessageToLayout(Message::SharedPtr message) {
+    Session& session = Session::get_instance();
+    MessageWidget* messageWidget =
+        new MessageWidget(QString::fromStdString(message->get_text()),
+                          message->get_sender_id() == session.authenticated_user.value()->get_uid(),
+                          messageContainer);
+    messageLayout->addWidget(messageWidget);
+    messageLayout->update();
+    messageContainer->adjustSize();
+}
+
+void ChatArea::onSendMessageSuccess(Message::SharedPtr message) {
+    Session& session = Session::get_instance();
+    if (session.get_active_channel().has_value() &&
+        session.get_active_channel().value()->get_uid() == message->get_channel_id()) {
+        MessageWidget* messageWidget = new MessageWidget(
+            QString::fromStdString(message->get_text()),
+            message->get_sender_id() == session.authenticated_user.value()->get_uid(),
+            messageContainer);
+        messageLayout->addWidget(messageWidget);
+    }
+
+    messageLayout->update();
+    messageContainer->adjustSize();
+}
+
+void ChatArea::onSendMessageFailure(const QString& error) {
+    qDebug() << "Failed to send message: " << error;
 }

@@ -4,6 +4,7 @@ project(WireProtocols LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)  # Optional, can also be set at configure time
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Find necessary Qt6 components
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)

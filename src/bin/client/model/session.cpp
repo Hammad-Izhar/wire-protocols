@@ -22,10 +22,6 @@ void Session::add_message(const Message::SharedPtr& message) {
 
     channel_messages[message->get_channel_id()].push_back(message);
     channels[message->get_channel_id()]->add_message(message->get_snowflake());
-
-    if (open_channel && open_channel.value()->get_uid() == message->get_channel_id()) {
-        emit updateActiveChannel();
-    }
 }
 
 const std::vector<Message::SharedPtr>& Session::get_active_channel_messages() const {
