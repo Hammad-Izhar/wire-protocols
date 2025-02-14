@@ -3,7 +3,7 @@
 #include <random>
 #include <sstream>
 
-#include <QDebug>
+// #include <QDebug>
 #include "models/uuid.hpp"
 
 UUID::UUID() {
