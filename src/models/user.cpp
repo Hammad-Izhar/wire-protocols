@@ -123,6 +123,8 @@ void User::add_channel(UUID channel_id) {
 
 void User::remove_channel(UUID channel_id) {
     std::lock_guard<std::mutex> lock(this->mutex);
-    this->channels.erase(std::remove_if(this->channels.begin(), this->channels.end(),
-                                        [channel_id](UUID& c) { return c == channel_id; }));
+    auto it = std::find(this->channels.begin(), this->channels.end(), channel_id);
+    if (it != this->channels.end()) {
+        this->channels.erase(it);
+    }
 }

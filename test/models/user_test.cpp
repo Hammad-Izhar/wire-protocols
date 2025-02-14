@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <stdexcept>
+#include <iostream>
 
 #include "models/user.hpp"
 TEST(UserTest, MakeUser) {
@@ -7,7 +8,7 @@ TEST(UserTest, MakeUser) {
 
     EXPECT_EQ(user.get_username(), "tomdavkam");
     EXPECT_EQ(user.get_display_name(), "thomas");
-    EXPECT_EQ(user.get_profile_pic(), "./assets/profile_pics/blank_profile_pic.png");
+    EXPECT_EQ(user.get_profile_pic(), ":/assets/profile_pics/blank_profile_pic.png");
 }
 
 TEST(UserTest, DifferentUIDs) {
@@ -51,6 +52,21 @@ TEST(UserTest, RemoveNonexistentChannel) {
     User user("tomdavkam", "thomas");
     UUID channel1 = UUID();
     UUID channel2 = UUID();
+
     user.add_channel(channel1);
-    EXPECT_THROW(user.remove_channel(channel2), std::runtime_error);
+
+    EXPECT_EQ(user.get_channels().size(), 1);
+    user.remove_channel(channel2);
+    EXPECT_EQ(user.get_channels().size(), 1);
+}
+
+TEST(UserTest, Serialize) {
+    User user("tomdavkam", "thomas");
+    std::vector<uint8_t> buf;
+    user.serialize(buf);
+
+    User deserialized_user;
+    deserialized_user.deserialize(buf);
+
+    EXPECT_EQ(user.get_uid(), deserialized_user.get_uid());
 }
