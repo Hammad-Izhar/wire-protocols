@@ -1,5 +1,6 @@
 #include "message/send_message.hpp"
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 #include "models/uuid.hpp"
 
@@ -37,6 +38,21 @@ void SendMessageMessage::deserialize(const std::vector<uint8_t>& buf) {
 
     uint8_t text_length = buf[offset++];
     this->text = std::string(buf.begin() + offset, buf.begin() + offset + text_length);
+}
+
+std::string SendMessageMessage::to_json() const {
+    nlohmann::json j;
+    j["channel_uid"] = this->channel_uid.to_string();
+    j["sender_uid"] = this->sender_uid.to_string();
+    j["text"] = this->text;
+    return j.dump();
+}
+
+void SendMessageMessage::from_json(const std::string& json) {
+    auto j = nlohmann::json::parse(json);
+    this->channel_uid = UUID::from_string(j["channel_uid"].get<std::string>());
+    this->sender_uid = UUID::from_string(j["sender_uid"].get<std::string>());
+    this->text = j["text"].get<std::string>();
 }
 
 size_t SendMessageMessage::size() const {

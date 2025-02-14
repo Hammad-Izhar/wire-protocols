@@ -20,6 +20,8 @@ class UUID : public Serializable {
 
     std::string to_string() const;
 
+    static UUID from_string(const std::string& str);
+
    private:
     std::array<uint8_t, 16> value;
 };

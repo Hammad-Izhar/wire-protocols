@@ -42,3 +42,13 @@ std::string UUID::to_string() const {
 
     return ss.str();
 }
+
+UUID UUID::from_string(const std::string& str) {
+    UUID uuid;
+    for (size_t i = 0; i < str.size(); i += 2) {
+        std::string byteString = str.substr(i, 2);
+        uint8_t byte = static_cast<uint8_t>(std::stoul(byteString, nullptr, 16));
+        uuid.value[i / 2] = byte;
+    }
+    return uuid;
+}

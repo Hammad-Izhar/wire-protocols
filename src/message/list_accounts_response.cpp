@@ -1,6 +1,7 @@
 #include "message/list_accounts_response.hpp"
 #include <memory>
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 ListAccountsResponse::ListAccountsResponse(std::vector<User::SharedPtr> data)

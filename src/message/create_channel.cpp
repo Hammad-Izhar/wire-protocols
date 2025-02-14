@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 CreateChannelMessage::CreateChannelMessage(std::string channel_name, std::vector<UUID> members)
@@ -45,6 +46,27 @@ void CreateChannelMessage::deserialize(const std::vector<uint8_t>& buf) {
             std::vector<uint8_t>(buf.begin() + offset, buf.begin() + offset + member.size()));
         this->members.push_back(member);
         offset += member.size();
+    }
+}
+
+std::string CreateChannelMessage::to_json() const {
+    nlohmann::json j;
+    j["channel_name"] = this->channel_name;
+
+    std::vector<std::string> member_strings;
+    for (const UUID& member : this->members) {
+        member_strings.push_back(member.to_string());
+    }
+    j["members"] = member_strings;
+
+    return j.dump();
+}
+
+void CreateChannelMessage::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    this->channel_name = j["channel_name"].get<std::string>();
+    for (const std::string& member_string : j["members"]) {
+        this->members.push_back(UUID::from_string(member_string));
     }
 }
 

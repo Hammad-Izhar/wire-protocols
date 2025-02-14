@@ -22,6 +22,10 @@ class Message : public Serializable {
     void deserialize(const std::vector<uint8_t>& buf) override;
     [[nodiscard]] size_t size() const override;
 
+    std::string to_json() const;
+
+    void from_json(const std::string& json);
+
     // Getters
     [[nodiscard]] const uint64_t get_snowflake();
     [[nodiscard]] const UUID& get_sender_id();

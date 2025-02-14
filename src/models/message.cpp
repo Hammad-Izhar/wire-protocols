@@ -2,6 +2,7 @@
 #include <mutex>
 
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 #include "models/message.hpp"
 #include "models/snowflake.hpp"
@@ -65,6 +66,36 @@ void Message::deserialize(const std::vector<uint8_t>& buf) {
         user_id.deserialize(std::vector<uint8_t>(buf.begin() + offset, buf.begin() + offset + 16));
         read_by.push_back(user_id);
         offset += 16;
+    }
+}
+
+std::string Message::to_json() const {
+    nlohmann::json j;
+    j["sender_id"] = sender_id.to_string();
+    j["channel_id"] = channel_id.to_string();
+    j["snowflake"] = snowflake;
+    j["created_at"] = created_at;
+    j["modified_at"] = modified_at;
+    j["text"] = text;
+    std::vector<std::string> read_by_strings;
+    for (const auto& user_id : read_by) {
+        read_by_strings.push_back(user_id.to_string());
+    }
+    j["read_by"] = read_by_strings;
+    return j.dump();
+}
+
+void Message::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    sender_id = UUID::from_string(j["sender_id"].get<std::string>());
+    channel_id = UUID::from_string(j["channel_id"].get<std::string>());
+    snowflake = j["snowflake"].get<uint64_t>();
+    created_at = j["created_at"].get<uint64_t>();
+    modified_at = j["modified_at"].get<uint64_t>();
+    text = j["text"].get<std::string>();
+    read_by.clear();
+    for (const auto& user_id : j["read_by"]) {
+        read_by.push_back(UUID::from_string(user_id.get<std::string>()));
     }
 }
 

@@ -16,9 +16,13 @@ class ListAccountsMessage : public Serializable {
 
     void deserialize(const std::vector<uint8_t>& buf) override;
 
+    [[nodiscard]] std::string to_json() const;
+
+    void from_json(const std::string& json);
+
     [[nodiscard]] std::string get_regex() const;
 
-    [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t size() const override;
 
     void set_regex(std::string regex);
 

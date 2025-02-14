@@ -1,6 +1,8 @@
 #include "message/create_channel_response.hpp"
+#include <memory>
 #include <vector>
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 #include "models/channel.hpp"
 
@@ -36,6 +38,27 @@ void CreateChannelResponse::deserialize(const std::vector<uint8_t>& buf) {
         uint8_t error_length = buf[offset++];
         std::string error(buf.begin() + offset, buf.begin() + offset + error_length);
         data = error;
+    }
+}
+
+std::string CreateChannelResponse::to_json() const {
+    nlohmann::json j;
+    if (std::holds_alternative<Channel::SharedPtr>(data)) {
+        j["channel"] = std::get<Channel::SharedPtr>(data)->to_json();
+    } else {
+        j["error"] = std::get<std::string>(data);
+    }
+    return j.dump();
+}
+
+void CreateChannelResponse::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    if (j.contains("channel")) {
+        Channel::SharedPtr channel = std::make_shared<Channel>();
+        channel->from_json(j["channel"].dump());
+        data = channel;
+    } else {
+        data = j["error"].get<std::string>();
     }
 }
 

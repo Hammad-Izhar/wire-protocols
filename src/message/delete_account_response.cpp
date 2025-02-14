@@ -1,6 +1,7 @@
 #include "message/delete_account_response.hpp"
 #include <variant>
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 DeleteAccountResponse::DeleteAccountResponse(std::variant<std::monostate, std::string> data)
@@ -28,6 +29,26 @@ void DeleteAccountResponse::deserialize(const std::vector<uint8_t>& buf) {
         size_t len = buf[1];
         std::string error(buf.begin() + 2, buf.begin() + 2 + len);
         data = error;
+    }
+}
+
+std::string DeleteAccountResponse::to_json() const {
+    nlohmann::json j;
+    if (is_success()) {
+        j["success"] = true;
+    } else {
+        j["success"] = false;
+        j["error"] = std::get<std::string>(data);
+    }
+    return j.dump();
+}
+
+void DeleteAccountResponse::from_json(const std::string& json) {
+    auto j = nlohmann::json::parse(json);
+    if (j["success"].get<bool>()) {
+        data = std::monostate();
+    } else {
+        data = j["error"].get<std::string>();
     }
 }
 

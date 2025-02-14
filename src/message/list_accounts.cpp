@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string>
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 ListAccountsMessage::ListAccountsMessage(std::string regex) : regex(std::move(regex)) {}

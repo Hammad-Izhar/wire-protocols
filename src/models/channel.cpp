@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include "json.hpp"
 #include "models/channel.hpp"
 
 Channel::Channel(std::string name, std::vector<UUID> user_uids)
@@ -51,6 +52,33 @@ void Channel::deserialize(const std::vector<uint8_t>& buf) {
         uint64_t message_snowflake = buf[offset++];
         this->message_snowflakes.push_back(message_snowflake);
     }
+}
+
+std::string Channel::to_json() const {
+    nlohmann::json j;
+    j["uid"] = this->uid.to_string();
+    j["name"] = this->name;
+
+    std::vector<std::string> user_uids;
+    for (const UUID& user_uid : this->user_uids) {
+        user_uids.push_back(user_uid.to_string());
+    }
+    j["user_uids"] = user_uids;
+
+    j["message_snowflakes"] = this->message_snowflakes;
+    return j.dump();
+}
+
+void Channel::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    this->uid.from_string(j["uid"].get<std::string>());
+    this->name = j["name"].get<std::string>();
+
+    for (const std::string& user_uid : j["user_uids"]) {
+        this->user_uids.push_back(UUID::from_string(user_uid));
+    }
+
+    this->message_snowflakes = j["message_snowflakes"].get<std::vector<uint64_t>>();
 }
 
 size_t Channel::size() const {

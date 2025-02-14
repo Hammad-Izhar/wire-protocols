@@ -1,5 +1,6 @@
 #include "message/delete_account.hpp"
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 DeleteAccountMessage::DeleteAccountMessage(std::string username, std::string password)
@@ -33,6 +34,19 @@ void DeleteAccountMessage::deserialize(const std::vector<uint8_t>& buf) {
     this->username = std::string(buf.begin() + 1, buf.begin() + 1 + username_length);
     this->password = std::string(buf.begin() + username_length + 2,
                                  buf.begin() + username_length + 2 + password_length);
+}
+
+std::string DeleteAccountMessage::to_json() const {
+    nlohmann::json j;
+    j["username"] = this->username;
+    j["password"] = this->password;
+    return j.dump();
+}
+
+void DeleteAccountMessage::from_json(const std::string& json) {
+    auto j = nlohmann::json::parse(json);
+    this->username = j["username"].get<std::string>();
+    this->password = j["password"].get<std::string>();
 }
 
 size_t DeleteAccountMessage::size() const {

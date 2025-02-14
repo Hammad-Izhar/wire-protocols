@@ -1,5 +1,6 @@
 #include "message/send_message_response.hpp"
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 SendMessageResponse::SendMessageResponse(std::variant<Message::SharedPtr, std::string> data)
@@ -34,6 +35,29 @@ void SendMessageResponse::deserialize(const std::vector<uint8_t>& buf) {
         uint8_t error_length = buf[offset++];
         std::string error(buf.begin() + offset, buf.begin() + offset + error_length);
         data = error;
+    }
+}
+
+std::string SendMessageResponse::to_json() const {
+    nlohmann::json j;
+    if (is_success()) {
+        j["success"] = true;
+        j["message"] = std::get<Message::SharedPtr>(data)->to_json();
+    } else {
+        j["success"] = false;
+        j["error"] = std::get<std::string>(data);
+    }
+    return j.dump();
+}
+
+void SendMessageResponse::from_json(const std::string& json) {
+    auto j = nlohmann::json::parse(json);
+    if (j["success"].get<bool>()) {
+        Message::SharedPtr message = std::make_shared<Message>();
+        message->from_json(j["message"].dump());
+        data = message;
+    } else {
+        data = j["error"].get<std::string>();
     }
 }
 

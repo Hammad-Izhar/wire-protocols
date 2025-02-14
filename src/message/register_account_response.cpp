@@ -1,5 +1,6 @@
 #include "message/register_account_response.hpp"
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 RegisterAccountResponse::RegisterAccountResponse(

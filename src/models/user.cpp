@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "json.hpp"
 #include "models/user.hpp"
 
 User::User(std::string username, std::string display_name)
@@ -53,6 +54,23 @@ void User::deserialize(const std::vector<uint8_t>& buf) {
     this->profile_pic =
         std::string(buf.begin() + offset, buf.begin() + offset + profile_pic_length);
     offset += profile_pic_length;
+}
+
+std::string User::to_json() const {
+    nlohmann::json j;
+    j["uid"] = this->uid.to_string();
+    j["username"] = this->username;
+    j["display_name"] = this->display_name;
+    j["profile_pic"] = this->profile_pic;
+    return j.dump();
+}
+
+void User::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    this->uid.from_string(j["uid"].get<std::string>());
+    this->username = j["username"].get<std::string>();
+    this->display_name = j["display_name"].get<std::string>();
+    this->profile_pic = j["profile_pic"].get<std::string>();
 }
 
 size_t User::size() const {

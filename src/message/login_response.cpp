@@ -1,5 +1,6 @@
 #include "message/login_response.hpp"
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 LoginResponse::LoginResponse(std::variant<User::SharedPtr, std::string> data)

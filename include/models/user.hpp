@@ -20,6 +20,10 @@ class User : public Serializable {
 
     void deserialize(const std::vector<uint8_t>& buf) override;
 
+    std::string to_json() const;
+
+    void from_json(const std::string& json);
+
     size_t size() const override;
 
     // Getters

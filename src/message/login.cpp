@@ -1,5 +1,6 @@
 #include "message/login.hpp"
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 LoginMessage::LoginMessage(std::string username, std::string password)

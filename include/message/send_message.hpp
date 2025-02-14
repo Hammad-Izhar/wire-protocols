@@ -17,6 +17,10 @@ class SendMessageMessage : public Serializable {
 
     void deserialize(const std::vector<uint8_t>& buf) override;
 
+    [[nodiscard]] std::string to_json() const;
+
+    void from_json(const std::string& json);
+
     [[nodiscard]] std::string get_text() const;
     [[nodiscard]] UUID get_sender_uid() const;
     [[nodiscard]] UUID get_channel_uid() const;

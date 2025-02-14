@@ -1,5 +1,6 @@
 #include "message/register_account.hpp"
 #include "constants.hpp"
+#include "json.hpp"
 #include "message/header.hpp"
 
 RegisterAccountMessage::RegisterAccountMessage(std::string username,
