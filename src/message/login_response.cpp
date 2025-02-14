@@ -38,6 +38,27 @@ void LoginResponse::deserialize(const std::vector<uint8_t>& buf) {
     }
 }
 
+std::string LoginResponse::to_json() const {
+    nlohmann::json j;
+    if (std::holds_alternative<User::SharedPtr>(data)) {
+        j["user"] = std::get<User::SharedPtr>(data)->to_json();
+    } else {
+        j["error"] = std::get<std::string>(data);
+    }
+    return j.dump();
+}
+
+void LoginResponse::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    if (j.contains("user")) {
+        User::SharedPtr user = std::make_shared<User>();
+        user->from_json(j["user"].dump());
+        data = user;
+    } else {
+        data = j["error"].get<std::string>();
+    }
+}
+
 [[nodiscard]] size_t LoginResponse::size() const {
     size_t size = 1;  // for the has_error byte
     if (std::holds_alternative<User::SharedPtr>(data)) {

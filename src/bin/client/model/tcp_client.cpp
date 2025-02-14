@@ -132,30 +132,35 @@ void TcpClient::onReadyRead() {
         case Operation::REGISTER_ACCOUNT: {
             RegisterAccountResponse response;
             response.deserialize(msg);
+            qDebug() << response.to_json().c_str();
             messageHandler.dispatch(socket, response);
             break;
         }
         case Operation::LOGIN: {
             LoginResponse response;
             response.deserialize(msg);
+            qDebug() << response.to_json().c_str();
             messageHandler.dispatch(socket, response);
             break;
         }
         case Operation::LIST_ACCOUNTS: {
             ListAccountsResponse response;
             response.deserialize(msg);
+            qDebug() << response.to_json().c_str();
             messageHandler.dispatch(socket, response);
             break;
         }
         case Operation::DELETE_ACCOUNT: {
             DeleteAccountResponse response;
             response.deserialize(msg);
+            qDebug() << response.to_json().c_str();
             messageHandler.dispatch(socket, response);
             break;
         }
         case Operation::SEND_MESSAGE: {
             SendMessageResponse response;
             response.deserialize(msg);
+            qDebug() << response.to_json().c_str();
             messageHandler.dispatch(socket, response);
             break;
         }

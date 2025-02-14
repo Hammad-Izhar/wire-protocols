@@ -28,6 +28,17 @@ void ListAccountsMessage::deserialize(const std::vector<uint8_t>& buf) {
     this->regex = std::string(buf.begin() + 1, buf.begin() + 1 + regex_length);
 }
 
+std::string ListAccountsMessage::to_json() const {
+    nlohmann::json j;
+    j["regex"] = this->regex;
+    return j.dump();
+}
+
+void ListAccountsMessage::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    this->regex = j["regex"];
+}
+
 size_t ListAccountsMessage::size() const {
     return 1 + this->regex.size();
 }

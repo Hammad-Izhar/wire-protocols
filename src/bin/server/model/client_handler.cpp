@@ -63,37 +63,42 @@ void ClientHandler::onReadyRead() {
         case Operation::REGISTER_ACCOUNT: {
             RegisterAccountMessage registerAccount;
             registerAccount.deserialize(msg);
+            qDebug() << registerAccount.to_json().c_str();
             messageHandler.dispatch(socket, registerAccount);
             break;
         }
         case Operation::LOGIN: {
             LoginMessage login;
             login.deserialize(msg);
-
+            qDebug() << login.to_json().c_str();
             messageHandler.dispatch(socket, login);
             break;
         }
         case Operation::DELETE_ACCOUNT: {
             DeleteAccountMessage deleteAccount;
             deleteAccount.deserialize(msg);
+            qDebug() << deleteAccount.to_json().c_str();
             messageHandler.dispatch(socket, deleteAccount);
             break;
         }
         case Operation::LIST_ACCOUNTS: {
             ListAccountsMessage listAccounts;
             listAccounts.deserialize(msg);
+            qDebug() << listAccounts.to_json().c_str();
             messageHandler.dispatch(socket, listAccounts);
             break;
         }
         case Operation::SEND_MESSAGE: {
             SendMessageMessage sendMessage;
             sendMessage.deserialize(msg);
+            qDebug() << sendMessage.to_json().c_str();
             messageHandler.dispatch(socket, sendMessage);
             break;
         }
         case Operation::DELETE_MESSAGE: {
             DeleteMessageMessage deleteMessage;
             deleteMessage.deserialize(msg);
+            qDebug() << deleteMessage.to_json().c_str();
             messageHandler.dispatch(socket, deleteMessage);
             break;
         }

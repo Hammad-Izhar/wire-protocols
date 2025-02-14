@@ -36,6 +36,25 @@ void RegisterAccountResponse::deserialize(const std::vector<uint8_t>& buf) {
     }
 }
 
+std::string RegisterAccountResponse::to_json() const {
+    nlohmann::json j;
+    if (std::holds_alternative<std::monostate>(error_message)) {
+        j["error"] = nullptr;
+    } else {
+        j["error"] = std::get<std::string>(error_message);
+    }
+    return j.dump();
+}
+
+void RegisterAccountResponse::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    if (j["error"].is_null()) {
+        error_message = std::monostate();
+    } else {
+        error_message = j["error"].get<std::string>();
+    }
+}
+
 [[nodiscard]] size_t RegisterAccountResponse::size() const {
     size_t size = 1;  // for the has_error byte
     if (std::holds_alternative<std::string>(error_message)) {

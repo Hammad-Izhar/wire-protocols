@@ -36,6 +36,19 @@ void LoginMessage::deserialize(const std::vector<uint8_t>& buf) {
                                  buf.begin() + username_length + 2 + password_length);
 }
 
+std::string LoginMessage::to_json() const {
+    nlohmann::json j;
+    j["username"] = this->username;
+    j["password"] = this->password;
+    return j.dump();
+}
+
+void LoginMessage::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    this->username = j["username"];
+    this->password = j["password"];
+}
+
 size_t LoginMessage::size() const {
     return 2 + this->username.size() + this->password.size();
 }

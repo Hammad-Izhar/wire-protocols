@@ -48,6 +48,21 @@ void RegisterAccountMessage::deserialize(const std::vector<uint8_t>& buf) {
                     buf.begin() + username_length + password_length + 3 + display_name_length);
 }
 
+std::string RegisterAccountMessage::to_json() const {
+    nlohmann::json j;
+    j["username"] = this->username;
+    j["password"] = this->password;
+    j["display_name"] = this->display_name;
+    return j.dump();
+}
+
+void RegisterAccountMessage::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    this->username = j["username"];
+    this->password = j["password"];
+    this->display_name = j["display_name"];
+}
+
 size_t RegisterAccountMessage::size() const {
     return 3 + this->username.size() + this->password.size() + this->display_name.size();
 }

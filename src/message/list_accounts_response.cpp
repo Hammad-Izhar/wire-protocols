@@ -50,6 +50,35 @@ void ListAccountsResponse::deserialize(const std::vector<uint8_t>& buf) {
     }
 }
 
+std::string ListAccountsResponse::to_json() const {
+    nlohmann::json j;
+    if (std::holds_alternative<std::vector<User::SharedPtr>>(data)) {
+        std::vector<nlohmann::json> users;
+        for (const auto& user : std::get<std::vector<User::SharedPtr>>(data)) {
+            users.push_back(user->to_json());
+        }
+        j["users"] = users;
+    } else {
+        j["error"] = std::get<std::string>(data);
+    }
+    return j.dump();
+}
+
+void ListAccountsResponse::from_json(const std::string& json) {
+    nlohmann::json j = nlohmann::json::parse(json);
+    if (j.contains("users")) {
+        std::vector<User::SharedPtr> users;
+        for (const auto& user : j["users"]) {
+            User::SharedPtr u = std::make_shared<User>();
+            u->from_json(user.dump());
+            users.push_back(u);
+        }
+        data = users;
+    } else {
+        data = j["error"].get<std::string>();
+    }
+}
+
 [[nodiscard]] size_t ListAccountsResponse::size() const {
     size_t size = 1;  // for the has_error byte
     if (std::holds_alternative<std::vector<User::SharedPtr>>(data)) {
