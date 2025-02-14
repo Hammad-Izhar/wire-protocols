@@ -43,13 +43,17 @@ TEST(Login, ConstructsValidCompleteMessage) {
     Header deserialized_header;
     LoginMessage deserialized_message;
     deserialized_header.deserialize(
-        std::vector<uint8_t>(buf.begin(), buf.begin() + Header::size()));
-    deserialized_message.deserialize(std::vector<uint8_t>(buf.begin() + Header::size(), buf.end()));
+        std::vector<uint8_t>(buf.begin(), buf.begin() + deserialized_header.size()));
+    deserialized_message.deserialize(std::vector<uint8_t>(buf.begin() + deserialized_header.size(), buf.end()));
 
-    EXPECT_EQ(buf.size(), Header::size() + message.size());
+    EXPECT_EQ(buf.size(), deserialized_header.size() + message.size());
     EXPECT_EQ(deserialized_header.get_version(), PROTOCOL_VERSION);
     EXPECT_EQ(deserialized_header.get_operation(), Operation::LOGIN);
     EXPECT_EQ(deserialized_header.get_packet_length(), message.size());
     EXPECT_EQ(deserialized_message.get_username(), "username");
     EXPECT_EQ(deserialized_message.get_password(), "password");
+}
+
+TEST(Login, TestTest) {
+    EXPECT_EQ(1, 1);
 }
