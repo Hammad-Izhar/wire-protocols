@@ -3,6 +3,7 @@
 #include <random>
 #include <sstream>
 
+#include <QDebug>
 #include "models/uuid.hpp"
 
 UUID::UUID() {
@@ -35,12 +36,15 @@ size_t UUID::size() const {
 
 std::string UUID::to_string() const {
     std::stringstream ss;
+    ss << std::hex << std::setfill('0');
 
-    for (auto byte : this->value) {
-        ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<uint8_t>(byte);
+    for (uint8_t byte : this->value) {
+        ss << std::setw(2) << static_cast<int>(byte);
     }
 
-    return ss.str();
+    std::string hex_str = ss.str();
+    qDebug() << "UUID::to_string(): " << QString::fromStdString(hex_str);
+    return hex_str;
 }
 
 UUID UUID::from_string(const std::string& str) {
