@@ -15,11 +15,19 @@ std::optional<User::SharedPtr> UserTable::get_mut_by_uid(UUID user_uid) {
                : std::nullopt;
 }
 
-std::vector<UUID> UserTable::get_uuids_matching_regex(std::string regex) {
+std::variant<std::vector<UUID>, std::string> UserTable::get_uuids_matching_regex(std::string regex) {
     std::lock_guard<std::mutex> lock(this->mutex);
     std::vector<UUID> uuids;
+    std::regex re;
+
+    try {
+        re = std::regex(regex);
+    } catch (const std::regex_error& e) {
+        return std::string("Regex error: ") + e.what();
+    }
+
     for (const auto& [uid, user] : this->data) {
-        if (std::regex_match(user->get_username(), std::regex(regex))) {
+        if (std::regex_match(user->get_username(), re)) {
             uuids.push_back(uid);
         }
     }

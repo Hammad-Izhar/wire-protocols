@@ -41,7 +41,7 @@ std::optional<Channel::SharedPtr> Database::get_mut_channel_by_uid(UUID channel_
     return this->channels->get_mut_by_uid(channel_uid);
 }
 
-std::vector<UUID> Database::get_uuids_matching_regex(std::string regex) const {
+std::variant<std::vector<UUID>, std::string> Database::get_uuids_matching_regex(std::string regex) const {
     return this->users->get_uuids_matching_regex(regex);
 }
 

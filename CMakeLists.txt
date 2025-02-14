@@ -76,25 +76,25 @@ target_link_libraries(server PRIVATE Qt6::Core Qt6::Network)
 target_link_libraries(server PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 # Define Test executable
-#qt_add_executable(test
-#    ${SOURCE_FILES}
-#    ${SERVER_SOURCE_FILES}
-#    ${TEST_SOURCE_FILES}
-#    ${SERVER_QT_HEADERS}
-#)
-#
-#set_target_properties(test PROPERTIES
-#    WIN32_EXECUTABLE TRUE
-#    MACOSX_BUNDLE TRUE
-#    AUTOMOC ON  # Ensures Q_OBJECT macro is processed
-#    AUTOUIC ON  # Enable Qt UI file processing (if needed)
-#    AUTORCC ON  # Enable Qt resource processing (if needed)
-#)
+qt_add_executable(test
+   ${SOURCE_FILES}
+   ${SERVER_SOURCE_FILES}
+   ${TEST_SOURCE_FILES}
+   ${SERVER_QT_HEADERS}
+)
+
+set_target_properties(test PROPERTIES
+   WIN32_EXECUTABLE TRUE
+   MACOSX_BUNDLE TRUE
+   AUTOMOC ON  # Ensures Q_OBJECT macro is processed
+   AUTOUIC ON  # Enable Qt UI file processing (if needed)
+   AUTORCC ON  # Enable Qt resource processing (if needed)
+)
 
 
-#target_link_libraries(test PRIVATE GTest::GTest GTest::Main)
-#target_link_libraries(test PRIVATE Qt6::Core Qt6::Network)
-#target_link_libraries(test PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(test PRIVATE GTest::GTest GTest::Main)
+target_link_libraries(test PRIVATE Qt6::Core Qt6::Network)
+target_link_libraries(test PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 # Print included sources for debugging
 message(STATUS "Shared library source files:")
