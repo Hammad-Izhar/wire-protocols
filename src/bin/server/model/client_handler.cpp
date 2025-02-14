@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "constants.hpp"
+#include "message/create_channel.hpp"
 #include "message/delete_account.hpp"
 #include "message/delete_message.hpp"
 #include "message/header.hpp"
@@ -86,6 +87,13 @@ void ClientHandler::onReadyRead() {
             listAccounts.deserialize(msg);
             qDebug() << listAccounts.to_json().c_str();
             messageHandler.dispatch(socket, listAccounts);
+            break;
+        }
+        case Operation::CREATE_CHANNEL: {
+            CreateChannelMessage createChannel;
+            createChannel.deserialize(msg);
+            qDebug() << createChannel.to_json().c_str();
+            messageHandler.dispatch(socket, createChannel);
             break;
         }
         case Operation::SEND_MESSAGE: {

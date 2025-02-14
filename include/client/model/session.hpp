@@ -19,14 +19,19 @@ class Session : public QObject {
     std::optional<std::pair<std::string, uint16_t>> connection_address;
     std::optional<User::SharedPtr> authenticated_user;
     std::unordered_map<UUID, Channel::SharedPtr> channels;
-    std::optional<Channel::SharedPtr> open_channel;
 
     TcpClient* tcp_client;
     StackedWindow* main_window;
 
     static Session& get_instance();
 
+    std::optional<Channel::SharedPtr> get_active_channel() const;
+
+    void set_active_channel(const Channel::SharedPtr& channel);
+
    private:
+    std::optional<Channel::SharedPtr> open_channel;
+
     Session() = default;
     ~Session() = default;
 

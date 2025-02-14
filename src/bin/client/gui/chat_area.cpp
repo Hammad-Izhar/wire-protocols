@@ -1,9 +1,9 @@
 #include "client/gui/chat_area.hpp"
+#include <qglobal.h>
 #include "client/gui/components/message_widget.hpp"
 #include "client/model/session.hpp"
 
 ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
-    Session& session = Session::get_instance();
     QVBoxLayout* layout = new QVBoxLayout(this);
 
     // Chat title at the top
@@ -47,19 +47,23 @@ ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
 
     setLayout(layout);
 
+    Session& session = Session::get_instance();
     connect(&session, &Session::updateActiveChannel, this, &ChatArea::onActiveChannelChanged);
 }
 
 void ChatArea::validateMessage() {
     Session& session = Session::get_instance();
-    sendButton->setEnabled(session.open_channel.has_value() && !messageInput->text().isEmpty());
+    sendButton->setEnabled(session.get_active_channel().has_value() &&
+                           !messageInput->text().isEmpty());
 }
 
 void ChatArea::onActiveChannelChanged() {
     Session& session = Session::get_instance();
-    if (session.open_channel.has_value()) {
+    qDebug() << "Updating channel";
+    if (session.get_active_channel().has_value()) {
         messageInput->setEnabled(true);
-        chatTitle->setText(QString::fromStdString(session.open_channel.value()->get_name()));
+        chatTitle->setText(
+            QString::fromStdString(session.get_active_channel().value()->get_name()));
     } else {
         chatTitle->setText("");
     }

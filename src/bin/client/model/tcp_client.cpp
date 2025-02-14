@@ -157,6 +157,13 @@ void TcpClient::onReadyRead() {
             messageHandler.dispatch(socket, response);
             break;
         }
+        case Operation::CREATE_CHANNEL: {
+            CreateChannelResponse response;
+            response.deserialize(msg);
+            qDebug() << response.to_json().c_str();
+            messageHandler.dispatch(socket, response);
+            break;
+        }
         case Operation::SEND_MESSAGE: {
             SendMessageResponse response;
             response.deserialize(msg);

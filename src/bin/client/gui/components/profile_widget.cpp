@@ -3,13 +3,12 @@
 #include <QPainterPath>
 #include <QSizePolicy>
 #include <QVBoxLayout>
+
+#include "client/gui/components/profile_widget.hpp"
 #include "client/model/session.hpp"
 
-#include <qobject.h>
-#include "client/gui/components/profile_widget.hpp"
-
-ProfileWidget::ProfileWidget(const User::SharedPtr& user, QWidget* parent)
-    : QWidget(parent), user(user) {
+ProfileWidget::ProfileWidget(const User::SharedPtr& user, ChatSidebar* sidebar, QWidget* parent)
+    : QWidget(parent), user(user), sidebar(sidebar) {
     // Apply border and padding to the entire widget
     setStyleSheet(
         "border: 2px solid #ccc; border-radius: 10px; background-color: white; padding: 5px;");
@@ -83,4 +82,6 @@ void ProfileWidget::onMessageButtonClicked() {
         session.authenticated_user.value()->get_display_name() + ", " +
             this->user->get_display_name(),
         {session.authenticated_user.value()->get_uid(), this->user->get_uid()});
+
+    emit sidebar->setActiveChatTab(ChatSidebarTab::ACTIVE_CHATS);
 }

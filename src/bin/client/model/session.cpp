@@ -10,3 +10,12 @@ Session& Session::get_instance() {
         instance.main_window = new StackedWindow();
     return instance;
 }
+
+std::optional<Channel::SharedPtr> Session::get_active_channel() const {
+    return open_channel;
+}
+
+void Session::set_active_channel(const Channel::SharedPtr& channel) {
+    open_channel = channel;
+    emit updateActiveChannel();
+}

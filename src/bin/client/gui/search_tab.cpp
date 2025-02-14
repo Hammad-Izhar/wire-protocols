@@ -7,7 +7,7 @@
 #include "client/gui/search_tab.hpp"
 #include "client/model/session.hpp"
 
-SearchTab::SearchTab(QWidget* parent) : QWidget(parent) {
+SearchTab::SearchTab(ChatSidebar* sidebar, QWidget* parent) : QWidget(parent), sidebar(sidebar) {
     QVBoxLayout* searchLayout = new QVBoxLayout(this);
 
     // Horizontal layout for search input and button
@@ -66,7 +66,8 @@ void SearchTab::onSearchSuccess(const std::vector<User::SharedPtr>& accounts) {
     searchResults->clear();
     for (const auto& account : accounts) {
         QListWidgetItem* item = new QListWidgetItem(searchResults);
-        ProfileWidget* widget = new ProfileWidget(account, this);
+        ProfileWidget* widget =
+            new ProfileWidget(account, qobject_cast<ChatSidebar*>(sidebar), this);
         item->setSizeHint(widget->sizeHint());
         searchResults->setItemWidget(item, widget);
 

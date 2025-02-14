@@ -61,7 +61,8 @@ void on_create_channel_response(QTcpSocket* socket, CreateChannelResponse& msg) 
     if (msg.is_success()) {
         session.authenticated_user.value()->add_channel(msg.get_data().value()->get_uid());
         session.channels[msg.get_data().value()->get_uid()] = msg.get_data().value();
-        emit session.updateActiveChannel();
+        session.set_active_channel(msg.get_data().value());
+
         emit session.tcp_client->createChannelSuccess(msg.get_data().value());
     } else {
         emit session.tcp_client->createChannelFailure(
@@ -75,4 +76,5 @@ void init_message_handlers() {
     messageHandler.register_handler<LoginResponse>(&on_login_response);
     messageHandler.register_handler<ListAccountsResponse>(&on_list_accounts_response);
     messageHandler.register_handler<DeleteAccountResponse>(&on_delete_account_response);
+    messageHandler.register_handler<CreateChannelResponse>(&on_create_channel_response);
 }
