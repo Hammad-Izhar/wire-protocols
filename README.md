@@ -93,7 +93,57 @@ xhost +localhost
 
 # Classes
 
-Below we describe the classes used for comprehending messages, users, and channels.
+Below we describe the classes used for comprehending messages, users, and channels. 
+
+In general, class headers are initialized in the `/include/` directory, and implementations in the `/src/` directory. The full project structure is outlined below:
+
+```
+.
+├── assets
+│   └── [Files including profile pictures, loading gifs, etc.]
+├── include
+|   |   [Contains headers for all relevant classes.]
+│   ├── client
+│   │   ├── gui
+│   │   │   └── [Files for displaying the app]
+│   │   └── model
+│   │       └── [General classes for the client]
+│   ├── constants.hpp [Relevant constants]
+│   ├── json.hpp [For JSON serialization/deserialization]
+│   ├── message
+│   │   └── [Classes for sending messages between client and server]
+│   ├── models
+│   │   └── [General-use classes for comprehending data]
+│   └── server
+│       ├── db
+│       │   └── [Classes for data storage and access]
+│       └── model
+│           └── [Classes for server-side message-passing]
+├── src
+│   ├── bin
+│   │   ├── client
+│   │   │   ├── gui
+│   │   │   │   └── [Files for displaying the app]
+│   │   │   ├── main.cpp [Main file for running client]
+│   │   │   └── model
+│   │   │       └── [General classes for the client]
+│   │   └── server
+│   │       ├── db
+│   │       │   └── [Classes for data storage and access]
+│   │       ├── main.cpp [Main file for running server]
+│   │       └── model
+│   │           └── [Classes for server-side message-passing]
+│   ├── message
+│   │   └── [Classes for sending messages between client and server]
+│   └── models
+│       └── [General-use classes for comprehending data]
+└── test
+    ├── main.cpp [Main file for running tests]
+    ├── message
+    │   └── [Tests for sending/receiving messages]
+    └── models
+        └── [Tests for individual backend components]
+```
 
 ## UUID
 
