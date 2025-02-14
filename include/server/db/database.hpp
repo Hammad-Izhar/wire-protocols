@@ -35,7 +35,7 @@ class Database {
 
     [[nodiscard]] std::optional<Channel::SharedPtr> get_mut_channel_by_uid(UUID channel_uid);
 
-    [[nodiscard]] std::vector<UUID> get_uuids_matching_regex(std::string regex) const;
+    [[nodiscard]] std::variant<std::vector<UUID>, std::string> get_uuids_matching_regex(std::string regex) const;
 
     [[nodiscard]] std::optional<UUID> get_uid_from_username(std::string username);
 

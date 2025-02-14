@@ -104,17 +104,22 @@ void on_list_accounts(QTcpSocket* socket, ListAccountsMessage& msg) {
     std::string regex_string = msg.get_regex();
     Database& db = Database::get_instance();
 
-    // TODO: Paginate this
-    std::vector<UUID> uuids = db.get_uuids_matching_regex(regex_string);
-    std::vector<User::SharedPtr> users = {};
-    for (const auto& uuid : uuids) {
-        std::optional<const User::SharedPtr> user = db.get_user_by_uid(uuid);
-        if (user.has_value()) {
-            users.push_back(user.value());
+    std::variant<std::vector<UUID>, std::string> result = db.get_uuids_matching_regex(regex_string);
+    ListAccountsResponse response;
+    if (std::holds_alternative<std::string>(result)) {
+        response = ListAccountsResponse(std::get<std::string>(result));
+    } else {
+        std::vector<UUID> uuids = std::get<std::vector<UUID>>(result);
+        std::vector<User::SharedPtr> users;
+        for (const auto& uuid : uuids) {
+            std::optional<const User::SharedPtr> user = db.get_user_by_uid(uuid);
+            if (user.has_value()) {
+                users.push_back(user.value());
+            }
         }
+        response = ListAccountsResponse(users);
     }
 
-    ListAccountsResponse response(users);
     std::vector<uint8_t> buf;
     response.serialize_msg(buf);
     emit MessageHandler::get_instance().write_data(buf);

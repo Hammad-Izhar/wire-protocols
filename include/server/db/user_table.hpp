@@ -16,7 +16,7 @@ class UserTable {
 
     [[nodiscard]] std::optional<User::SharedPtr> get_mut_by_uid(UUID user_uid);
 
-    [[nodiscard]] std::vector<UUID> get_uuids_matching_regex(std::string regex);
+    [[nodiscard]] std::variant<std::vector<UUID>, std::string> get_uuids_matching_regex(std::string regex);
 
     [[nodiscard]] std::optional<UUID> get_uid_from_username(std::string username);
 
