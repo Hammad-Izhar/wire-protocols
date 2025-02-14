@@ -10,7 +10,9 @@ Sock-et Out is an SMS-like chat service enabling users to communicate in multi-p
 ## Table of Contents
 
 ### [Setup and Running](#setup-and-running-1)
+
 ### [Overview of Functionality](#overview-of-functionality-1)
+
 ### [Classes](#classes-1)
 * **[UUID](#uuid)**
 * **[Snowflake](#snowflake)**
@@ -24,6 +26,24 @@ Sock-et Out is an SMS-like chat service enabling users to communicate in multi-p
 * **[Channel Table](#channel-table)**
 * **[Password Table](#password-table)**
 * **[User Table](#user-table)**
+
+### [Messages](#messages-1)
+* **[Header](#header)**
+* **[Register Account](#register-account)**
+* **[Login](#login)**
+* **[List Accounts](#list-accounts)**
+* **[Create Channel](#create-channel)**
+* **[Send Message](#send-message)**
+* **[Delete Message](#delete-message)**
+* **[Delete Account](#delete-account)**
+
+
+
+
+
+
+
+
 
 ### [Server](#server)
 
@@ -157,6 +177,86 @@ Like the other tables, a `std::unordered_map<UUID, std::pair<std::string, std::s
 
 
 
+# Messages 
+
+This section describes the messages sent between client and server to control make requests for each database action.
+
+All messages implement serialize / deserialize, both with JSON and our custom serialization scheme.
+
+All messages are routed to separate handlers in `client/models/message_handlers.hpp/cpp` and `server/models/message_handlers.hpp/cpp`.
+
+## Header
+
+The header is prepended to all messages, and it specifies metadata:
+
+*  `uint8_t version`: Currently, 1.
+* `enum Operation operation`: The message being sent (see the `enum` in `include/message/header.hpp`)
+* `uint16_t packet_length`: Size of the payload.
+
+## Register Account
+
+`Client -> Server`
+
+Sends username, password, and display name.
+
+Handler tries to create an account, with success if username is not taken and password is valid.
+
+**Response**
+
+`Server -> Client`
+
+Sends server response back to client.
+
+Handler either redirects to login (on success) or notes an error during account creation.
+
+## Login
+
+`Client -> Server`
+
+Sends username and password. 
+
+Handler checks if client can accept new logins, and, if so, checks user credentials. On success, the client authenticates a user (setting a flag that the user is logged in). Otherwise, login fails.
+
+**Response**
+
+`Server -> Client`
+
+Sends server response. Transitions to logged in screen if successful.
+
+## List Accounts
+
+`Client -> Server`
+
+Sends a regex for pattern-matching users.
+
+Handler grabs all accounts matching the regex by UUID, and sends copies of the users back to the client.
+
+**Response**
+
+`Server -> Client`
+
+Response sends the users back to client, handling when regex fails to receive any.
+
+## Create Channel
+
+`Client -> Server`
+
+Sends the channel name and a list of initial member IDs. 
+
+Handler creates the channel and returns a pointer to it if possible.
+
+**Response**
+
+`Server -> Client`
+
+Return message sends a shared pointer to the channel or shares the error.
+
+
+## Send Message
+
+## Delete Message
+
+## Delete Account
 
 
 
