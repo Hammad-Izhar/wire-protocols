@@ -12,6 +12,8 @@ class ActiveChatsTab : public QWidget {
    public:
     explicit ActiveChatsTab(QWidget* parent = nullptr);
 
+    void reset();
+
    private:
     QListWidget* activeChats;
 

@@ -14,6 +14,8 @@ class LoginTab : public QWidget {
    public:
     explicit LoginTab(QTabWidget* tabWidget, QWidget* parent = nullptr);
 
+    void reset();
+
    private:
     QGroupBox* inputGroup;
     Spinner* spinner;

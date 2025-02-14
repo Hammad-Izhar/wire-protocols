@@ -132,3 +132,18 @@ std::function<bool(const QString&, QWidget*)> RegistrationTab::validate_text(
         return true;
     };
 }
+
+void RegistrationTab::reset() {
+    QLineEdit* usernameInput =
+        qobject_cast<QLineEdit*>(this->inputGroup->findChild<QLineEdit*>("usernameInput"));
+    QLineEdit* displayNameInput =
+        qobject_cast<QLineEdit*>(this->inputGroup->findChild<QLineEdit*>("displayNameInput"));
+    QLineEdit* passwordInput =
+        qobject_cast<QLineEdit*>(this->inputGroup->findChild<QLineEdit*>("passwordInput"));
+
+    usernameInput->setText("");
+    displayNameInput->setText("");
+    passwordInput->setText("");
+
+    set_loading(false);
+}

@@ -31,6 +31,7 @@ LoginTab::LoginTab(QTabWidget* tabWidget, QWidget* parent) : QWidget(parent), ta
     connect(disconnectButton, &QPushButton::clicked, this, [this]() {
         Session& session = Session::get_instance();
         session.tcp_client->disconnectFromServer();
+        session.reset();
     });
 
     spinner = new Spinner(this);
@@ -97,6 +98,18 @@ void LoginTab::set_loading(bool isLoading) {
         this->findChild<QPushButton*>("loginButton")->show();
         spinner->hide();
     }
+}
+
+void LoginTab::reset() {
+    QLineEdit* usernameInput =
+        qobject_cast<QLineEdit*>(this->inputGroup->findChild<QLineEdit*>("usernameInput"));
+    QLineEdit* passwordInput =
+        qobject_cast<QLineEdit*>(this->inputGroup->findChild<QLineEdit*>("passwordInput"));
+
+    usernameInput->setText("");
+    passwordInput->setText("");
+
+    set_loading(false);
 }
 
 std::function<bool(const QString&, QWidget*)> LoginTab::validate_text(const QValidator* validator) {

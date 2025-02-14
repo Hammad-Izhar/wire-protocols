@@ -27,3 +27,8 @@ AuthenticationWindow::AuthenticationWindow(QWidget* parent) : QWidget(parent) {
         }
     });
 }
+
+void AuthenticationWindow::reset() {
+    loginTab->reset();
+    registrationTab->reset();
+}

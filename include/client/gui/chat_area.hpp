@@ -14,6 +14,8 @@ class ChatArea : public QWidget {
    public:
     explicit ChatArea(QWidget* parent = nullptr);
 
+    void reset();
+
    private:
     void addMessageToLayout(Message::SharedPtr message);
 

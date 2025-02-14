@@ -51,6 +51,18 @@ ConnectionWindow::ConnectionWindow(QWidget* parent) : QWidget(parent) {
     setFixedSize(450, sizeHint().height());
 }
 
+void ConnectionWindow::reset() {
+    QLineEdit* hostInput =
+        qobject_cast<QLineEdit*>(this->inputGroup->findChild<QLineEdit*>("hostInput"));
+    QLineEdit* portInput =
+        qobject_cast<QLineEdit*>(this->inputGroup->findChild<QLineEdit*>("portInput"));
+
+    hostInput->setText("");
+    portInput->setText("");
+
+    set_loading(false);
+}
+
 void ConnectionWindow::set_loading(bool isLoading) {
     if (isLoading) {
         inputGroup->hide();

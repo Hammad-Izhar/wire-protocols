@@ -81,3 +81,9 @@ void SearchTab::onSearchFailure(const QString& errorMessage) {
     qDebug() << "search failed" << errorMessage;
     // TODO: update gui
 }
+
+void SearchTab::reset() {
+    searchField->setText("");
+    searchResults->clear();
+    set_loading(false);
+}

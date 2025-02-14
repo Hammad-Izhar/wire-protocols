@@ -11,6 +11,8 @@ class AuthenticationWindow : public QWidget {
    public:
     explicit AuthenticationWindow(QWidget* parent = nullptr);
 
+    void reset();
+
    private:
     LoginTab* loginTab;
     RegistrationTab* registrationTab;

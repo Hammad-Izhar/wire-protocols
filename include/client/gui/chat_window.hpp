@@ -12,10 +12,11 @@ class ChatWindow : public QWidget {
    public:
     explicit ChatWindow(QWidget* parent = nullptr);
 
+    void reset();
+
    private:
     ChatSidebar* sidebar;
     ChatArea* chatArea;
-    QStackedLayout* chatStack;
 
    private slots:
     void onDisconnect();

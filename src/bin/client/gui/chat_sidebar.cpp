@@ -28,3 +28,8 @@ ChatSidebar::ChatSidebar(QWidget* parent) : QWidget(parent) {
 void ChatSidebar::onSetActiveChatTab(int index) {
     tabWidget->setCurrentIndex(index);
 }
+
+void ChatSidebar::reset() {
+    activeChatsTab->reset();
+    searchTab->reset();
+}

@@ -1,4 +1,5 @@
 #pragma once
+#include <qwidget.h>
 #include <QStackedWidget>
 #include <QWidget>
 
@@ -9,6 +10,8 @@ class StackedWindow : public QWidget {
     explicit StackedWindow(QWidget* parent = nullptr);
 
     void addWidget(QWidget* widget);
+
+    void reset();
 
     void setCurrentIndex(int index);
 

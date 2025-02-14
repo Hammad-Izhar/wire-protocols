@@ -43,3 +43,7 @@ void ActiveChatsTab::onCreateChannelFailure(const QString& errorMessage) {
     qDebug() << errorMessage;
     // TODO: show error message
 }
+
+void ActiveChatsTab::reset() {
+    activeChats->clear();
+}

@@ -6,7 +6,11 @@
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QWidget>
+#include "client/gui/authentication_window.hpp"
+#include "client/gui/chat_window.hpp"
+#include "client/gui/connection_window.hpp"
 
+#include <qwidget.h>
 #include "client/gui/components/stacked_window.hpp"
 
 StackedWindow::StackedWindow(QWidget* parent) : QWidget(parent) {
@@ -19,6 +23,12 @@ StackedWindow::StackedWindow(QWidget* parent) : QWidget(parent) {
 
 void StackedWindow::addWidget(QWidget* widget) {
     stackedWidget->addWidget(widget);
+}
+
+void StackedWindow::reset() {
+    qobject_cast<ConnectionWindow*>(stackedWidget->widget(0))->reset();
+    qobject_cast<AuthenticationWindow*>(stackedWidget->widget(1))->reset();
+    qobject_cast<ChatWindow*>(stackedWidget->widget(2))->reset();
 }
 
 void StackedWindow::setCurrentIndex(int index) {

@@ -154,3 +154,10 @@ void ChatArea::onDeleteMessageSuccess(Message::SharedPtr message) {
 void ChatArea::onDeleteMessageFailure(const QString& error) {
     qDebug() << "Failed to delete message: " << error;
 }
+
+void ChatArea::reset() {
+    messageInput->setEnabled(false);
+    messageInput->clear();
+    sendButton->setEnabled(false);
+    chatTitle->setText("");
+}

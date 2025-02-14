@@ -13,6 +13,8 @@ class SearchTab : public QWidget {
    public:
     explicit SearchTab(ChatSidebar* sidebar, QWidget* parent = nullptr);
 
+    void reset();
+
    private:
     ChatSidebar* sidebar;
     QLineEdit* searchField;

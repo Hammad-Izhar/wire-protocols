@@ -13,6 +13,8 @@ class ChatSidebar : public QWidget {
    public:
     explicit ChatSidebar(QWidget* parent = nullptr);
 
+    void reset();
+
    private:
     QTabWidget* tabWidget;
     ActiveChatsTab* activeChatsTab;

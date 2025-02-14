@@ -1,5 +1,8 @@
 #include <QWidget>
 #include <optional>
+#include "client/gui/authentication_window.hpp"
+#include "client/gui/chat_window.hpp"
+#include "client/gui/connection_window.hpp"
 
 #include "client/model/session.hpp"
 
@@ -7,8 +10,14 @@ Session& Session::get_instance() {
     static Session instance;
     if (!instance.tcp_client)
         instance.tcp_client = new TcpClient();
-    if (!instance.main_window)
+    if (!instance.main_window) {
         instance.main_window = new StackedWindow();
+        instance.main_window->addWidget(new ConnectionWindow());
+        instance.main_window->addWidget(new AuthenticationWindow());
+        instance.main_window->addWidget(new ChatWindow());
+        instance.main_window->show();
+    }
+
     return instance;
 }
 
@@ -21,6 +30,7 @@ void Session::reset() {
     channels.clear();
     channel_messages.clear();
     open_channel = std::nullopt;
+    main_window->reset();
 }
 
 void Session::add_message(const Message::SharedPtr& message) {

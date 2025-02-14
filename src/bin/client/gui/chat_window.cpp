@@ -102,3 +102,8 @@ void ChatWindow::onDeleteAccount() {
 
     dialog.exec();
 }
+
+void ChatWindow::reset() {
+    sidebar->reset();
+    chatArea->reset();
+}

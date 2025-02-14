@@ -12,6 +12,8 @@ class ConnectionWindow : public QWidget {
    public:
     explicit ConnectionWindow(QWidget* parent = nullptr);
 
+    void reset();
+
    private:
     QGroupBox* inputGroup;
     Spinner* spinner;

@@ -14,6 +14,8 @@ class RegistrationTab : public QWidget {
    public:
     explicit RegistrationTab(QTabWidget* tabWidget, QWidget* parent = nullptr);
 
+    void reset();
+
    private slots:
     void onRegistrationSuccess();
     void onRegistrationFailure(const QString& errorMessage);
