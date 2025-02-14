@@ -27,6 +27,8 @@ class Session : public QObject {
 
     std::optional<Channel::SharedPtr> get_active_channel() const;
 
+    std::optional<UUID> get_active_user_id() const;
+
     void set_active_channel(const Channel::SharedPtr& channel);
 
     void add_channel(const Channel::SharedPtr& channel);

@@ -7,6 +7,8 @@
 #include "message/create_channel_response.hpp"
 #include "message/delete_account.hpp"
 #include "message/delete_account_response.hpp"
+#include "message/delete_message.hpp"
+#include "message/delete_message_response.hpp"
 #include "message/header.hpp"
 #include "message/list_accounts.hpp"
 #include "message/list_accounts_response.hpp"
@@ -94,6 +96,15 @@ void TcpClient::send_text_message(const UUID& channel_uid,
     socket->flush();
 }
 
+void TcpClient::delete_message(Message::SharedPtr message) {
+    Session& session = Session::get_instance();
+    DeleteMessageMessage msg(message->get_channel_id(), message->get_snowflake());
+    std::vector<uint8_t> data;
+    msg.serialize_msg(data);
+    socket->write(reinterpret_cast<const char*>(data.data()), data.size());
+    socket->flush();
+}
+
 void TcpClient::onReadyRead() {
     Header header;
     if (socket->bytesAvailable() < header.size()) {
@@ -152,6 +163,13 @@ void TcpClient::onReadyRead() {
         }
         case Operation::DELETE_ACCOUNT: {
             DeleteAccountResponse response;
+            response.deserialize(msg);
+            qDebug() << response.to_json().c_str();
+            messageHandler.dispatch(socket, response);
+            break;
+        }
+        case Operation::DELETE_MESSAGE: {
+            DeleteMessageResponse response;
             response.deserialize(msg);
             qDebug() << response.to_json().c_str();
             messageHandler.dispatch(socket, response);

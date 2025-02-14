@@ -27,6 +27,8 @@ class TcpClient : public QObject {
 
     void delete_account(const std::string& username, const std::string& password);
 
+    void delete_message(Message::SharedPtr message);
+
     void create_channel(const std::string& channel_name, const std::vector<UUID>& members);
 
     void send_text_message(const UUID& channel_uid,

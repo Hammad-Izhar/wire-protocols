@@ -1,4 +1,5 @@
 #include <QWidget>
+#include <optional>
 
 #include "client/model/session.hpp"
 
@@ -58,4 +59,12 @@ void Session::remove_message(const Message::SharedPtr& message) {
     auto& messages = channel_messages[message->get_channel_id()];
     messages.erase(std::remove(messages.begin(), messages.end(), message), messages.end());
     channels[message->get_channel_id()]->remove_message(message->get_snowflake());
+}
+
+std::optional<UUID> Session::get_active_user_id() const {
+    if (authenticated_user) {
+        return authenticated_user.value()->get_uid();
+    } else {
+        return std::nullopt;
+    }
 }
