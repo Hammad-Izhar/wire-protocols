@@ -9,7 +9,7 @@
 
 #include "client/gui/components/message_widget.hpp"
 
-MessageWidget::MessageWidget(Message::SharedPtr message, bool isMe, QWidget* parent)
+MessageWidget::MessageWidget(Message::SharedPtr message, QWidget* parent)
     : QWidget(parent), message(message) {
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
     mainLayout->setSpacing(5);  // Reduce spacing for compact look
@@ -18,6 +18,9 @@ MessageWidget::MessageWidget(Message::SharedPtr message, bool isMe, QWidget* par
     messageLabel->setWordWrap(true);  // Enable text wrapping
     messageLabel->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
     messageLabel->setContentsMargins(8, 6, 8, 6);
+
+    bool isMe =
+        message->get_sender_id() == Session::get_instance().authenticated_user.value()->get_uid();
 
     // Apply styling (optional)
     if (isMe) {

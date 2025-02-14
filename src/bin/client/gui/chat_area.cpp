@@ -104,10 +104,7 @@ void ChatArea::onActiveChannelChanged() {
 
 void ChatArea::addMessageToLayout(Message::SharedPtr message) {
     Session& session = Session::get_instance();
-    MessageWidget* messageWidget =
-        new MessageWidget(QString::fromStdString(message->get_text()),
-                          message->get_sender_id() == session.authenticated_user.value()->get_uid(),
-                          messageContainer);
+    MessageWidget* messageWidget = new MessageWidget(message, messageContainer);
     messageLayout->addWidget(messageWidget);
     messageLayout->update();
     messageContainer->adjustSize();
@@ -117,10 +114,7 @@ void ChatArea::onSendMessageSuccess(Message::SharedPtr message) {
     Session& session = Session::get_instance();
     if (session.get_active_channel().has_value() &&
         session.get_active_channel().value()->get_uid() == message->get_channel_id()) {
-        MessageWidget* messageWidget = new MessageWidget(
-            QString::fromStdString(message->get_text()),
-            message->get_sender_id() == session.authenticated_user.value()->get_uid(),
-            messageContainer);
+        MessageWidget* messageWidget = new MessageWidget(message, messageContainer);
         messageLayout->addWidget(messageWidget);
     }
 

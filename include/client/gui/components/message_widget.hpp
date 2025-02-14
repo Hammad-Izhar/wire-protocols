@@ -8,7 +8,7 @@ class MessageWidget : public QWidget {
     Q_OBJECT
 
    public:
-    explicit MessageWidget(Message::SharedPtr message, bool isMe, QWidget* parent = nullptr);
+    explicit MessageWidget(Message::SharedPtr message, QWidget* parent = nullptr);
 
    protected:
     void paintEvent(QPaintEvent* event) override;

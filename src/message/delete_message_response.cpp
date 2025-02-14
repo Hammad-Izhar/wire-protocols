@@ -77,3 +77,10 @@ std::optional<std::string> DeleteMessageResponse::get_error_message() const {
     }
     return std::nullopt;
 }
+
+std::optional<Message::SharedPtr> DeleteMessageResponse::get_data() const {
+    if (std::holds_alternative<Message::SharedPtr>(data)) {
+        return std::get<Message::SharedPtr>(data);
+    }
+    return std::nullopt;
+}
