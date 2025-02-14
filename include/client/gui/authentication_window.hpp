@@ -6,9 +6,20 @@
 
 enum Tab { Login = 0, Register = 1 };
 
+/**
+ * @brief AuthenticationWindow class
+ * This class is responsible for the authentication window
+ * It contains the login and registration tabs
+ */
 class AuthenticationWindow : public QWidget {
     Q_OBJECT
    public:
+
+    /**
+     * @brief Construct a new Authentication Window object
+     * 
+     * @param parent 
+     */
     explicit AuthenticationWindow(QWidget* parent = nullptr);
 
     void reset();
