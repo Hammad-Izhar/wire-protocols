@@ -1,5 +1,6 @@
 #include <QDebug>
 
+#include <qtmetamacros.h>
 #include "models/message.hpp"
 #include "server/db/database.hpp"
 
@@ -128,7 +129,7 @@ std::variant<std::monostate, std::string> Database::add_user_to_channel(UUID use
     return {};
 }
 
-std::variant<std::monostate, std::string> Database::remove_user(UUID user_uid) {
+std::variant<User::SharedPtr, std::string> Database::remove_user(UUID user_uid) {
     std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
     if (!user.has_value()) {
         return "User does not exist";
@@ -151,8 +152,14 @@ std::variant<std::monostate, std::string> Database::remove_user(UUID user_uid) {
             }
 
             if (message_opt.value()->get_sender_id() == user_uid) {
-                // Remove the message from the channel
                 channel->remove_message(message_snowflake);
+                for (auto& user_uid : channel->get_user_uids()) {
+                    std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
+                    if (!user.has_value()) {
+                        continue;
+                    }
+                    emit user.value()->message_deleted(message_opt.value());
+                }
             }
         }
     }
@@ -175,6 +182,14 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
     auto res = this->messages->remove_message(message_snowflake);
     if (std::holds_alternative<std::string>(res)) {
         return std::get<std::string>(res);
+    }
+
+    for (auto user_uid : channel.value()->get_user_uids()) {
+        std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
+        if (!user.has_value()) {
+            continue;
+        }
+        emit user.value()->message_deleted(message.value());
     }
 
     channel.value()->remove_message(message_snowflake);

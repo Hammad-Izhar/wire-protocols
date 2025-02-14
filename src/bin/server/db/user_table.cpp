@@ -43,9 +43,14 @@ std::variant<std::monostate, std::string> UserTable::add_user(User::SharedPtr us
     return {};
 }
 
-std::variant<std::monostate, std::string> UserTable::remove_user(UUID user_uid) {
+std::variant<User::SharedPtr, std::string> UserTable::remove_user(UUID user_uid) {
     std::lock_guard<std::mutex> lock(this->mutex);
+    if (this->data.find(user_uid) == this->data.end()) {
+        return "User does not exist";
+    }
+
+    User::SharedPtr user = this->data[user_uid];
     this->data.erase(user_uid);
 
-    return {};
+    return user;
 }

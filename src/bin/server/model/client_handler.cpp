@@ -6,7 +6,7 @@
 #include "message/create_channel_response.hpp"
 #include "message/delete_account.hpp"
 #include "message/delete_message.hpp"
-// #include "message/delete_message_response.hpp"
+#include "message/delete_message_response.hpp"
 #include "message/header.hpp"
 #include "message/list_accounts.hpp"
 #include "message/login.hpp"
@@ -24,18 +24,18 @@ void ClientHandler::set_authenticated_user(const User::SharedPtr user) {
         disconnect(authenticated_user.value().get(), &User::channel_added, this,
                    &ClientHandler::on_channel_added);
         // disconnect(authenticated_user.value().get(), &User::channel_removed, this,
-        // &on_channel_removed);
+        //            &on_channel_removed);
         disconnect(authenticated_user.value().get(), &User::message_received, this,
                    &ClientHandler::on_message_received);
-        // disconnect(authenticated_user.value().get(), &User::message_deleted, this,
-        // &on_message_deleted);
+        disconnect(authenticated_user.value().get(), &User::message_deleted, this,
+                   &ClientHandler::on_message_deleted);
     }
 
     authenticated_user = user;
     connect(user.get(), &User::channel_added, this, &ClientHandler::on_channel_added);
     // connect(user.get(), &User::channel_removed, this, &on_channel_removed);
     connect(user.get(), &User::message_received, this, &ClientHandler::on_message_received);
-    // connect(user.get(), &User::message_deleted, this, &on_message_deleted);
+    connect(user.get(), &User::message_deleted, this, &ClientHandler::on_message_deleted);
 }
 
 void ClientHandler::handle_client() {
@@ -159,12 +159,12 @@ void ClientHandler::on_message_received(std::variant<Message::SharedPtr, std::st
     emit MessageHandler::get_instance().write_data(buf);
 }
 
-// void ClientHandler::on_message_deleted(std::variant<Message::SharedPtr, std::string> message) {
-//     DeleteMessageResponse response(message);
-//     std::vector<uint8_t> buf;
-//     response.serialize_msg(buf);
-//     emit MessageHandler::get_instance().write_data(buf);
-// }
+void ClientHandler::on_message_deleted(std::variant<Message::SharedPtr, std::string> message) {
+    DeleteMessageResponse response(message);
+    std::vector<uint8_t> buf;
+    response.serialize_msg(buf);
+    emit MessageHandler::get_instance().write_data(buf);
+}
 
 void ClientHandler::on_channel_added(std::variant<Channel::SharedPtr, std::string> channel) {
     CreateChannelResponse response(channel);

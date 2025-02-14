@@ -22,7 +22,7 @@ class UserTable {
 
     // Setters
     std::variant<std::monostate, std::string> add_user(User::SharedPtr user);
-    std::variant<std::monostate, std::string> remove_user(UUID user_uid);
+    std::variant<User::SharedPtr, std::string> remove_user(UUID user_uid);
 
    private:
     std::unordered_map<UUID, User::SharedPtr> data;

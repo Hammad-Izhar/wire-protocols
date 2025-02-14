@@ -3,13 +3,13 @@
 #include <variant>
 
 #include "message/serialize.hpp"
-#include "models/user.hpp"
+#include "models/message.hpp"
 
-class DeleteAccountResponse : public Serializable {
+class DeleteMessageResponse : public Serializable {
    public:
-    DeleteAccountResponse() = default;
+    DeleteMessageResponse() = default;
 
-    DeleteAccountResponse(std::variant<User::SharedPtr, std::string> data);
+    DeleteMessageResponse(std::variant<Message::SharedPtr, std::string> data);
 
     void serialize(std::vector<uint8_t>& buf) const;
 
@@ -27,8 +27,8 @@ class DeleteAccountResponse : public Serializable {
 
     [[nodiscard]] std::optional<std::string> get_error_message() const;
 
-    [[nodiscard]] std::optional<User::SharedPtr> get_data() const;
+    [[nodiscard]] std::optional<Message::SharedPtr> get_data() const;
 
    private:
-    std::variant<User::SharedPtr, std::string> data;
+    std::variant<Message::SharedPtr, std::string> data;
 };

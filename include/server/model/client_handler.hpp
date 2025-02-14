@@ -29,7 +29,7 @@ class ClientHandler : public QObject {
 
     void on_message_received(std::variant<Message::SharedPtr, std::string> message);
 
-    // void on_message_deleted(std::variant<Message::SharedPtr, std::string> message);
+    void on_message_deleted(std::variant<Message::SharedPtr, std::string> message);
 
     void on_channel_added(std::variant<Channel::SharedPtr, std::string> channel);
 

@@ -55,7 +55,7 @@ class Database {
 
     // Setters -- Remove
 
-    std::variant<std::monostate, std::string> remove_user(UUID user_uid);
+    std::variant<User::SharedPtr, std::string> remove_user(UUID user_uid);
 
     std::variant<std::monostate, std::string> remove_message(uint64_t message_snowflake);
 

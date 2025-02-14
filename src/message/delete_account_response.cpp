@@ -1,15 +1,17 @@
 #include "message/delete_account_response.hpp"
-#include <variant>
 #include "constants.hpp"
 #include "json.hpp"
 #include "message/header.hpp"
 
-DeleteAccountResponse::DeleteAccountResponse(std::variant<std::monostate, std::string> data)
+DeleteAccountResponse::DeleteAccountResponse(std::variant<User::SharedPtr, std::string> data)
     : data(data) {}
 
 void DeleteAccountResponse::serialize(std::vector<uint8_t>& buf) const {
-    buf.push_back(!is_success());
-    if (std::holds_alternative<std::string>(data)) {
+    if (is_success()) {
+        buf.push_back(0);
+        std::get<User::SharedPtr>(data)->serialize(buf);
+    } else {
+        buf.push_back(1);
         std::string error = std::get<std::string>(data);
         buf.push_back(error.size());
         buf.insert(buf.end(), error.begin(), error.end());
@@ -24,7 +26,9 @@ void DeleteAccountResponse::serialize_msg(std::vector<uint8_t>& buf) const {
 
 void DeleteAccountResponse::deserialize(const std::vector<uint8_t>& buf) {
     if (buf[0] == 0) {
-        data = std::monostate();
+        User::SharedPtr user = std::make_shared<User>();
+        user->deserialize(std::vector<uint8_t>(buf.begin() + 1, buf.end()));
+        data = user;
     } else {
         size_t len = buf[1];
         std::string error(buf.begin() + 2, buf.begin() + 2 + len);
@@ -36,6 +40,7 @@ std::string DeleteAccountResponse::to_json() const {
     nlohmann::json j;
     if (is_success()) {
         j["success"] = true;
+        j["user"] = std::get<User::SharedPtr>(data)->to_json();
     } else {
         j["success"] = false;
         j["error"] = std::get<std::string>(data);
@@ -46,26 +51,36 @@ std::string DeleteAccountResponse::to_json() const {
 void DeleteAccountResponse::from_json(const std::string& json) {
     auto j = nlohmann::json::parse(json);
     if (j["success"].get<bool>()) {
-        data = std::monostate();
+        User::SharedPtr user = std::make_shared<User>();
+        user->from_json(j["user"].dump());
+        data = user;
     } else {
         data = j["error"].get<std::string>();
     }
 }
 
 size_t DeleteAccountResponse::size() const {
-    if (std::holds_alternative<std::string>(data)) {
-        return 1 + (1 + std::get<std::string>(data).size());
+    if (is_success()) {
+        return std::get<User::SharedPtr>(data)->size();
+    } else {
+        return 1 + std::get<std::string>(data).size();
     }
-    return 1;
 }
 
 bool DeleteAccountResponse::is_success() const {
-    return std::holds_alternative<std::monostate>(data);
+    return std::holds_alternative<User::SharedPtr>(data);
 }
 
 std::optional<std::string> DeleteAccountResponse::get_error_message() const {
     if (std::holds_alternative<std::string>(data)) {
         return std::get<std::string>(data);
+    }
+    return std::nullopt;
+}
+
+std::optional<User::SharedPtr> DeleteAccountResponse::get_data() const {
+    if (std::holds_alternative<User::SharedPtr>(data)) {
+        return std::get<User::SharedPtr>(data);
     }
     return std::nullopt;
 }
