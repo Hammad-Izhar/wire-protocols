@@ -1,4 +1,4 @@
-#include "client/model/message_handlers.hpp"
+#include "models/message_handlers.hpp"
 #include "client/model/session.hpp"
 #include "message/create_channel_response.hpp"
 #include "message/delete_account_response.hpp"
@@ -62,6 +62,8 @@ void on_create_channel_response(QTcpSocket* socket, CreateChannelResponse& msg) 
     if (msg.is_success()) {
         session.authenticated_user.value()->add_channel(msg.get_data().value()->get_uid());
         session.channels[msg.get_data().value()->get_uid()] = msg.get_data().value();
+        session.channel_messages[msg.get_data().value()->get_uid()] = {};
+
         session.set_active_channel(msg.get_data().value());
 
         emit session.tcp_client->createChannelSuccess(msg.get_data().value());
@@ -74,6 +76,7 @@ void on_create_channel_response(QTcpSocket* socket, CreateChannelResponse& msg) 
 void on_send_message_response(QTcpSocket* socket, SendMessageResponse& msg) {
     Session& session = Session::get_instance();
     if (msg.is_success()) {
+        session.add_message(msg.get_data().value());
         emit session.tcp_client->sendMessageSuccess(msg.get_data().value());
     } else {
         emit session.tcp_client->sendMessageFailure(

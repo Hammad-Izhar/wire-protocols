@@ -50,8 +50,6 @@ ChatArea::ChatArea(QWidget* parent) : QWidget(parent) {
 
     Session& session = Session::get_instance();
     connect(&session, &Session::updateActiveChannel, this, &ChatArea::onActiveChannelChanged);
-    connect(session.tcp_client, &TcpClient::sendMessageSuccess, this,
-            &ChatArea::onSendMessageSuccess);
 }
 
 void ChatArea::validateMessage() {
@@ -72,35 +70,30 @@ void ChatArea::sendMessage() {
 
 void ChatArea::onActiveChannelChanged() {
     Session& session = Session::get_instance();
-    qDebug() << "Updating channel";
     if (session.get_active_channel().has_value()) {
         messageInput->setEnabled(true);
         chatTitle->setText(
             QString::fromStdString(session.get_active_channel().value()->get_name()));
+
+        messageLayout = new QVBoxLayout(messageContainer);
+        messageContainer->setLayout(messageLayout);
+        for (auto& message : session.get_active_channel_messages()) {
+            MessageWidget* messageWidget = new MessageWidget(
+                QString::fromStdString(message->get_text()),
+                message->get_sender_id() == session.authenticated_user.value()->get_uid(),
+                messageContainer);
+            messageLayout->addWidget(messageWidget);
+        }
+
+        messageLayout->update();
+        messageContainer->adjustSize();
+
+        // Auto-scroll to the bottom
+        QTimer::singleShot(50, [this]() {
+            messageScrollArea->verticalScrollBar()->setValue(
+                messageScrollArea->verticalScrollBar()->maximum());
+        });
     } else {
         chatTitle->setText("");
     }
-}
-
-void ChatArea::onSendMessageSuccess(Message::SharedPtr message) {
-    Session& session = Session::get_instance();
-    MessageWidget* messageWidget =
-        new MessageWidget(QString::fromStdString(message->get_text()),
-                          message->get_sender_id() == session.authenticated_user.value()->get_uid(),
-                          messageContainer);
-    messageLayout->addWidget(messageWidget);
-
-    // Ensure the layout updates properly
-    messageLayout->update();
-    messageContainer->adjustSize();
-
-    // Auto-scroll to the bottom
-    QTimer::singleShot(50, [this]() {
-        messageScrollArea->verticalScrollBar()->setValue(
-            messageScrollArea->verticalScrollBar()->maximum());
-    });
-}
-
-void ChatArea::onSendMessageError(const QString& error) {
-    qDebug() << "Failed to send message:" << error;
 }

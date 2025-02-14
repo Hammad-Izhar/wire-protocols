@@ -4,7 +4,6 @@
 #include "client/gui/authentication_window.hpp"
 #include "client/gui/chat_window.hpp"
 #include "client/gui/connection_window.hpp"
-#include "client/model/message_handlers.hpp"
 #include "client/model/session.hpp"
 
 int main(int argc, char* argv[]) {
