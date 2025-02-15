@@ -2,15 +2,17 @@
 ## COMPSCI 2620 Design Exercise 1: Wire Protocols
 ### Group 36: Hammad Izhar, Thomas Kaminsky
 
-Below is a summary of the important components of Sock-et Out, implemented as part of CS 2620: Distributed Computing.
+Below is a summary of the important components of Sock-et Out, implemented as part of CS 2620: Distributed Computing. If you're interested, here's a video demo of our app:
 
-Sock-et Out is an SMS-like chat service enabling users to communicate with one another in real-time private channels. The host server enables users to communicate across devices connected via non-protected wifi networks to create, exchange, and delete channels and messages in real-time. The project is designed to be highly modular&mdash;adding new functionality simply requires implementing the following:
+[![Watch the video](https://img.youtube.com/vi/orRyQmFdokQ/hqdefault.jpg)](https://www.youtube.com/watch?v=orRyQmFdokQ)
+
+Sock-et Out is an SMS-like chat service enabling users to communicate with one another in real-time private channels. The host server enables users to communicate across devices connected via non-protected wifi networks to create, exchange, and delete channels and messages in real-time. The project is designed to be highly modular&mdash;adding new functionality only requires implementing the following:
 
 1. Request message classes from `client -> server` and `server -> client` specifying data to transmit between client and server (and a serialization scheme for the payload, if not using JSON).
 2. Message handler functions in `bin/client/model/message_handlers.cpp/hpp` and `bin/server/model/message_handlers.cpp` covering logic for the task&mdash;usually interfacing with the database.
 3. Qt event detection for sending each message and updating the client's GUI.
 
-The backend is designed to offer maximum flexibility for creating new features using existing infrastructure. Abstractions given by the `User`, `Message`, `Channel`, `UUID`, and `Database` classes offer flexibility for accessing relevant data, even for unanticipated services. For example, multi-user chats, currently unsupported on the app, will require no backend changes, as `Channel`s already store arbitrary user groups, and the `Database` handles logic for adding and removing members from groups of arbitrary sizes.
+The backend is designed to offer maximum flexibility for creating new features using existing infrastructure. Abstractions given by the `User`, `Message`, `Channel`, `UUID`, and `Database` classes offer tools for accessing relevant data, even for unanticipated services. For example, many-user chats, currently unsupported on the app, will require no backend changes, as `Channel`s already store arbitrary user groups, and the `Database` handles logic for adding and removing members from groups of arbitrary sizes.
 
 For a summary of the relevant components of the project, see the documentation below.
 
@@ -44,21 +46,7 @@ For a summary of the relevant components of the project, see the documentation b
 * **[Delete Message](#delete-message)**
 * **[Delete Account](#delete-account)**
 
-
-
-
-
-
-
-
-
-### [Server](#server)
-
-
-
-
-
-
+### [User Interface](#user-interface-1)
 
 
 # Setup and Running
@@ -73,6 +61,8 @@ To run the code, you'll need [Docker](https://www.docker.com/) and an X11 server
 ## Setup Steps (Mac)
 
 Open XQuartz. In 'XQuartz' settings, navigate to Settings -> Security -> 'Allow connections from network clients', and then restart your machine.
+
+Make sure that XQuartz is running after restart.
 
 Open a terminal, and allow xhost connections by running the following:
 
@@ -107,7 +97,7 @@ xhost +local:
 Once installation is complete, you can start a server by running
 
 ```
-./server
+./server --config ../config/server.json
 ```
 
 **in the `/build` directory.**
@@ -126,14 +116,14 @@ to spin up a new client, and
 
 to run unit tests.
 
-
+To run using JSON serialization instead of our custom serialization, run instead `./server_json` or `./client_json`. Currently, both client and server must both be using the same serialization scheme for the app to work.
 
 # Overview of Functionality
 
 Currently, our application supports the following functionality:
 
 * Registering new users, ensuring no duplicate usernames.
-* Logging in to the app
+* Logging in to the app (if correct password is supplied)
 * Searching for users by regex
 * Creating new chat channels (between two users)
 * Sending and receiving messages in real-time
@@ -150,12 +140,12 @@ The following functionality is supported on the backend, and we would like to in
 * Modifying channel names
 * Modifying usernames
 * Notating read by and modified at indicators/timestamps
-* Creating many-person (>2) channels
+* Creating many-person (>2-person) channels
 * Adding and removing users from channels
 
 ## File Structure
 
-Our project has the following structure (tree shown below). Headers are all in `/include`, implementations are in `src/`, and unit tests are in `test/`. 
+Our project has the following structure (tree shown below). Headers are all in `include/`, implementations are in `src/`, and unit tests are in `test/`. 
 
 Client and server information is separated into `client/` and `server/` subdirectories, with shared classes outside of these directories.
 
@@ -214,9 +204,6 @@ Client and server information is separated into `client/` and `server/` subdirec
 # Classes
 
 Below we describe the classes used for comprehending messages, users, and channels. 
-
-In general, class headers are initialized in the `/include/` directory, and implementations in the `/src/` directory. The full project structure is outlined below:
-
 
 ## UUID
 
@@ -413,21 +400,10 @@ Sends the user ID to be deleted.
 Returns either the removed user's ID or an error string.
 
 
-# Server
+# User Interface
 
+The user interface is built using Qt, a cross-platform application framework that is widely used for developing web apps. The design is modular and event-driven, ensuring a clear separation of concerns into distinct components, each responsible for a specific aspect of the user experience.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+The app is run from main, where a singleton Session is initialized to manage the overall connection state and network communications via a TCP client. Individual components are implemented in separate files&mdash;see `src/bin/client/gui` for details.
 
 
