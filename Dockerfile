@@ -23,6 +23,9 @@ RUN apt-get install -y \
     clang-tidy  \
     clangd
 
+RUN apt-get install -y \
+    net-tools 
+
 RUN groupadd -r wireshark && useradd -m -s /bin/bash -G wireshark cs2620
 RUN usermod -aG ubuntu cs2620
 

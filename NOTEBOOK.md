@@ -99,3 +99,13 @@ Finally, we came up with the following 4 byte header for our wire protocol.
 <div align=center>
     <img src="diagrams/protocol_header.svg">
 </div>
+
+It actually turns out Qt is much more than a GUI library! Instead of using raw Unix sockets we'll instead choose to subclass the Qt based sockets! This simplifies a lot of the inter-thread communication since Qt allows us to use an event driven framework.
+
+This does mean we no longer need to have a separate thread for the GUI and the communication with the server process, which simplifies synchronoization on the client.
+
+We ahve also decided we won't multiplex clients on the server threads for now, since it seems overkill for our currnet implementation
+
+Synchronoizaton of the database isn't necessarily our priority as well, so we should theooretically come back to this if there seem to be issues if there are a lot of users.
+
+On average, empiracally it seems that our basic messages (that don't very due to text size) have an average length of 15 bytes with our custom wire protocol, and our JSON based protocol sees an increase in the averagle length to be approximately 80 bytes. What this ends up looking like is that our loading spinners tend to be more visible in the JSON based implementation than the custom implementation. This is especially apparaent as the number of concurrent users increases and more channels are added.

@@ -1,7 +1,6 @@
 services:
   app:
     build: .
-    network_mode: "host"                            # Gives access to host's network, including lo interface
     cap_add:
       - NET_ADMIN                                   # Required for Wireshark
       - NET_RAW
@@ -16,3 +15,5 @@ services:
       - "host.docker.internal:host-gateway"         # Add host.docker.internal to /etc/hosts
     stdin_open: true
     tty: true
+    ports:
+      - "12345:12345"
