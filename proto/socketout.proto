@@ -1,0 +1,15 @@
+service SocketOut {
+    rpc register(RegisterRequest) returns (RegisterResponse) {}
+
+    rpc login(LoginRequest) returns (stream LoginResponse) {}
+
+    rpc create_channel(CreateChannelRequest) returns (CreateChannelResponse) {}
+
+    rpc send_message(SendMessageRequest) returns (SendMessageResponse) {}
+
+    rpc delete_message(DeleteMessageRequest) returns (DeleteMessageResponse) {}
+
+    rpc delete_account(DeleteAccountRequest) returns (DeleteAccountResponse) {}
+
+    rpc list_accounts(ListAccountsRequest) returns (stream ListAccountResponse) {}
+}
