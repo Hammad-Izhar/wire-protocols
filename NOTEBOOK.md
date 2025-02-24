@@ -109,3 +109,15 @@ We ahve also decided we won't multiplex clients on the server threads for now, s
 Synchronoizaton of the database isn't necessarily our priority as well, so we should theooretically come back to this if there seem to be issues if there are a lot of users.
 
 On average, empiracally it seems that our basic messages (that don't very due to text size) have an average length of 15 bytes with our custom wire protocol, and our JSON based protocol sees an increase in the averagle length to be approximately 80 bytes. What this ends up looking like is that our loading spinners tend to be more visible in the JSON based implementation than the custom implementation. This is especially apparaent as the number of concurrent users increases and more channels are added.
+
+## 02/21/2025 : Deliverables for Design Problem 2
+
+We think that we'll need to 
+
+We are planning out the additions which must be made to accommodate gRPC message passing, rather than our custom scheme. Currently, necessary changes include the following:
+
+* Add `.proto` files encoding each message in `message/`
+* In `tcp_client.cpp`, we must change the implementation to use gRPC service functions. 
+* In `client_handler.hpp`, we need to use Asynchronous calls, since we don't immediately generate a response. Whenever we write data, we need to wrap the emit in the corresponding RPC call.
+* In `message_handlers`, all the backend logic stays the same, but rather than reading a custom message / writing to a custom message, we read and write to RPC classes.
+* We need ways to parse RPC data as our custom objects; e.g. `RPC_to_user`, `RPC_to_message`, `RPC_to_channel`
