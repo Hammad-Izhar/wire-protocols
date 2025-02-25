@@ -56,17 +56,17 @@ int main(int argc, char* argv[]) {
 
     int port = jsonObj["port"].toInt();
 
-    // #ifdef PROTOCOL_RPC
-    //     std::string server_address = "0.0.0.0:" + std::to_string(port);
-    //     SocketOutImpl service;
+#ifdef PROTOCOL_RPC
+    std::string server_address = "0.0.0.0:" + std::to_string(port);
+    SocketOutImpl service;
 
-    //     ServerBuilder builder;
-    //     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    //     builder.RegisterService(&service);
-    //     std::unique_ptr<Server> server(builder.BuildAndStart());
-    //     std::cout << "Server started on port " << port << std::endl;
-    //     server->Wait();
-    // #else
+    ServerBuilder builder;
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    builder.RegisterService(&service);
+    std::unique_ptr<Server> server(builder.BuildAndStart());
+    std::cout << "Server started on port " << port << std::endl;
+    server->Wait();
+#else
     // Start the TCP server
     TcpServer server;
     if (!server.listen(QHostAddress::Any, port)) {
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
                   << std::endl;
         return -1;
     }
-    // #endif
+#endif
 
     std::cout << "Server started on port " << port << std::endl;
     return app.exec();

@@ -14,7 +14,7 @@ find_package(GTest REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 # Include project directories
-include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}/proto)
 
 # Collect source files
 file(GLOB_RECURSE SOURCE_FILES src/**/*.cpp)

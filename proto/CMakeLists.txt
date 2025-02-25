@@ -1,9 +1,6 @@
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/proto")
 set(PROTO_FILES ${PROTO_DIR}/socketout.proto)
 
-set(GEN_DIR "${CMAKE_BINARY_DIR}/generated")
-file(MAKE_DIRECTORY ${GEN_DIR}/proto)
-
 message(STATUS "Generating protobuf files into ${GEN_DIR}/proto:")
 foreach(PROTO_FILE ${PROTO_FILES})
     message(STATUS "  - ${PROTO_FILE}")    
