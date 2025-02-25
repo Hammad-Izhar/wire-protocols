@@ -8,6 +8,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Find necessary Qt6 components
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
+find_package(Protobuf REQUIRED)
+find_package(gRPC REQUIRED)
 find_package(GTest REQUIRED)
 find_package(OpenSSL REQUIRED)
 
@@ -34,6 +36,8 @@ endforeach()
 # Remove main files from their respective sources
 list(REMOVE_ITEM CLIENT_SOURCE_FILES src/bin/client/main.cpp)
 list(REMOVE_ITEM SERVER_SOURCE_FILES src/bin/server/main.cpp)
+
+add_subdirectory(proto)
 
 # Define Client executable
 qt_add_executable(client
@@ -122,6 +126,30 @@ target_compile_definitions(server_json PRIVATE PROTOCOL_JSON)
 # Link libraries (same as server)
 target_link_libraries(server_json PRIVATE Qt6::Widgets Qt6::Network)
 target_link_libraries(server_json PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+
+qt_add_executable(server_rpc
+    src/bin/server/main.cpp
+    ${SERVER_SOURCE_FILES}
+    ${SOURCE_FILES}
+    ${SERVER_QT_HEADERS}
+)
+
+set_target_properties(server_rpc PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+    AUTOMOC ON  # Ensures Q_OBJECT macro is processed
+    AUTOUIC ON  # Enable Qt UI file processing (if needed)
+    AUTORCC ON  # Enable Qt resource processing (if needed)
+)
+
+# Define `PROTOCOL_JSON` for `server_json`
+target_compile_definitions(server_rpc PRIVATE PROTOCOL_JSON)
+
+# Link libraries (same as server)
+add_dependencies(server_rpc socketout_proto)
+target_link_libraries(server_rpc PRIVATE Qt6::Widgets Qt6::Network)
+target_link_libraries(server_rpc PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(server_rpc PRIVATE socketout_proto gRPC::grpc++ gRPC::grpc gRPC::grpc_unsecure protobuf::libprotobuf)
 
 # Define Test executable
 qt_add_executable(test

@@ -1,0 +1,1 @@
+class SocketOutImpl final : public SocketOut::Service {}
