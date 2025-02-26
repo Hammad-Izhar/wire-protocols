@@ -37,6 +37,10 @@ void StackedWindow::setCurrentIndex(int index) {
     }
 }
 
+int StackedWindow::getCurrentIndex() const {
+    return stackedWidget->currentIndex();
+}
+
 void StackedWindow::animatePageTransition(int nextIndex) {
     int currentIndex = stackedWidget->currentIndex();
     if (nextIndex == currentIndex)

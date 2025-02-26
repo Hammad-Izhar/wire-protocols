@@ -38,11 +38,17 @@ class StackedWindow : public QWidget {
     void setCurrentIndex(int index);
 
     /**
+     * @brief Gets the current index of the stacked widget.
+     * @return The current index.
+     */
+    int getCurrentIndex() const;
+
+    /**
      * @brief Animates the transition to the specified page.
      * @param nextIndex The index of the next page to transition to.
      */
     void animatePageTransition(int nextIndex);
 
    private:
-    QStackedWidget* stackedWidget; ///< The stacked widget that manages the pages.
+    QStackedWidget* stackedWidget;  ///< The stacked widget that manages the pages.
 };

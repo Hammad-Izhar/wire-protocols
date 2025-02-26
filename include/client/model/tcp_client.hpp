@@ -1,6 +1,12 @@
 #pragma once
+#include "socketout.grpc.pb.h"
+#define PROTOCOL_RPC
 #include <QHostAddress>
 #include <QTcpSocket>
+
+#ifdef PROTOCOL_RPC
+#include "socketout.grpc.pb.h"
+#endif
 
 #include "models/channel.hpp"
 #include "models/message.hpp"
@@ -18,7 +24,7 @@ class TcpClient : public QObject {
     Q_OBJECT
 
    public:
-   /**
+    /**
      * @brief Constructs a TcpClient object.
      * @param parent A pointer to the parent QObject (default is nullptr).
      */
@@ -178,10 +184,14 @@ class TcpClient : public QObject {
     void deleteMessageFailure(const QString& error_message);
 
    private:
-    QTcpSocket* socket; ///< The TCP socket used for network communication.
+#ifdef PROTOCOL_RPC
+    // gRPC stub for server communication.
+    std::unique_ptr<socketout::SocketOut::Stub> stub;
+#else
+    QTcpSocket* socket;  ///< The TCP socket used for network communication.
 
    private slots:
-   /**
+    /**
      * @brief Slot triggered when the client successfully connects to the server.
      */
     void onConnected();
@@ -201,4 +211,5 @@ class TcpClient : public QObject {
      * @brief Slot triggered when data is available to read from the socket.
      */
     void onReadyRead();
+#endif
 };

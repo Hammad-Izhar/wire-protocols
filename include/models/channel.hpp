@@ -11,9 +11,9 @@
 /**
  * @brief Represents a communication channel.
  *
- * The Channel class encapsulates information about a communication channel, including its unique identifier,
- * name, associated user IDs, and message identifiers (snowflakes). It provides functionality for serialization,
- * JSON conversion, and thread-safe updates.
+ * The Channel class encapsulates information about a communication channel, including its unique
+ * identifier, name, associated user IDs, and message identifiers (snowflakes). It provides
+ * functionality for serialization, JSON conversion, and thread-safe updates.
  */
 class Channel : public Serializable {
    public:
@@ -37,10 +37,13 @@ class Channel : public Serializable {
      */
     Channel(std::string name, std::vector<UUID> user_uids);
 
+    Channel(const UUID& uid, std::string name, std::vector<UUID> user_uids);
+
     /**
      * @brief Serializes the Channel object into a byte buffer.
      *
-     * Converts the current state of the Channel into a sequence of bytes and appends the data to the provided buffer.
+     * Converts the current state of the Channel into a sequence of bytes and appends the data to
+     * the provided buffer.
      *
      * @param buf The byte buffer where the serialized data will be appended.
      */

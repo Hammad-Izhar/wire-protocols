@@ -13,9 +13,10 @@
  * @brief Represents a message with content and associated metadata.
  *
  * The Message class encapsulates all relevant data associated with a message in the system.
- * It includes information such as the sender, the channel, timestamps for creation and modification,
- * a unique snowflake identifier, a list of users who have read the message, and the message text.
- * The class supports serialization to and from byte buffers as well as conversion to and from JSON.
+ * It includes information such as the sender, the channel, timestamps for creation and
+ * modification, a unique snowflake identifier, a list of users who have read the message, and the
+ * message text. The class supports serialization to and from byte buffers as well as conversion to
+ * and from JSON.
  */
 class Message : public Serializable {
    public:
@@ -36,6 +37,21 @@ class Message : public Serializable {
      * @param text The text content of the message.
      */
     Message(UUID sender_id, UUID channel_id, std::string text);
+
+    Message(UUID sender_id,
+            UUID channel_id,
+            std::string text,
+            uint64_t snowflake,
+            uint64_t created_at,
+            uint64_t modified_at,
+            std::vector<UUID> read_by)
+        : sender_id(sender_id),
+          channel_id(channel_id),
+          text(text),
+          snowflake(snowflake),
+          created_at(created_at),
+          modified_at(modified_at),
+          read_by(std::move(read_by)) {}
 
     /**
      * @brief Default constructor.
@@ -140,7 +156,8 @@ class Message : public Serializable {
     /**
      * @brief Retrieves the list of user UUIDs who have read the Message.
      *
-     * @return A constant reference to the vector containing the UUIDs of users who have read the Message.
+     * @return A constant reference to the vector containing the UUIDs of users who have read the
+     * Message.
      */
     [[nodiscard]] const std::vector<UUID>& get_read_by();
 

@@ -1,7 +1,15 @@
+#include <google/protobuf/empty.pb.h>
+#include "models/user.hpp"
+#define PROTOCOL_RPC
 #include <QThread>
 
-#include "client/model/session.hpp"
 #include "client/model/tcp_client.hpp"
+
+#include "client/model/session.hpp"
+#ifdef PROTOCOL_RPC
+#include <grpcpp/grpcpp.h>
+#include "socketout.pb.h"
+#else
 #include "constants.hpp"
 #include "message/create_channel.hpp"
 #include "message/create_channel_response.hpp"
@@ -19,17 +27,26 @@
 #include "message/send_message.hpp"
 #include "message/send_message_response.hpp"
 #include "models/message_handler.hpp"
+#endif
 
 TcpClient::TcpClient(QObject* parent) : QObject(parent) {
+#ifndef PROTOCOL_RPC
     socket = new QTcpSocket(this);
 
     connect(socket, &QTcpSocket::connected, this, &TcpClient::onConnected);
     connect(socket, &QTcpSocket::disconnected, this, &TcpClient::onDisconnected);
     connect(socket, &QTcpSocket::errorOccurred, this, &TcpClient::onErrorOccurred);
     connect(socket, &QTcpSocket::readyRead, this, &TcpClient::onReadyRead);
+#endif
 }
 
 void TcpClient::connectToServer(const QString& host, quint16 port) {
+#ifdef PROTOCOL_RPC
+    qDebug() << "Connecting to server at" << host << ":" << port;
+    auto channel = grpc::CreateChannel(host.toStdString() + ":" + std::to_string(port),
+                                       grpc::InsecureChannelCredentials());
+    stub = socketout::SocketOut::NewStub(channel);
+#else
     if (socket->state() == QAbstractSocket::ConnectedState) {
         qDebug() << "Already connected to the server.";
         return;
@@ -42,69 +59,273 @@ void TcpClient::connectToServer(const QString& host, quint16 port) {
 
     qDebug() << "Connecting to server at" << host << ":" << port;
     socket->connectToHost(host, port);
+#endif
 }
 
 void TcpClient::register_user(const std::string& username,
                               const std::string& displayName,
                               const std::string& password) {
+#ifdef PROTOCOL_RPC
+    socketout::RegisterRequest message;
+    message.set_username(username);
+    message.set_display_name(displayName);
+    message.set_password(password);
+
+    google::protobuf::Empty response;
+    grpc::ClientContext context;
+    grpc::Status status = stub->register_user(&context, message, &response);
+    if (status.ok()) {
+        emit registrationSuccess();
+    } else {
+        emit registrationFailure(QString::fromStdString(status.error_message()));
+    }
+#else
     RegisterAccountMessage message(username, password, displayName);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
     socket->flush();
+#endif
 }
 
 void TcpClient::login_user(const std::string& username, const std::string& password) {
+#ifdef PROTOCOL_RPC
+    socketout::LoginRequest request;
+    request.set_username(username);
+    request.set_password(password);
+
+    socketout::LoginResponse response;
+    grpc::ClientContext context;
+
+    auto status = stub->login_user(&context, request, &response);
+    if (status.ok()) {
+        User::SharedPtr usr = std::make_shared<User>(
+            response.user().username(), response.user().display_name(),
+            UUID::from_string(response.user().uuid()), response.user().profile_picture());
+        Session::get_instance().authenticated_user = usr;
+
+        qDebug() << "Authenticated user: " << QString::fromStdString(usr->get_username());
+        qDebug() << "Authenticated display name: "
+                 << QString::fromStdString(usr->get_display_name());
+        qDebug() << "Authenticated profile pic: " << QString::fromStdString(usr->get_profile_pic());
+
+        emit loginSuccess();
+    } else {
+        emit loginFailure(QString::fromStdString(status.error_message()));
+        return;
+    }
+
+    std::thread t_message([this, request]() {
+        // prep a stream of messageresponse
+        grpc::ClientContext context;
+        auto reader = stub->subscribe_messages(&context, request);
+
+        socketout::MessageResponse response;
+        while (reader->Read(&response)) {
+            Session& session = Session::get_instance();
+            if (response.type() == socketout::Operation::CREATE) {
+                std::vector<UUID> read_by;
+                for (const auto& reader : response.msg().read_by()) {
+                    read_by.push_back(UUID::from_string(reader));
+                }
+
+                Message::SharedPtr message = std::make_shared<Message>(
+                    UUID::from_string(response.msg().channel_id()),
+                    UUID::from_string(response.msg().sender_id()), response.msg().text(),
+                    response.msg().snowflake(), response.msg().created_at(),
+                    response.msg().modified_at(), read_by);
+
+                session.add_message(message);
+                emit sendMessageSuccess(message);
+            } else if (response.type() == socketout::Operation::DELETE) {
+                Message::SharedPtr message = std::make_shared<Message>(
+                    UUID::from_string(response.msg().channel_id()),
+                    UUID::from_string(response.msg().sender_id()), response.msg().text(),
+                    response.msg().snowflake(), response.msg().created_at(),
+                    response.msg().modified_at(), std::vector<UUID>());
+
+                session.remove_message(message);
+                emit deleteMessageSuccess(message);
+            }
+        }
+        grpc::Status status = reader->Finish();
+    });
+
+    t_message.detach();
+
+    std::thread t_channel([this, request]() {
+        grpc::ClientContext context;
+        auto reader = stub->subscribe_channels(&context, request);
+
+        socketout::ChannelResponse response;
+        while (reader->Read(&response)) {
+            Session& session = Session::get_instance();
+
+            session.authenticated_user.value()->add_channel(
+                UUID::from_string(response.channel().uuid()));
+            std::vector<UUID> members;
+            for (const auto& member : response.channel().user_ids()) {
+                members.push_back(UUID::from_string(member));
+            }
+
+            Channel::SharedPtr channel = std::make_shared<Channel>(
+                response.channel().uuid(), response.channel().channel_name(), members);
+
+            session.add_channel(channel);
+            session.set_active_channel(channel);
+
+            emit createChannelSuccess(channel);
+        }
+        grpc::Status status = reader->Finish();
+    });
+
+#else
     LoginMessage message(username, password);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
     socket->flush();
+#endif
 }
 
 void TcpClient::search_accounts(const std::string& regex) {
+#ifdef PROTOCOL_RPC
+    socketout::ListAccountsRequest message;
+    message.set_regex(regex);
+
+    socketout::ListAccountResponse response;
+    grpc::ClientContext context;
+    grpc::Status status = stub->list_accounts(&context, message, &response);
+
+    if (status.ok()) {
+        std::vector<User::SharedPtr> accounts;
+        for (const auto& account : response.users()) {
+            accounts.push_back(std::make_shared<User>(account.username(), account.display_name(),
+                                                      account.uuid(), account.profile_picture()));
+        }
+        emit searchSuccess(accounts);
+    } else {
+        emit searchFailure(QString::fromStdString(status.error_message()));
+    }
+#else
     ListAccountsMessage message(regex);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
     socket->flush();
+#endif
 }
 
 void TcpClient::delete_account(const std::string& username, const std::string& password) {
+#ifdef PROTOCOL_RPC
+    socketout::DeleteAccountRequest message;
+    message.set_username(username);
+    message.set_password(password);
+
+    socketout::DeleteAccountResponse response;
+    grpc::ClientContext context;
+
+    grpc::Status status = stub->delete_account(&context, message, &response);
+    if (status.ok()) {
+        Session& session = Session::get_instance();
+        session.reset();
+        session.main_window->animatePageTransition(Window::AUTHENTICATION);
+        emit deleteAccountSuccess();
+    } else {
+        emit deleteAccountFailure(QString::fromStdString(status.error_message()));
+    }
+#else
     DeleteAccountMessage message(username, password);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
     socket->flush();
+#endif
 }
 
 void TcpClient::create_channel(const std::string& channelName, const std::vector<UUID>& members) {
+#ifdef PROTOCOL_RPC
+    socketout::CreateChannelRequest message;
+    message.set_channel_name(channelName);
+    for (int i = 0; i < members.size(); i++) {
+        message.set_members(i, members[i].to_string());
+    }
+
+    google::protobuf::Empty response;
+    grpc::ClientContext context;
+    grpc::Status status = stub->create_channel(&context, message, &response);
+
+    if (!status.ok()) {
+        emit createChannelFailure(QString::fromStdString(status.error_message()));
+    }
+#else
     CreateChannelMessage message(channelName, members);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
     socket->flush();
+#endif
 }
 
 void TcpClient::send_text_message(const UUID& channel_uid,
                                   const UUID& sender_uid,
                                   const std::string& text) {
+#ifdef PROTOCOL_RPC
+    socketout::SendMessageRequest message;
+    message.set_channel_id(channel_uid.to_string());
+    message.set_sender_id(sender_uid.to_string());
+    message.set_data(text);
+
+    google::protobuf::Empty response;
+    grpc::ClientContext context;
+    grpc::Status status = stub->send_message(&context, message, &response);
+
+    if (!status.ok()) {
+        emit sendMessageFailure(QString::fromStdString(status.error_message()));
+    }
+#else
     SendMessageMessage message(channel_uid, sender_uid, text);
     std::vector<uint8_t> data;
     message.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
     socket->flush();
+#endif
 }
 
 void TcpClient::delete_message(Message::SharedPtr message) {
+#ifdef PROTOCOL_RPC
+    socketout::DeleteMessageRequest msg;
+    msg.set_channel_id(message->get_channel_id().to_string());
+    msg.set_message_id(message->get_snowflake());
+
+    google::protobuf::Empty response;
+    grpc::ClientContext context;
+    grpc::Status status = stub->delete_message(&context, msg, &response);
+
+    if (status.ok()) {
+        emit deleteMessageSuccess(message);
+    } else {
+        emit deleteMessageFailure(QString::fromStdString(status.error_message()));
+    }
+#else
     Session& session = Session::get_instance();
     DeleteMessageMessage msg(message->get_channel_id(), message->get_snowflake());
     std::vector<uint8_t> data;
     msg.serialize_msg(data);
     socket->write(reinterpret_cast<const char*>(data.data()), data.size());
     socket->flush();
+#endif
 }
 
+void TcpClient::disconnectFromServer() {
+#ifdef PROTOCOL_RPC
+    stub = nullptr;
+#else
+    socket->disconnectFromHost();
+#endif
+}
+
+#ifndef PROTOCOL_RPC
 void TcpClient::onReadyRead() {
     while (true) {
         Header header;
@@ -197,10 +418,6 @@ void TcpClient::onReadyRead() {
     }
 }
 
-void TcpClient::disconnectFromServer() {
-    socket->disconnectFromHost();
-}
-
 QAbstractSocket::SocketState TcpClient::getConnectionStatus() const {
     return socket->state();
 }
@@ -219,3 +436,4 @@ void TcpClient::onDisconnected() {
 void TcpClient::onErrorOccurred(QAbstractSocket::SocketError socketError) {
     qDebug() << "Socket error:" << socket->errorString();
 }
+#endif

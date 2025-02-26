@@ -24,7 +24,7 @@ class Session : public QObject {
     Q_OBJECT
 
    public:
-   /**
+    /**
      * @brief Stores the connection address (IP and port) if available.
      */
     std::optional<std::pair<std::string, uint16_t>> connection_address;
@@ -121,7 +121,7 @@ class Session : public QObject {
     Session& operator=(Session&&) = delete;
 
    signals:
-   /**
+    /**
      * @brief Signal emitted when the active channel is updated.
      */
     void updateActiveChannel();
