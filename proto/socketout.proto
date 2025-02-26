@@ -4,7 +4,7 @@ package socketout;
 service SocketOut {
     rpc register_user(RegisterRequest) returns (google.protobuf.Empty) {}
 
-    rpc login_user(LoginRequest) returns (google.protobuf.Empty) {} 
+    rpc login_user(LoginRequest) returns (LoginResponse) {} 
 
     rpc subscribe_messages(LoginRequest) returns (stream MessageResponse) {}
 

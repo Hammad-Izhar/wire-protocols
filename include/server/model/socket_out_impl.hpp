@@ -33,7 +33,7 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
 
     grpc::Status login_user(grpc::ServerContext* context,
                             const socketout::LoginRequest* request,
-                            socketout::LoginResponse* response) {
+                            socketout::LoginResponse* response) override {
         Database& db = Database::get_instance();
         std::optional<UUID> user_uid = db.get_uid_from_username(request->username());
         if (!user_uid.has_value()) {
