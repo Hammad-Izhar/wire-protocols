@@ -187,6 +187,7 @@ class TcpClient : public QObject {
     std::unique_ptr<socketout::SocketOut::Stub> stub;
 #else
     QTcpSocket* socket;  ///< The TCP socket used for network communication.
+#endif
 
    private slots:
     /**
@@ -199,6 +200,7 @@ class TcpClient : public QObject {
      */
     void onDisconnected();
 
+#ifndef PROTOCOL_RPC
     /**
      * @brief Slot triggered when a socket error occurs.
      * @param socketError The error code representing the socket error.

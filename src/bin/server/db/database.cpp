@@ -228,8 +228,8 @@ std::variant<User::SharedPtr, std::string> Database::remove_user(UUID user_uid) 
                     Session& session = Session::get_instance();
                     std::optional<grpc::ServerWriter<socketout::MessageResponse>*> writer =
                         session.get_message_stream(user.value()->get_username());
-                    MessageResponse response;
-                    response.set_type(Operation::DELETE);
+                    socketout::MessageResponse response;
+                    response.set_type(socketout::Operation::DELETE);
                     response.mutable_msg()->CopyFrom(msg);
                     writer.value()->Write(response);
 #else
@@ -262,12 +262,12 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
 
 #ifdef PROTOCOL_RPC
     socketout::Message msg;
-    msg.set_sender_id(message_opt.value()->get_sender_id().to_string());
-    msg.set_channel_id(message_opt.value()->get_channel_id().to_string());
-    msg.set_snowflake(message_opt.value()->get_snowflake());
-    msg.set_created_at(message_opt.value()->get_created_at());
-    msg.set_modified_at(message_opt.value()->get_modified_at());
-    msg.set_text(message_opt.value()->get_text());
+    msg.set_sender_id(message.value()->get_sender_id().to_string());
+    msg.set_channel_id(message.value()->get_channel_id().to_string());
+    msg.set_snowflake(message.value()->get_snowflake());
+    msg.set_created_at(message.value()->get_created_at());
+    msg.set_modified_at(message.value()->get_modified_at());
+    msg.set_text(message.value()->get_text());
 #endif
     for (auto user_uid : channel.value()->get_user_uids()) {
         std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
@@ -279,8 +279,8 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
         Session& session = Session::get_instance();
         std::optional<grpc::ServerWriter<socketout::MessageResponse>*> writer =
             session.get_message_stream(user.value()->get_username());
-        MessageResponse response;
-        response.set_type(Operation::DELETE);
+        socketout::MessageResponse response;
+        response.set_type(socketout::Operation::DELETE);
         response.mutable_msg()->CopyFrom(msg);
         writer.value()->Write(response);
 #else

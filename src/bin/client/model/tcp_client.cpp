@@ -44,6 +44,7 @@ void TcpClient::connectToServer(const QString& host, quint16 port) {
     auto channel = grpc::CreateChannel(host.toStdString() + ":" + std::to_string(port),
                                        grpc::InsecureChannelCredentials());
     stub = socketout::SocketOut::NewStub(channel);
+    onConnected();
 #else
     if (socket->state() == QAbstractSocket::ConnectedState) {
         qDebug() << "Already connected to the server.";
@@ -58,6 +59,17 @@ void TcpClient::connectToServer(const QString& host, quint16 port) {
     qDebug() << "Connecting to server at" << host << ":" << port;
     socket->connectToHost(host, port);
 #endif
+}
+
+void TcpClient::onConnected() {
+    Session& session = Session::get_instance();
+    qDebug() << "Connected to server";
+    session.main_window->animatePageTransition(Window::AUTHENTICATION);
+}
+void TcpClient::onDisconnected() {
+    Session& session = Session::get_instance();
+    qDebug() << "Disconnected from server";
+    session.main_window->animatePageTransition(Window::CONNECTION);
 }
 
 void TcpClient::register_user(const std::string& username,
@@ -166,8 +178,9 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
                 members.push_back(UUID::from_string(member));
             }
 
-            Channel::SharedPtr channel = std::make_shared<Channel>(
-                response.channel().uuid(), response.channel().channel_name(), members);
+            Channel::SharedPtr channel =
+                std::make_shared<Channel>(UUID::from_string(response.channel().uuid()),
+                                          response.channel().channel_name(), members);
 
             session.add_channel(channel);
             session.set_active_channel(channel);
@@ -199,7 +212,8 @@ void TcpClient::search_accounts(const std::string& regex) {
         std::vector<User::SharedPtr> accounts;
         for (const auto& account : response.users()) {
             accounts.push_back(std::make_shared<User>(account.username(), account.display_name(),
-                                                      account.uuid(), account.profile_picture()));
+                                                      UUID::from_string(account.uuid()),
+                                                      account.profile_picture()));
         }
         emit searchSuccess(accounts);
     } else {
@@ -318,6 +332,7 @@ void TcpClient::delete_message(Message::SharedPtr message) {
 void TcpClient::disconnectFromServer() {
 #ifdef PROTOCOL_RPC
     stub = nullptr;
+    onDisconnected();
 #else
     socket->disconnectFromHost();
 #endif
@@ -418,17 +433,6 @@ void TcpClient::onReadyRead() {
 
 QAbstractSocket::SocketState TcpClient::getConnectionStatus() const {
     return socket->state();
-}
-
-void TcpClient::onConnected() {
-    Session& session = Session::get_instance();
-    qDebug() << "Connected to server";
-    session.main_window->animatePageTransition(Window::AUTHENTICATION);
-}
-void TcpClient::onDisconnected() {
-    Session& session = Session::get_instance();
-    qDebug() << "Disconnected from server";
-    session.main_window->animatePageTransition(Window::CONNECTION);
 }
 
 void TcpClient::onErrorOccurred(QAbstractSocket::SocketError socketError) {

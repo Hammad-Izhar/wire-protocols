@@ -11,6 +11,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
 find_package(Protobuf REQUIRED)
 find_package(gRPC REQUIRED)
 find_package(GTest REQUIRED)
+find_package(utf8_range)
 find_package(OpenSSL REQUIRED)
 
 # Include project directories
@@ -87,6 +88,34 @@ target_compile_definitions(client_json PRIVATE PROTOCOL_JSON)
 # Link libraries (same as client)
 target_link_libraries(client_json PRIVATE Qt6::Widgets Qt6::Network)
 
+# Define Client_RPC executable
+qt_add_executable(client_rpc
+    src/bin/client/main.cpp
+    ${CLIENT_SOURCE_FILES}
+    ${SOURCE_FILES}
+    ${CLIENT_QT_HEADERS}
+)
+
+qt_add_resources(client_rpc_resources "resources.qrc")
+
+target_sources(client_rpc PRIVATE ${client_json_resources})
+
+set_target_properties(client_rpc PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+    AUTOMOC ON  # Ensures Q_OBJECT macro is processed
+    AUTOUIC ON  # Enable Qt UI file processing (if needed)
+    AUTORCC ON  # Enable Qt resource processing (if needed)
+)
+
+# Define `PROTOCOL_JSON` for `client_json`
+target_compile_definitions(client_rpc PRIVATE PROTOCOL_RPC)
+
+# Link libraries (same as client)
+add_dependencies(client_rpc socketout_proto)
+target_link_libraries(client_rpc PRIVATE Qt6::Widgets Qt6::Network)
+target_link_libraries(client_rpc PRIVATE socketout_proto gRPC::grpc++ gRPC::grpc gRPC::grpc_unsecure protobuf::libprotobuf utf8_range::utf8_range utf8_range::utf8_validity)
+
 # Define Server executable
 qt_add_executable(server
     src/bin/server/main.cpp
@@ -143,13 +172,13 @@ set_target_properties(server_rpc PROPERTIES
 )
 
 # Define `PROTOCOL_JSON` for `server_json`
-target_compile_definitions(server_rpc PRIVATE PROTOCOL_JSON)
+target_compile_definitions(server_rpc PRIVATE PROTOCOL_RPC)
 
 # Link libraries (same as server)
 add_dependencies(server_rpc socketout_proto)
 target_link_libraries(server_rpc PRIVATE Qt6::Widgets Qt6::Network)
 target_link_libraries(server_rpc PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-target_link_libraries(server_rpc PRIVATE socketout_proto gRPC::grpc++ gRPC::grpc gRPC::grpc_unsecure protobuf::libprotobuf)
+target_link_libraries(server_rpc PRIVATE socketout_proto gRPC::grpc++ gRPC::grpc gRPC::grpc_unsecure protobuf::libprotobuf utf8_range::utf8_range utf8_range::utf8_validity)
 
 # Define Test executable
 qt_add_executable(test

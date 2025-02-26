@@ -7,6 +7,7 @@
 #include <iostream>
 
 #ifdef PROTOCOL_RPC
+#include <grpcpp/grpcpp.h>
 #include "server/model/socket_out_impl.hpp"
 #endif
 
@@ -61,13 +62,14 @@ int main(int argc, char* argv[]) {
     int port = jsonObj["port"].toInt();
 
 #ifdef PROTOCOL_RPC
+    std::cout << "Starting gRPC server on port " << port << std::endl;
     std::string server_address = "0.0.0.0:" + std::to_string(port);
     SocketOutImpl service;
 
-    ServerBuilder builder;
+    grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
-    std::unique_ptr<Server> server(builder.BuildAndStart());
+    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
     std::cout << "Server started on port " << port << std::endl;
     server->Wait();
 #else
