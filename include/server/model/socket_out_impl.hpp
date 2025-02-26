@@ -1,3 +1,4 @@
+#define PROTOCOL_RPC
 #ifdef PROTOCOL_RPC
 #include <grpcpp/server_context.h>
 #include <grpcpp/support/status.h>
@@ -30,6 +31,34 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
         return grpc::Status::OK;
     };
 
+    grpc::Status login_user(grpc::ServerContext* context,
+                            const socketout::LoginRequest* request,
+                            socketout::LoginResponse* response) {
+        Database& db = Database::get_instance();
+        std::optional<UUID> user_uid = db.get_uid_from_username(request->username());
+        if (!user_uid.has_value()) {
+            return grpc::Status(grpc::StatusCode::NOT_FOUND, "Username does not exist");
+        }
+        std::variant<bool, std::string> result =
+            db.verify_password(user_uid.value(), request->password());
+        if (std::holds_alternative<std::string>(result)) {
+            return grpc::Status(grpc::StatusCode::INTERNAL, std::get<std::string>(result));
+        }
+        if (!std::get<bool>(result)) {
+            return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT,
+                                "Username and password do not match");
+        }
+
+        User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
+        socketout::User user_response;
+        user_response.set_uuid(user->get_uid().to_string());
+        user_response.set_username(user->get_username());
+        user_response.set_display_name(user->get_display_name());
+        user_response.set_profile_picture(user->get_profile_pic());
+        response->mutable_user()->CopyFrom(user_response);
+
+        return grpc::Status::OK;
+    }
     grpc::Status subscribe_messages(
         grpc::ServerContext* context,
         const socketout::LoginRequest* request,

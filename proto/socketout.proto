@@ -4,6 +4,8 @@ package socketout;
 service SocketOut {
     rpc register_user(RegisterRequest) returns (google.protobuf.Empty) {}
 
+    rpc login_user(LoginRequest) returns (google.protobuf.Empty) {} 
+
     rpc subscribe_messages(LoginRequest) returns (stream MessageResponse) {}
 
     rpc subscribe_channels(LoginRequest) returns (stream ChannelResponse) {}
@@ -28,6 +30,10 @@ message RegisterRequest {
 message LoginRequest {
     required string username = 1;
     required string password = 2;
+}
+
+message LoginResponse {
+    required User user = 1;
 }
 
 message MessageResponse {
