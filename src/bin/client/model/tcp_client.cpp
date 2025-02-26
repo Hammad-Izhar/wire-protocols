@@ -1,10 +1,10 @@
-#include <google/protobuf/empty.pb.h>
 #include <QThread>
 
 #include "client/model/tcp_client.hpp"
 
 #include "client/model/session.hpp"
 #ifdef PROTOCOL_RPC
+#include <google/protobuf/empty.pb.h>
 #include <grpcpp/grpcpp.h>
 #include "socketout.pb.h"
 #else
