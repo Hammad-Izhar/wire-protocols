@@ -262,7 +262,7 @@ void TcpClient::create_channel(const std::string& channelName, const std::vector
     socketout::CreateChannelRequest message;
     message.set_channel_name(channelName);
     for (int i = 0; i < members.size(); i++) {
-        message.set_members(i, members[i].to_string());
+        message.add_members(members[i].to_string());
     }
 
     google::protobuf::Empty response;

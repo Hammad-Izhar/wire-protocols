@@ -138,7 +138,7 @@ std::variant<Channel::SharedPtr, std::string> Database::add_channel(std::string 
     chnl.set_channel_name(channel->get_name());
     chnl.set_uuid(channel->get_uid().to_string());
     for (int i = 0; i < channel->get_user_uids().size(); i++) {
-        chnl.set_user_ids(i, channel->get_user_uids()[i].to_string());
+        chnl.add_user_ids(channel->get_user_uids()[i].to_string());
     }
     for (int i = 0; i < channel->get_message_snowflakes().size(); i++) {
         chnl.set_message_snowflakes(i, channel->get_message_snowflakes()[i]);
