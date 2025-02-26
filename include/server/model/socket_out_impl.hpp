@@ -1,4 +1,3 @@
-#define PROTOCOL_RPC
 #ifdef PROTOCOL_RPC
 #include <grpcpp/server_context.h>
 #include <grpcpp/support/status.h>

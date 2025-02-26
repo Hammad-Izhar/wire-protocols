@@ -1,6 +1,4 @@
 #include <google/protobuf/empty.pb.h>
-#include "models/user.hpp"
-#define PROTOCOL_RPC
 #include <QThread>
 
 #include "client/model/tcp_client.hpp"

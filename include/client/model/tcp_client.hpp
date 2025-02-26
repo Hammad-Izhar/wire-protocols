@@ -1,6 +1,4 @@
 #pragma once
-#include "socketout.grpc.pb.h"
-#define PROTOCOL_RPC
 #include <QHostAddress>
 #include <QTcpSocket>
 
