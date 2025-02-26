@@ -3,6 +3,10 @@
 #include <qtmetamacros.h>
 #include "models/message.hpp"
 #include "server/db/database.hpp"
+#include "server/model/session.hpp"
+#ifdef PROTOCOL_RPC
+#include "socketout.pb.h"
+#endif
 
 Database::Database() {
     this->users = std::make_unique<UserTable>();
@@ -41,7 +45,8 @@ std::optional<Channel::SharedPtr> Database::get_mut_channel_by_uid(UUID channel_
     return this->channels->get_mut_by_uid(channel_uid);
 }
 
-std::variant<std::vector<UUID>, std::string> Database::get_uuids_matching_regex(std::string regex) const {
+std::variant<std::vector<UUID>, std::string> Database::get_uuids_matching_regex(
+    std::string regex) const {
     return this->users->get_uuids_matching_regex(regex);
 }
 
@@ -81,12 +86,40 @@ std::variant<Message::SharedPtr, std::string> Database::add_message(UUID sender_
     Message::SharedPtr message = std::get<Message::SharedPtr>(res);
 
     channel.value()->add_message(message->get_snowflake());
+
+#ifdef PROTOCOL_RPC
+    socketout::Message msg;
+    msg.set_sender_id(message->get_sender_id().to_string());
+    msg.set_channel_id(message->get_channel_id().to_string());
+    msg.set_snowflake(message->get_snowflake());
+    msg.set_created_at(message->get_created_at());
+    msg.set_modified_at(message->get_modified_at());
+    msg.set_text(message->get_text());
+#endif
+
     for (auto user_uid : channel.value()->get_user_uids()) {
         std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
         if (!user.has_value()) {
             continue;
         }
+#ifdef PROTOCOL_RPC
+        Session& session = Session::get_instance();
+        std::optional<grpc::ServerWriter<socketout::MessageResponse>*> writer =
+            session.get_message_stream(user.value()->get_username());
+
+        for (auto& user_uid : message->get_read_by()) {
+            msg.add_read_by(user_uid.to_string());
+        }
+
+        if (writer.has_value()) {
+            socketout::MessageResponse response;
+            response.set_type(socketout::Operation::CREATE);
+            response.mutable_msg()->CopyFrom(msg);
+            writer.value()->Write(response);
+        }
+#else
         emit user.value()->message_received(message);
+#endif
     }
 
     return message;
@@ -100,13 +133,37 @@ std::variant<Channel::SharedPtr, std::string> Database::add_channel(std::string 
     }
     Channel::SharedPtr channel = std::get<Channel::SharedPtr>(res);
 
+#if PROTOCOL_RPC
+    socketout::Channel chnl;
+    chnl.set_channel_name(channel->get_name());
+    chnl.set_uuid(channel->get_uid().to_string());
+    for (int i = 0; i < channel->get_user_uids().size(); i++) {
+        chnl.set_user_ids(i, channel->get_user_uids()[i].to_string());
+    }
+    for (int i = 0; i < channel->get_message_snowflakes().size(); i++) {
+        chnl.set_message_snowflakes(i, channel->get_message_snowflakes()[i]);
+    }
+#endif
+
     for (auto& user_uid : channel->get_user_uids()) {
         std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
         if (!user.has_value()) {
             continue;
         }
+#ifdef PROTOCOL_RPC
+        Session& session = Session::get_instance();
+        std::optional<grpc::ServerWriter<socketout::ChannelResponse>*> writer =
+            session.get_channel_stream(user.value()->get_username());
+        if (writer.has_value()) {
+            socketout::ChannelResponse response;
+            response.set_type(socketout::Operation::CREATE);
+            response.mutable_channel()->CopyFrom(chnl);
+            writer.value()->Write(response);
+        }
+#else
         user.value()->add_channel(channel->get_uid());
         emit user.value()->channel_added(channel);
+#endif
     }
 
     return channel;
@@ -153,12 +210,31 @@ std::variant<User::SharedPtr, std::string> Database::remove_user(UUID user_uid) 
 
             if (message_opt.value()->get_sender_id() == user_uid) {
                 channel->remove_message(message_snowflake);
+#ifdef PROTOCOL_RPC
+                socketout::Message msg;
+                msg.set_sender_id(message_opt.value()->get_sender_id().to_string());
+                msg.set_channel_id(message_opt.value()->get_channel_id().to_string());
+                msg.set_snowflake(message_opt.value()->get_snowflake());
+                msg.set_created_at(message_opt.value()->get_created_at());
+                msg.set_modified_at(message_opt.value()->get_modified_at());
+                msg.set_text(message_opt.value()->get_text());
+#endif
                 for (auto& user_uid : channel->get_user_uids()) {
                     std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
                     if (!user.has_value()) {
                         continue;
                     }
+#ifdef PROTOCOL_RPC
+                    Session& session = Session::get_instance();
+                    std::optional<grpc::ServerWriter<socketout::MessageResponse>*> writer =
+                        session.get_message_stream(user.value()->get_username());
+                    MessageResponse response;
+                    response.set_type(Operation::DELETE);
+                    response.mutable_msg()->CopyFrom(msg);
+                    writer.value()->Write(response);
+#else
                     emit user.value()->message_deleted(message_opt.value());
+#endif
                 }
             }
         }
@@ -184,12 +260,32 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
         return std::get<std::string>(res);
     }
 
+#ifdef PROTOCOL_RPC
+    socketout::Message msg;
+    msg.set_sender_id(message_opt.value()->get_sender_id().to_string());
+    msg.set_channel_id(message_opt.value()->get_channel_id().to_string());
+    msg.set_snowflake(message_opt.value()->get_snowflake());
+    msg.set_created_at(message_opt.value()->get_created_at());
+    msg.set_modified_at(message_opt.value()->get_modified_at());
+    msg.set_text(message_opt.value()->get_text());
+#endif
     for (auto user_uid : channel.value()->get_user_uids()) {
         std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
         if (!user.has_value()) {
             continue;
         }
+
+#ifdef PROTOCOL_RPC
+        Session& session = Session::get_instance();
+        std::optional<grpc::ServerWriter<socketout::MessageResponse>*> writer =
+            session.get_message_stream(user.value()->get_username());
+        MessageResponse response;
+        response.set_type(Operation::DELETE);
+        response.mutable_msg()->CopyFrom(msg);
+        writer.value()->Write(response);
+#else
         emit user.value()->message_deleted(message.value());
+#endif
     }
 
     channel.value()->remove_message(message_snowflake);

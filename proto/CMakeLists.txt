@@ -1,5 +1,6 @@
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/proto")
 set(PROTO_FILES ${PROTO_DIR}/socketout.proto)
+set(PROTOBUF_IMPORT_DIRS "/home/cs2620/grpc/third_party/protobuf/src/")
 
 message(STATUS "Generating protobuf files into ${GEN_DIR}/proto:")
 foreach(PROTO_FILE ${PROTO_FILES})
@@ -15,6 +16,7 @@ protobuf_generate(
     TARGET socketout_proto
     LANGUAGE cpp
     PROTOS ${PROTO_FILES}
+    IMPORT_DIRS ${PROTOBUF_IMPORT_DIRS}
 )
 
 protobuf_generate(
@@ -23,4 +25,5 @@ protobuf_generate(
     PROTOS ${PROTO_FILES}
     GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc 
     PLUGIN "protoc-gen-grpc=${grpc_cpp_plugin_location}"
+    IMPORT_DIRS ${PROTOBUF_IMPORT_DIRS}
 )

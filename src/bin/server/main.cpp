@@ -6,6 +6,10 @@
 #include <QJsonObject>
 #include <iostream>
 
+#ifdef PROTOCOL_RPC
+#include "server/model/socket_out_impl.hpp"
+#endif
+
 #include "models/message_handler.hpp"
 #include "server/model/tcp_server.hpp"
 
