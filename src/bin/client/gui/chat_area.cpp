@@ -115,6 +115,9 @@ void ChatArea::addMessageToLayout(Message::SharedPtr message) {
 }
 
 void ChatArea::onSendMessageSuccess(Message::SharedPtr message) {
+    qDebug() << "Message sent successfully";
+    qDebug() << "Message: " << message->to_json().c_str();
+
     Session& session = Session::get_instance();
     if (session.get_active_channel().has_value() &&
         session.get_active_channel().value()->get_uid() == message->get_channel_id()) {

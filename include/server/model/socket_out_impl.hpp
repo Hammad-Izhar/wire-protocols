@@ -2,8 +2,10 @@
 #include <grpcpp/server_context.h>
 #include <grpcpp/support/status.h>
 #include <grpcpp/support/sync_stream.h>
+#include <iostream>
 #include <variant>
 
+#include "models/message.hpp"
 #include "models/uuid.hpp"
 #include "server/db/database.hpp"
 #include "server/model/session.hpp"
@@ -81,6 +83,36 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
 
         session.save_message_stream(request->username(), response);
 
+        User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
+        for (const auto& channel_uid : user->get_channels()) {
+            std::optional<Channel::SharedPtr> channel = db.get_channel_by_uid(channel_uid);
+            if (!channel.has_value()) {
+                continue;
+            }
+            for (const auto& message_snowflake : channel.value()->get_message_snowflakes()) {
+                std::optional<const Message::SharedPtr> message_opt =
+                    db.get_message_by_uid(message_snowflake);
+                if (!message_opt.has_value()) {
+                    continue;
+                }
+                Message::SharedPtr message = message_opt.value();
+                socketout::MessageResponse message_response;
+                message_response.set_type(socketout::Operation::CREATE);
+                socketout::Message* msg = message_response.mutable_msg();
+                msg->set_sender_id(message->get_sender_id().to_string());
+                msg->set_channel_id(message->get_channel_id().to_string());
+                msg->set_snowflake(message->get_snowflake());
+                msg->set_created_at(message->get_created_at());
+                msg->set_modified_at(message->get_modified_at());
+                msg->set_text(message->get_text());
+                for (const auto& reader : message->get_read_by()) {
+                    msg->add_read_by(reader.to_string());
+                }
+                std::cout << "Sending Message:" << message_response.DebugString() << std::endl;
+                response->Write(message_response);
+            }
+        }
+
         while (!context->IsCancelled()) {
             // wait for the user to disconnect
         }
@@ -112,6 +144,25 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
         }
 
         session.save_channel_stream(request->username(), response);
+
+        User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
+        for (const auto& channel_uid : user->get_channels()) {
+            std::optional<Channel::SharedPtr> channel_opt = db.get_channel_by_uid(channel_uid);
+            if (!channel_opt.has_value()) {
+                continue;
+            }
+            Channel::SharedPtr channel = channel_opt.value();
+            socketout::ChannelResponse channel_response;
+            socketout::Channel* channel_msg = channel_response.mutable_channel();
+            channel_response.set_type(socketout::Operation::CREATE);
+            channel_msg->set_uuid(channel->get_uid().to_string());
+            channel_msg->set_channel_name(channel->get_name());
+            for (const auto& member : channel->get_user_uids()) {
+                channel_msg->add_user_ids(member.to_string());
+            }
+            std::cout << "Sending Channel:" << channel_response.DebugString() << std::endl;
+            response->Write(channel_response);
+        }
 
         while (!context->IsCancelled()) {
             // wait for the user to disconnect

@@ -115,6 +115,7 @@ std::variant<Message::SharedPtr, std::string> Database::add_message(UUID sender_
             socketout::MessageResponse response;
             response.set_type(socketout::Operation::CREATE);
             response.mutable_msg()->CopyFrom(msg);
+            qDebug() << "Sending Message:" << response.DebugString().c_str();
             writer.value()->Write(response);
         }
 #else

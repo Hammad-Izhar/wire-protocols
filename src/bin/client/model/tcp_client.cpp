@@ -125,44 +125,6 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
         return;
     }
 
-    std::thread t_message([this, request]() {
-        // prep a stream of messageresponse
-        grpc::ClientContext context;
-        auto reader = stub->subscribe_messages(&context, request);
-
-        socketout::MessageResponse response;
-        while (reader->Read(&response)) {
-            Session& session = Session::get_instance();
-            if (response.type() == socketout::Operation::CREATE) {
-                std::vector<UUID> read_by;
-                for (const auto& reader : response.msg().read_by()) {
-                    read_by.push_back(UUID::from_string(reader));
-                }
-
-                Message::SharedPtr message = std::make_shared<Message>(
-                    UUID::from_string(response.msg().channel_id()),
-                    UUID::from_string(response.msg().sender_id()), response.msg().text(),
-                    response.msg().snowflake(), response.msg().created_at(),
-                    response.msg().modified_at(), read_by);
-
-                session.add_message(message);
-                emit sendMessageSuccess(message);
-            } else if (response.type() == socketout::Operation::DELETE) {
-                Message::SharedPtr message = std::make_shared<Message>(
-                    UUID::from_string(response.msg().channel_id()),
-                    UUID::from_string(response.msg().sender_id()), response.msg().text(),
-                    response.msg().snowflake(), response.msg().created_at(),
-                    response.msg().modified_at(), std::vector<UUID>());
-
-                session.remove_message(message);
-                emit deleteMessageSuccess(message);
-            }
-        }
-        grpc::Status status = reader->Finish();
-    });
-
-    t_message.detach();
-
     std::thread t_channel([this, request]() {
         grpc::ClientContext context;
         auto reader = stub->subscribe_channels(&context, request);
@@ -182,6 +144,8 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
                 std::make_shared<Channel>(UUID::from_string(response.channel().uuid()),
                                           response.channel().channel_name(), members);
 
+            qDebug() << "Received channel: " << QString::fromStdString(channel->get_name());
+
             session.add_channel(channel);
             session.set_active_channel(channel);
 
@@ -190,7 +154,46 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
         grpc::Status status = reader->Finish();
     });
 
+    std::thread t_message([this, request]() {
+        // prep a stream of messageresponse
+        grpc::ClientContext context;
+        auto reader = stub->subscribe_messages(&context, request);
+
+        socketout::MessageResponse response;
+        while (reader->Read(&response)) {
+            Session& session = Session::get_instance();
+            if (response.type() == socketout::Operation::CREATE) {
+                std::vector<UUID> read_by;
+                for (const auto& reader : response.msg().read_by()) {
+                    read_by.push_back(UUID::from_string(reader));
+                }
+
+                Message::SharedPtr message = std::make_shared<Message>(
+                    UUID::from_string(response.msg().sender_id()),
+                    UUID::from_string(response.msg().channel_id()), response.msg().text(),
+                    response.msg().snowflake(), response.msg().created_at(),
+                    response.msg().modified_at(), read_by);
+
+                qDebug() << "Received message: " << QString::fromStdString(message->get_text());
+
+                session.add_message(message);
+                emit sendMessageSuccess(message);
+            } else if (response.type() == socketout::Operation::DELETE) {
+                Message::SharedPtr message = std::make_shared<Message>(
+                    UUID::from_string(response.msg().sender_id()),
+                    UUID::from_string(response.msg().channel_id()), response.msg().text(),
+                    response.msg().snowflake(), response.msg().created_at(),
+                    response.msg().modified_at(), std::vector<UUID>());
+
+                session.remove_message(message);
+                emit deleteMessageSuccess(message);
+            }
+        }
+        grpc::Status status = reader->Finish();
+    });
+
     t_channel.detach();
+    t_message.detach();
 
 #else
     LoginMessage message(username, password);
