@@ -190,6 +190,8 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
         grpc::Status status = reader->Finish();
     });
 
+    t_channel.detach();
+
 #else
     LoginMessage message(username, password);
     std::vector<uint8_t> data;

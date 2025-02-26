@@ -176,9 +176,12 @@ target_compile_definitions(server_rpc PRIVATE PROTOCOL_RPC)
 
 # Link libraries (same as server)
 add_dependencies(server_rpc socketout_proto)
-target_link_libraries(server_rpc PRIVATE Qt6::Widgets Qt6::Network)
-target_link_libraries(server_rpc PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-target_link_libraries(server_rpc PRIVATE socketout_proto gRPC::grpc++ gRPC::grpc gRPC::grpc_unsecure protobuf::libprotobuf utf8_range::utf8_range utf8_range::utf8_validity)
+target_link_libraries(server_rpc PRIVATE 
+Qt6::Widgets Qt6::Network
+socketout_proto gRPC::grpc++ gRPC::grpc gRPC::grpc_unsecure protobuf::libprotobuf utf8_range::utf8_range utf8_range::utf8_validity
+OpenSSL::SSL OpenSSL::Crypto
+)
+
 
 # Define Test executable
 qt_add_executable(test
