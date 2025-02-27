@@ -151,6 +151,8 @@ std::variant<Channel::SharedPtr, std::string> Database::add_channel(std::string 
         if (!user.has_value()) {
             continue;
         }
+        user.value()->add_channel(channel->get_uid());
+
 #ifdef PROTOCOL_RPC
         Session& session = Session::get_instance();
         std::optional<grpc::ServerWriter<socketout::ChannelResponse>*> writer =
@@ -159,10 +161,11 @@ std::variant<Channel::SharedPtr, std::string> Database::add_channel(std::string 
             socketout::ChannelResponse response;
             response.set_type(socketout::Operation::CREATE);
             response.mutable_channel()->CopyFrom(chnl);
+
+            qDebug() << "Sending Channel that was added to user:" << response.DebugString().c_str();
             writer.value()->Write(response);
         }
 #else
-        user.value()->add_channel(channel->get_uid());
         emit user.value()->channel_added(channel);
 #endif
     }

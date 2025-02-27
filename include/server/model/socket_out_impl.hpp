@@ -146,6 +146,7 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
         session.save_channel_stream(request->username(), response);
 
         User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
+        std::cout << user->to_json() << std::endl;
         for (const auto& channel_uid : user->get_channels()) {
             std::optional<Channel::SharedPtr> channel_opt = db.get_channel_by_uid(channel_uid);
             if (!channel_opt.has_value()) {

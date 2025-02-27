@@ -125,12 +125,18 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
         return;
     }
 
-    std::thread t_channel([this, request]() {
-        grpc::ClientContext context;
-        auto reader = stub->subscribe_channels(&context, request);
+    auto channel_context = std::make_unique<grpc::ClientContext>();
+    auto channel_reader = stub->subscribe_channels(channel_context.get(), request);
+
+    auto message_context = std::make_unique<grpc::ClientContext>();
+    auto message_reader = stub->subscribe_messages(message_context.get(), request);
+
+    std::thread t_channel([this, channel_context = std::move(channel_context),
+                           channel_reader = std::move(channel_reader)]() mutable {
+        qDebug() << "Subscribing to channels";
 
         socketout::ChannelResponse response;
-        while (reader->Read(&response)) {
+        while (channel_reader->Read(&response)) {
             Session& session = Session::get_instance();
 
             session.authenticated_user.value()->add_channel(
@@ -144,23 +150,22 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
                 std::make_shared<Channel>(UUID::from_string(response.channel().uuid()),
                                           response.channel().channel_name(), members);
 
-            qDebug() << "Received channel: " << QString::fromStdString(channel->get_name());
+            qDebug() << "Received channel on login: " << channel->to_json().c_str();
 
             session.add_channel(channel);
             session.set_active_channel(channel);
 
             emit createChannelSuccess(channel);
         }
-        grpc::Status status = reader->Finish();
+        grpc::Status status = channel_reader->Finish();
     });
 
-    std::thread t_message([this, request]() {
-        // prep a stream of messageresponse
-        grpc::ClientContext context;
-        auto reader = stub->subscribe_messages(&context, request);
+    std::thread t_message([this, message_context = std::move(message_context),
+                           message_reader = std::move(message_reader)]() mutable {
+        qDebug() << "Subscribing to messages";
 
         socketout::MessageResponse response;
-        while (reader->Read(&response)) {
+        while (message_reader->Read(&response)) {
             Session& session = Session::get_instance();
             if (response.type() == socketout::Operation::CREATE) {
                 std::vector<UUID> read_by;
@@ -174,7 +179,8 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
                     response.msg().snowflake(), response.msg().created_at(),
                     response.msg().modified_at(), read_by);
 
-                qDebug() << "Received message: " << QString::fromStdString(message->get_text());
+                qDebug() << "Received message on login: "
+                         << QString::fromStdString(message->to_json());
 
                 session.add_message(message);
                 emit sendMessageSuccess(message);
@@ -189,7 +195,8 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
                 emit deleteMessageSuccess(message);
             }
         }
-        grpc::Status status = reader->Finish();
+
+        grpc::Status status = message_reader->Finish();
     });
 
     t_channel.detach();
