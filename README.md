@@ -1,6 +1,12 @@
 # Sock-et Out
-## COMPSCI 2620 Design Exercise 1: Wire Protocols
+## COMPSCI 2620 Design Problem 2: RPCs
 ### Group 36: Hammad Izhar, Thomas Kaminsky
+
+This branch contains our implementation of gRPC communication for our chatbot from design problem 1. Detailed comments on the implementation, as well as reflections on performance and the writing process asked for on the assignment page, are contained in `Notebook.md`.
+
+Thanks so much!
+
+### Documentation (From DP 1)
 
 Below is a summary of the important components of Sock-et Out, implemented as part of CS 2620: Distributed Computing. If you're interested, here's a video demo of our app:
 
