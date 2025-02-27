@@ -7,12 +7,66 @@
 #include <iostream>
 
 #ifdef PROTOCOL_RPC
+#include <google/protobuf/message.h>
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/impl/codegen/server_interceptor.h>
 #include "server/model/socket_out_impl.hpp"
 #endif
 
 #include "models/message_handler.hpp"
+#ifndef PROTOCOL_RPC
 #include "server/model/tcp_server.hpp"
+#endif
+
+#ifdef PROTOCOL_RPC
+#include <google/protobuf/message.h>
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/impl/codegen/server_interceptor.h>
+#include <iostream>
+
+class MessageSizeInterceptor : public grpc::experimental::Interceptor {
+   public:
+    explicit MessageSizeInterceptor(grpc::experimental::ServerRpcInfo* info) : info_(info) {}
+
+    void Intercept(grpc::experimental::InterceptorBatchMethods* methods) override {
+        // Check for the received message hook point.
+        if (methods->QueryInterceptionHookPoint(
+                grpc::experimental::InterceptionHookPoints::POST_RECV_MESSAGE)) {
+            void* msg = methods->GetRecvMessage();
+            if (msg != nullptr) {
+                auto* request = static_cast<google::protobuf::Message*>(msg);
+                size_t size = request->ByteSizeLong();
+                std::cout << "Received message size: " << size << " bytes." << std::endl;
+            }
+        }
+
+        // Check for the send message hook point.
+        if (methods->QueryInterceptionHookPoint(
+                grpc::experimental::InterceptionHookPoints::PRE_SEND_MESSAGE)) {
+            const void* msg = methods->GetSendMessage();
+            if (msg != nullptr) {
+                auto* response = static_cast<const google::protobuf::Message*>(msg);
+                size_t size = response->ByteSizeLong();
+                std::cout << "Sending message size: " << size << " bytes." << std::endl;
+            }
+        }
+
+        // Continue processing the RPC.
+        methods->Proceed();
+    }
+
+   private:
+    grpc::experimental::ServerRpcInfo* info_;
+};
+
+class MessageSizeInterceptorFactory : public grpc::experimental::ServerInterceptorFactoryInterface {
+   public:
+    grpc::experimental::Interceptor* CreateServerInterceptor(
+        grpc::experimental::ServerRpcInfo* info) override {
+        return new MessageSizeInterceptor(info);
+    }
+};
+#endif
 
 int main(int argc, char* argv[]) {
     QCoreApplication app(argc, argv);
@@ -69,6 +123,14 @@ int main(int argc, char* argv[]) {
     grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
+
+    std::vector<std::unique_ptr<grpc::experimental::ServerInterceptorFactoryInterface>>
+        interceptor_creators;
+    interceptor_creators.push_back(
+        std::unique_ptr<grpc::experimental::ServerInterceptorFactoryInterface>(
+            new MessageSizeInterceptorFactory()));
+    builder.experimental().SetInterceptorCreators(std::move(interceptor_creators));
+
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
     std::cout << "Server started on port " << port << std::endl;
     server->Wait();
