@@ -15,32 +15,47 @@ In the following section, we answer each of the questions listed in the assignme
 
 ## Question : Does the use of gRPC make the application easier or more difficult?
 
-In general, it was a little bit of a slog to convert to gRPC, but this was mostly due to the fact that we had to alter an existing code base.
-
-We think that, if we had reimplemented the problem from scratch using gRPC instead of the custom wire protocol, it would have almost certainly been faster, as it abstracts away some tedious parts of the implementation (e.g. serialization, creating / attaching to sockets) which took us a bit of effort in design project 1. 
+In general, it was a little bit of a slog to convert to gRPC, but this was mostly due to the fact that we had to alter an existing code base. We think that, if we had reimplemented the problem from scratch using gRPC instead of the custom wire protocol, it would have almost certainly been faster, as it abstracts away some tedious parts of the implementation (e.g. serialization, creating / attaching to sockets) which took us a bit of effort in design project 1. 
 
 However, since we were inheriting a code base designed with sockets and serialization/deserialization in mind, switching to gRPC actually required us to reimplement a lot of code. For example, many of the functions that we used to process messages and change the backend database were handled uniformly by a single message handler, and as a result we assumed they would all have a particular input (a message reference and a socket). In addition, we also made assumptions about what the message data would contain (i.e. properties of the class that we could index into). Semantically, we basically didn't need to change anything, but to work with the API of gRPC, we basically had to rewrite all of these components.
 
 This was a markedly different from adding JSON serialization&mdash;that required comparatively little effort (just infrastructure for serializing/deserializing each message using the new scheme). 
 
+For future updates, gRPC really simplifies serialization. In comparison to our custom formats, we had no bugs due to serialization, and writing proto files for new classes (or changing existing proto files) is really simple, since we basically just need to get a list of the types that we need. Rather, all the bugs were small little errors such as feeding the wrong fields into the gRPC message because of a mistake made when copying and pasting. 
+
+The major downside moving forward is that the design is now a little cumbersome, as it is clear that the codebase wasn't made with gRPC in mind. Specifically, gRPC is ill-suited for chat-like applications since it doesn't support long-lasting socket connections as a first class function. Instead, the optimal library to use for our use case is something that automates the creation of serialization and deserialization methods. The best example of this is the Rust `serde` crate, which is much lighter-weight and easier to compile (which was by far the hardest part for us in trying to get gRPC to work).
+
 ## Question : What does it do to the size of the data passed?
 
-TBD.
+It looks like our custom protocol achieves approximately the same or slightly smaller message sizes than the gRPC messages. This makes sense, since we modeled our proto messages identically to our custom protocol, and so we would be sending the data in approximately the same way. 
+
+Here are some sample calls in gRPC (left), and in our custom protocol (right):
+<div align="center">
+    <img src="diagrams/notebook_figs/grpc_sizes.png" alt="gRPC message sizes" style="display: inline-block; width: 45%;">
+    <img src="diagrams/notebook_figs/custom_sizes.png" alt="custom message sizes" style="display: inline-block; width: 45%;">
+</div>
+
+In the gRPC case, message size is gotten through an interceptor, and doesn't include the grpc header of 5 bytes. In our custom implementation, the third number is the packet length.
+
 
 ## Question : How does it change the structure of the client and/or server?
 
-As mentioned above, we had to make pretty significant changes to both the client and the server to incorporate gRPC. 
+As mentioned above, we had to make pretty significant changes to both the client and the server to incorporate gRPC, though these were mostly structural in nature to accomodate gRPC, and mostly not semantic changes to the logic of our system.
 
+Broadly, the ```TCPClient``` had to have basically all of its functions changed, since they had to take gRPC-like arguments instead of our custom formats. Still, each function could basically have the same functionality as before, so these changes were pretty mechanical.
 
+On the client side, the biggest change was that we had to restructure our message request/response structure to accomodate 'broadcast'-style calls.
 
-Another significant problem was figuring out how to asynchronously send messages. Our existing code assumed that we could stream data over sockets&mdash;this made it really simple to do things like retrieve all messages on login. However, the documentation for gRPC doesn't make celar how to best achieve this functionality, which made some of the components of the system hard to re-implement. 
+Since RPC follows a very strict "send-a-request, get-a-response" format, the server can't initiate responses to a client at any time. This is especially problematic since only one client will be sending a given message request (e.g., 'add a message to channel X"), but we want to propagate these changes to all relevant clients. To solve this, we created store streams associated with messages and channels from each client on the server over the duration that the client is connected after authentication. This is all handled in the session objects associated with the client and the server.
+
+On the server side, this means that insead of sending messages directly, the database calls that send messages (adding a message/removing a message/adding a channel) now write their data on the appropriate stream. We use preprocessor macros to flip between the raw tcp socket logic and the grpc logic.
+
+We can also remove the client handler entirely, since gRPC automatically handles creating thread. Instead, we use the `SocketOutImpl` object, which does the same thing using gRPC.
 
 
 ## Question : How does this change the testing of the application?
 
-The largest change is that we can shift the focus of our tests from serialization/deserialization bugs to higher-level errors. In design project 1, many of our bugs early on were due to small errors or typos in serialization (for example, storing a number at an incorrect offset in the buffer). gRPC basically eliminated this issue, which allowed most of the remaining tests to focus on the performance of our handlers.
-
-
+The largest change is that we can shift the focus of our tests from serialization/deserialization bugs to higher-level errors. In design project 1, many of our bugs early on were due to small errors or typos in serialization (for example, storing a number at an incorrect offset in the buffer). gRPC basically eliminated this issue, which allowed most of the remaining tests to focus on the performance of our handlers, and high-order logic (e.g. us mis-writing data types).
 
 
 # Engineering Notebook - Wire Protocols
