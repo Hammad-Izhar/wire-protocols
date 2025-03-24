@@ -209,4 +209,6 @@ class Database {
     std::unique_ptr<ChannelTable> channels;
     /// Pointer to the password table.
     std::unique_ptr<PasswordTable> passwords;
+
+    std::string db_dir_path;
 };

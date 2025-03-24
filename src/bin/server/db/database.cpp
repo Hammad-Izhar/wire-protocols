@@ -8,12 +8,29 @@
 #include "socketout.pb.h"
 #endif
 
+#include <filesystem>
+#include <iostream>
+
 Database::Database() {
-    this->users = std::make_unique<UserTable>();
+    this->db_dir_path = "db";
+
+    if (!std::filesystem::exists(this->db_dir_path)) {
+        bool created = std::filesystem::create_directory(this->db_dir_path);
+        if (created) {
+            std::cout << "Directory created successfully: " << this->db_dir_path << std::endl;
+        } else {
+            std::cout << "Failed to create directory: " << this->db_dir_path << std::endl;
+        }
+    } else {
+        std::cout << "Directory already exists: " << this->db_dir_path << std::endl;
+    }
+
+    this->users = std::make_unique<UserTable>(this->db_dir_path);
     this->messages = std::make_unique<MessageTable>();
     this->channels = std::make_unique<ChannelTable>();
     this->passwords = std::make_unique<PasswordTable>();
 }
+
 
 Database& Database::get_instance() {
     static Database instance;
@@ -177,6 +194,7 @@ std::variant<std::monostate, std::string> Database::add_user_to_channel(UUID use
                                                                         UUID channel_uid) {
     std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
     if (!user.has_value()) {
+        std::cout << "I'm in database!!!" << std::endl;
         return "User does not exist";
     }
 

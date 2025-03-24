@@ -25,6 +25,8 @@ class UserTable {
      */
     UserTable() = default;
 
+    UserTable(std::string db_dir_path);
+
     /**
      * @brief Retrieves a user by their unique identifier (read-only).
      *
@@ -91,4 +93,6 @@ class UserTable {
     std::unordered_map<UUID, User::SharedPtr> data;
     /// Mutex to ensure thread-safe access to the user table.
     std::mutex mutex;
+    
+    std::string file_path;
 };

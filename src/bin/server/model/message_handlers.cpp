@@ -51,12 +51,16 @@ void on_login(QTcpSocket* socket, LoginMessage& msg) {
         return;
     }
 
+    std::cout << "LoginMessage: " << msg.to_json() << std::endl;
+
     LoginResponse response;
     std::optional<UUID> user_uid = db.get_uid_from_username(msg.get_username());
-    qDebug() << "User uid: " << user_uid.value().to_string().c_str();
+
     if (!user_uid.has_value()) {
+        qDebug() << "Username not found: " << msg.get_username().c_str();
         response = LoginResponse("Username does not exist");
     } else {
+        qDebug() << "User uid: " << user_uid.value().to_string().c_str();
         std::variant<bool, std::string> res =
             db.verify_password(user_uid.value(), msg.get_password());
         if (std::holds_alternative<std::string>(res)) {

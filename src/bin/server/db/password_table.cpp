@@ -1,6 +1,7 @@
 #include <openssl/evp.h>
 #include <random>
 #include <sstream>
+#include <iostream>
 
 #include "server/db/password_table.hpp"
 
@@ -8,6 +9,7 @@ std::variant<bool, std::string> PasswordTable::verify_password(UUID& user_uid,
                                                                std::string password) {
     std::lock_guard<std::mutex> lock(this->mutex);
     if (this->data.find(user_uid) == this->data.end()) {
+        std::cout << "I'm in PASSWORD VERIFY!!!" << std::endl;
         return "User does not exist";
     }
     std::pair<std::string, std::string>& user_data = this->data.at(user_uid);
