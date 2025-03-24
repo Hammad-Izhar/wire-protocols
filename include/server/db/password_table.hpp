@@ -24,6 +24,8 @@ class PasswordTable {
      */
     PasswordTable() = default;
 
+    PasswordTable(std::string db_dir_path);
+
     /**
      * @brief Verifies the password for a given user.
      *
@@ -79,4 +81,5 @@ class PasswordTable {
      * @return A randomly generated salt string.
      */
     std::string generate_salt();
+    std::string file_path;
 };

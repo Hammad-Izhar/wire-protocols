@@ -28,7 +28,7 @@ Database::Database() {
     this->users = std::make_unique<UserTable>(this->db_dir_path);
     this->messages = std::make_unique<MessageTable>();
     this->channels = std::make_unique<ChannelTable>();
-    this->passwords = std::make_unique<PasswordTable>();
+    this->passwords = std::make_unique<PasswordTable>(this->db_dir_path);
 }
 
 
@@ -194,7 +194,6 @@ std::variant<std::monostate, std::string> Database::add_user_to_channel(UUID use
                                                                         UUID channel_uid) {
     std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
     if (!user.has_value()) {
-        std::cout << "I'm in database!!!" << std::endl;
         return "User does not exist";
     }
 
