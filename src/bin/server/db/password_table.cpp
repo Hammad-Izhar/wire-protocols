@@ -114,7 +114,7 @@ std::variant<std::monostate, std::string> PasswordTable::add_password(UUID& user
     if (!file.is_open()) {
         return "Failed to open file for appending: " + this->file_path;
     }
-    file << user_uid.to_string() << "," << hashed << "," << salt << "\n";
+    file << user_uid.to_string() << "|" << hashed << "|" << salt << "\n";
     if (!file.good()) {
         return "Failed to write password data to file: " + this->file_path;
     }
@@ -146,7 +146,7 @@ std::variant<std::monostate, std::string> PasswordTable::remove_password(UUID& u
     while (std::getline(infile, line)) {
         std::istringstream iss(line);
         std::string first_token;
-        if (std::getline(iss, first_token, ',')) {
+        if (std::getline(iss, first_token, '|')) {
             if (first_token == user_uid.to_string()) {
                 continue;
             }
