@@ -42,7 +42,8 @@ class Database {
      * @brief Retrieves a read-only user by its unique identifier.
      *
      * @param user_uid The UUID of the user to retrieve.
-     * @return An optional containing a constant shared pointer to the user if found, or std::nullopt otherwise.
+     * @return An optional containing a constant shared pointer to the user if found, or
+     * std::nullopt otherwise.
      */
     [[nodiscard]] const std::optional<const User::SharedPtr> get_user_by_uid(UUID user_uid) const;
 
@@ -51,7 +52,8 @@ class Database {
      * @brief Retrieves a read-only message by its unique snowflake identifier.
      *
      * @param message_snowflake The unique snowflake identifier of the message.
-     * @return An optional containing a constant shared pointer to the message if found, or std::nullopt otherwise.
+     * @return An optional containing a constant shared pointer to the message if found, or
+     * std::nullopt otherwise.
      */
     [[nodiscard]] const std::optional<const Message::SharedPtr> get_message_by_uid(
         uint64_t message_snowflake) const;
@@ -60,7 +62,8 @@ class Database {
      * @brief Retrieves a read-only channel by its unique identifier.
      *
      * @param channel_uid The UUID of the channel to retrieve.
-     * @return An optional containing a constant shared pointer to the channel if found, or std::nullopt otherwise.
+     * @return An optional containing a constant shared pointer to the channel if found, or
+     * std::nullopt otherwise.
      */
     [[nodiscard]] const std::optional<const Channel::SharedPtr> get_channel_by_uid(
         UUID channel_uid) const;
@@ -69,7 +72,8 @@ class Database {
      * @brief Retrieves a mutable user by its unique identifier.
      *
      * @param user_uid The UUID of the user to retrieve.
-     * @return An optional containing a mutable shared pointer to the user if found, or std::nullopt otherwise.
+     * @return An optional containing a mutable shared pointer to the user if found, or std::nullopt
+     * otherwise.
      */
     [[nodiscard]] std::optional<User::SharedPtr> get_mut_user_by_uid(UUID user_uid);
 
@@ -77,7 +81,8 @@ class Database {
      * @brief Retrieves a mutable message by its unique snowflake identifier.
      *
      * @param message_snowflake The unique snowflake identifier of the message.
-     * @return An optional containing a mutable shared pointer to the message if found, or std::nullopt otherwise.
+     * @return An optional containing a mutable shared pointer to the message if found, or
+     * std::nullopt otherwise.
      */
     [[nodiscard]] std::optional<Message::SharedPtr> get_mut_message_by_uid(
         uint64_t message_snowflake);
@@ -86,7 +91,8 @@ class Database {
      * @brief Retrieves a mutable channel by its unique identifier.
      *
      * @param channel_uid The UUID of the channel to retrieve.
-     * @return An optional containing a mutable shared pointer to the channel if found, or std::nullopt otherwise.
+     * @return An optional containing a mutable shared pointer to the channel if found, or
+     * std::nullopt otherwise.
      */
     [[nodiscard]] std::optional<Channel::SharedPtr> get_mut_channel_by_uid(UUID channel_uid);
 
@@ -96,9 +102,11 @@ class Database {
      * Searches through user records to find UUIDs whose associated data match the provided regex.
      *
      * @param regex The regular expression to match.
-     * @return A variant containing a vector of matching UUIDs on success, or an error message string on failure.
+     * @return A variant containing a vector of matching UUIDs on success, or an error message
+     * string on failure.
      */
-    [[nodiscard]] std::variant<std::vector<UUID>, std::string> get_uuids_matching_regex(std::string regex) const;
+    [[nodiscard]] std::variant<std::vector<UUID>, std::string> get_uuids_matching_regex(
+        std::string regex) const;
 
     /**
      * @brief Retrieves a user's UUID by their username.
@@ -135,12 +143,14 @@ class Database {
     /**
      * @brief Adds a new message to the database.
      *
-     * Stores a new message from the specified sender in the specified channel with the given content.
+     * Stores a new message from the specified sender in the specified channel with the given
+     * content.
      *
      * @param sender_uid The UUID of the sender.
      * @param channel_uid The UUID of the channel.
      * @param content The content of the message.
-     * @return A variant containing a shared pointer to the newly created Message on success, or an error message string on failure.
+     * @return A variant containing a shared pointer to the newly created Message on success, or an
+     * error message string on failure.
      */
     std::variant<Message::SharedPtr, std::string> add_message(UUID sender_uid,
                                                               UUID channel_uid,
@@ -153,10 +163,14 @@ class Database {
      *
      * @param channel_name The name of the channel.
      * @param members A vector of UUIDs representing the initial members of the channel.
-     * @return A variant containing a shared pointer to the newly created Channel on success, or an error message string on failure.
+     * @return A variant containing a shared pointer to the newly created Channel on success, or an
+     * error message string on failure.
      */
-    std::variant<Channel::SharedPtr, std::string> add_channel(std::string channel_name,
-                                                              std::vector<UUID> members);
+    std::variant<Channel::SharedPtr, std::string> add_channel(
+        std::string channel_name,
+        std::vector<UUID> members,
+        std::optional<UUID> channel_uid = std::nullopt,
+        std::vector<uint64_t> message_snowflakes = {});
 
     /**
      * @brief Adds a user to an existing channel.
@@ -177,7 +191,8 @@ class Database {
      * Deletes the user with the specified UUID.
      *
      * @param user_uid The UUID of the user to remove.
-     * @return A variant containing a shared pointer to the removed User on success, or an error message string on failure.
+     * @return A variant containing a shared pointer to the removed User on success, or an error
+     * message string on failure.
      */
     std::variant<User::SharedPtr, std::string> remove_user(UUID user_uid);
 

@@ -1,11 +1,12 @@
 #include "server/db/channel_table.hpp"
-#include <fstream>
-#include <sstream>
+#include <cstdint>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
-#include <optional>
-#include <variant>
 #include <mutex>
+#include <optional>
+#include <sstream>
+#include <variant>
 #include <vector>
 
 // Helper function to split a string by a given delimiter.
@@ -65,15 +66,13 @@ ChannelTable::ChannelTable(std::string db_dir_path) {
                                     uint64_t msg_snowflake = std::stoull(trimmed);
                                     message_snowflakes.push_back(msg_snowflake);
                                 } catch (const std::exception& e) {
-                                    std::cerr << "Failed to parse message snowflake: " 
-                                              << trimmed << " - " << e.what() << std::endl;
+                                    std::cerr << "Failed to parse message snowflake: " << trimmed
+                                              << " - " << e.what() << std::endl;
                                 }
                             }
                         }
-                        auto channel = std::make_shared<Channel>(uid, name, user_uids);
-                        for (const auto& ms : message_snowflakes) {
-                            channel->add_message(ms);
-                        }
+                        auto channel =
+                            std::make_shared<Channel>(uid, name, user_uids, message_snowflakes);
                         this->data.insert({uid, channel});
                     }
                 }
@@ -103,15 +102,13 @@ ChannelTable::ChannelTable(std::string db_dir_path) {
                                 uint64_t msg_snowflake = std::stoull(trimmed);
                                 message_snowflakes.push_back(msg_snowflake);
                             } catch (const std::exception& e) {
-                                std::cerr << "Failed to parse message snowflake: " 
-                                          << trimmed << " - " << e.what() << std::endl;
+                                std::cerr << "Failed to parse message snowflake: " << trimmed
+                                          << " - " << e.what() << std::endl;
                             }
                         }
                     }
-                    auto channel = std::make_shared<Channel>(uid, name, user_uids);
-                    for (const auto& ms : message_snowflakes) {
-                        channel->add_message(ms);
-                    }
+                    auto channel =
+                        std::make_shared<Channel>(uid, name, user_uids, message_snowflakes);
                     this->data.insert({uid, channel});
                 }
             }
@@ -136,9 +133,21 @@ std::optional<Channel::SharedPtr> ChannelTable::get_mut_by_uid(UUID channel_uid)
                : std::nullopt;
 }
 
-std::variant<Channel::SharedPtr, std::string> ChannelTable::add_channel(std::string channel_name, std::vector<UUID> members) {
+std::variant<Channel::SharedPtr, std::string> ChannelTable::add_channel(
+    std::string channel_name,
+    std::vector<UUID> members,
+    std::optional<UUID> channel_uid,
+    std::vector<uint64_t> message_snowflakes) {
     std::lock_guard<std::mutex> lock(this->mutex);
-    Channel::SharedPtr channel = std::make_shared<Channel>(channel_name, members);
+    if (channel_uid.has_value() && this->data.find(channel_uid.value()) != this->data.end()) {
+        return "Channel with the same UID already exists";
+    }
+
+    Channel::SharedPtr channel = channel_uid.has_value()
+                                     ? std::make_shared<Channel>(channel_uid.value(), channel_name,
+                                                                 members, message_snowflakes)
+                                     : std::make_shared<Channel>(channel_name, members);
+
     this->data.insert({channel->get_uid(), channel});
 
     // Prepare CSV fields.
@@ -153,8 +162,14 @@ std::variant<Channel::SharedPtr, std::string> ChannelTable::add_channel(std::str
             members_str += ";";
         }
     }
-    // For a new channel, there are no messages yet.
+
     std::string messages_str;
+    for (size_t i = 0; i < message_snowflakes.size(); ++i) {
+        messages_str += std::to_string(message_snowflakes[i]);
+        if (i != message_snowflakes.size() - 1) {
+            messages_str += ";";
+        }
+    }
 
     // Append the new channel to the CSV file using '|' as the delimiter.
     std::ofstream file(this->file_path, std::ios::app);

@@ -26,6 +26,7 @@ message User {
     required string username = 2;
     required string display_name = 3;
     required string profile_picture = 4;
+    required string password = 5;
 }
 
 message Channel {

@@ -2,10 +2,10 @@
 #include <stdint.h>
 #include <mutex>
 #include <optional>
+#include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include <string>
 
 #include "models/channel.hpp"
 #include "models/uuid.hpp"
@@ -14,8 +14,9 @@
 /**
  * @brief Manages a collection of channels.
  *
- * The ChannelTable class provides a thread-safe interface for storing and managing channels identified by their unique UUIDs.
- * It offers methods for retrieving channels in both read-only and mutable forms, as well as methods for adding and removing channels.
+ * The ChannelTable class provides a thread-safe interface for storing and managing channels
+ * identified by their unique UUIDs. It offers methods for retrieving channels in both read-only and
+ * mutable forms, as well as methods for adding and removing channels.
  */
 class ChannelTable {
    public:
@@ -34,17 +35,20 @@ class ChannelTable {
      * Searches the channel table for a channel with the specified UUID.
      *
      * @param channel_uid The UUID of the channel to retrieve.
-     * @return An optional containing a constant shared pointer to the channel if found, or std::nullopt otherwise.
+     * @return An optional containing a constant shared pointer to the channel if found, or
+     * std::nullopt otherwise.
      */
     [[nodiscard]] std::optional<const Channel::SharedPtr> get_by_uid(UUID channel_uid);
 
     /**
      * @brief Retrieves a channel by its unique identifier (mutable).
      *
-     * Searches the channel table for a channel with the specified UUID and returns a mutable shared pointer.
+     * Searches the channel table for a channel with the specified UUID and returns a mutable shared
+     * pointer.
      *
      * @param channel_uid The UUID of the channel to retrieve.
-     * @return An optional containing a mutable shared pointer to the channel if found, or std::nullopt otherwise.
+     * @return An optional containing a mutable shared pointer to the channel if found, or
+     * std::nullopt otherwise.
      */
     [[nodiscard]] std::optional<Channel::SharedPtr> get_mut_by_uid(UUID channel_uid);
 
@@ -57,10 +61,14 @@ class ChannelTable {
      *
      * @param channel_name The name of the channel to add.
      * @param members A vector of UUIDs representing the initial members of the channel.
-     * @return A variant containing either a shared pointer to the new channel on success, or an error message string on failure.
+     * @return A variant containing either a shared pointer to the new channel on success, or an
+     * error message string on failure.
      */
-    std::variant<Channel::SharedPtr, std::string> add_channel(std::string channel_name,
-                                                              std::vector<UUID> members);
+    std::variant<Channel::SharedPtr, std::string> add_channel(
+        std::string channel_name,
+        std::vector<UUID> members,
+        std::optional<UUID> channel_uid = std::nullopt,
+        std::vector<uint64_t> message_snowflakes = {});
 
     /**
      * @brief Removes a channel from the table.

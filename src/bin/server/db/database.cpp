@@ -28,7 +28,6 @@ Database::Database() {
     this->passwords = std::make_unique<PasswordTable>(this->db_dir_path);
 }
 
-
 Database& Database::get_instance() {
     static Database instance;
     return instance;
@@ -141,9 +140,12 @@ std::variant<Message::SharedPtr, std::string> Database::add_message(UUID sender_
     return message;
 }
 
-std::variant<Channel::SharedPtr, std::string> Database::add_channel(std::string channel_name,
-                                                                    std::vector<UUID> members) {
-    auto res = this->channels->add_channel(channel_name, members);
+std::variant<Channel::SharedPtr, std::string> Database::add_channel(
+    std::string channel_name,
+    std::vector<UUID> members,
+    std::optional<UUID> channel_uid,
+    std::vector<uint64_t> message_snowflakes) {
+    auto res = this->channels->add_channel(channel_name, members, channel_uid, message_snowflakes);
     if (std::holds_alternative<std::string>(res)) {
         return std::get<std::string>(res);
     }

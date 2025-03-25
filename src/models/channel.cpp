@@ -8,8 +8,14 @@ Channel::Channel(std::string name, std::vector<UUID> user_uids)
     this->uid = UUID();
 }
 
-Channel::Channel(const UUID& uid, std::string name, std::vector<UUID> user_uids)
-    : uid(uid), name(std::move(name)), user_uids(std::move(user_uids)) {}
+Channel::Channel(const UUID& uid,
+                 std::string name,
+                 std::vector<UUID> user_uids,
+                 std::vector<uint64_t> message_snowflakes)
+    : uid(uid),
+      name(std::move(name)),
+      user_uids(std::move(user_uids)),
+      message_snowflakes(std::move(message_snowflakes)) {}
 
 void Channel::serialize(std::vector<uint8_t>& buf) const {
 #if PROTOCOL_JSON

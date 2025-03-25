@@ -37,7 +37,12 @@ class Channel : public Serializable {
      */
     Channel(std::string name, std::vector<UUID> user_uids);
 
-    Channel(const UUID& uid, std::string name, std::vector<UUID> user_uids);
+    //     Channel(const UUID& uid, std::string name, std::vector<UUID> user_uids);
+
+    Channel(const UUID& uid,
+            std::string name,
+            std::vector<UUID> user_uids,
+            std::vector<uint64_t> message_snowflakes);
 
     /**
      * @brief Serializes the Channel object into a byte buffer.
