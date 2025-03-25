@@ -25,6 +25,8 @@ class ChannelTable {
      */
     ChannelTable() = default;
 
+    ChannelTable(std::string db_dir_path);
+
     /**
      * @brief Retrieves a channel by its unique identifier (read-only).
      *
@@ -76,4 +78,6 @@ class ChannelTable {
     std::unordered_map<UUID, Channel::SharedPtr> data;
     /// Mutex to ensure thread-safe access to the channel table.
     std::mutex mutex;
+
+    std::string file_path;
 };

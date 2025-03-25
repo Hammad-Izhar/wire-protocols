@@ -1,6 +1,5 @@
 #include "server/db/user_table.hpp"
 #include <regex>
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -9,9 +8,19 @@
 #include <memory>
 #include <vector>
 
-// Assuming necessary includes for User and UUID
+// Helper function to split a string by a delimiter.
+static std::vector<std::string> split(const std::string& s, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(s);
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
 
 UserTable::UserTable(std::string db_dir_path) {
+    // Use pipe as the delimiter.
     this->file_path = db_dir_path + "/users.csv";
 
     // Check if the file exists; if not, create it.
@@ -19,13 +28,13 @@ UserTable::UserTable(std::string db_dir_path) {
         std::ofstream file(this->file_path);
         if (file) {
             std::cout << "Created file: " << this->file_path << std::endl;
-            // Optionally, write a header to the CSV file:
-            // file << "uid,username,display_name,profile_pic" << std::endl;
+            // Optionally, write a header:
+            // file << "uid|username|display_name|profile_pic|channels" << std::endl;
         } else {
             std::cerr << "Failed to create file: " << this->file_path << std::endl;
         }
     } else {
-        // If the file exists, read the contents into the unordered_map.
+        // If the file exists, read its contents into the in-memory map.
         std::ifstream file(this->file_path);
         if (file) {
             std::cout << "Found the file! Reading contents..." << std::endl;
@@ -35,17 +44,24 @@ UserTable::UserTable(std::string db_dir_path) {
                 bool isHeader = (line.find("uid") != std::string::npos);
                 if (!isHeader) {
                     std::cout << "First line is not a header; processing as data." << std::endl;
-
-                    // If not a header, process the first line as data.
-                    std::istringstream iss(line);
-                    std::string token;
-                    std::vector<std::string> tokens;
-                    while (std::getline(iss, token, ',')) {
-                        tokens.push_back(token);
-                    }
-                    if (tokens.size() >= 4) {
+                    std::cout << "Processing line: " << line << std::endl;
+                    auto tokens = split(line, '|');
+                    if (tokens.size() >= 5) {
                         UUID uid = UUID::from_string(tokens[0]);
-                        auto user = std::make_shared<User>(tokens[1], tokens[2], uid, tokens[3]);
+                        std::string username = tokens[1];
+                        std::string display_name = tokens[2];
+                        std::string profile_pic = tokens[3];
+                        std::vector<UUID> channels;
+                        if (!tokens[4].empty()) {
+                            auto channelTokens = split(tokens[4], ';');
+                            for (const auto& t : channelTokens) {
+                                channels.push_back(UUID::from_string(t));
+                            }
+                        }
+                        auto user = std::make_shared<User>(username, display_name, uid, profile_pic);
+                        for (const auto& ch : channels) {
+                            user->add_channel(ch);
+                        }
                         this->data.insert({uid, user});
                     }
                 } else {
@@ -54,18 +70,26 @@ UserTable::UserTable(std::string db_dir_path) {
             }
             // Process the remaining lines.
             while (std::getline(file, line)) {
-                std::istringstream iss(line);
-                std::string token;
-                std::vector<std::string> tokens;
-                while (std::getline(iss, token, ',')) {
-                    tokens.push_back(token);
-                }
-                
                 std::cout << "Processing line: " << line << std::endl;
-
-                if (tokens.size() >= 4) {
+                std::cout << "Tokens size: " << split(line, '|').size() << std::endl;
+                auto tokens = split(line, '|');
+                if (tokens.size() >= 5) {
                     UUID uid = UUID::from_string(tokens[0]);
-                    auto user = std::make_shared<User>(tokens[1], tokens[2], uid, tokens[3]);
+                    std::string username = tokens[1];
+                    std::string display_name = tokens[2];
+                    std::string profile_pic = tokens[3];
+                    std::vector<UUID> channels;
+                    if (!tokens[4].empty()) {
+                        auto channelTokens = split(tokens[4], ';');
+                        for (const auto& t : channelTokens) {
+                            channels.push_back(UUID::from_string(t));
+                        }
+                    }
+                    auto user = std::make_shared<User>(username, display_name, uid, profile_pic);
+                    for (const auto& ch : channels) {
+                        user->add_channel(ch);
+                    }
+                    std::cout << "Adding user: " << user->get_username() << std::endl;
                     this->data.insert({uid, user});
                 }
             }
@@ -75,7 +99,6 @@ UserTable::UserTable(std::string db_dir_path) {
         }
     }
 }
-
 
 std::optional<const User::SharedPtr> UserTable::get_by_uid(UUID user_uid) {
     std::lock_guard<std::mutex> lock(this->mutex);
@@ -113,14 +136,16 @@ std::variant<std::vector<UUID>, std::string> UserTable::get_uuids_matching_regex
 std::optional<UUID> UserTable::get_uid_from_username(std::string username) {
     std::lock_guard<std::mutex> lock(this->mutex);
     for (const auto& [uid, user] : this->data) {
+        std::cout << "Checking user: " << user->get_username() << std::endl;
         if (user->get_username() == username) {
+            std::cout << "Match found: " << user->get_uid().to_string() << std::endl;
             return uid;
         }
+        std::cout << "No match" << std::endl;
     }
+    std::cout << "I couldn't find any users at all!" << std::endl;
     return std::nullopt;
 }
-
-#include <fstream>
 
 std::variant<std::monostate, std::string> UserTable::add_user(User::SharedPtr user) {
     std::lock_guard<std::mutex> lock(this->mutex);
@@ -132,11 +157,22 @@ std::variant<std::monostate, std::string> UserTable::add_user(User::SharedPtr us
         return "Failed to open file for appending: " + this->file_path;
     }
 
-    // Write the new user's information as a CSV line.
-    file << user->get_uid().to_string() << ","
-         << user->get_username() << ","
-         << user->get_display_name() << ","
-         << user->get_profile_pic() << "\n";
+    // Prepare channels field as a semicolon-separated list.
+    std::string channels_str;
+    auto channels = user->get_channels();
+    for (size_t i = 0; i < channels.size(); ++i) {
+        channels_str += channels[i].to_string();
+        if (i != channels.size() - 1) {
+            channels_str += ";";
+        }
+    }
+
+    // Write the new user's information as a CSV line using '|' as delimiter.
+    file << user->get_uid().to_string() << "|"
+         << user->get_username() << "|"
+         << user->get_display_name() << "|"
+         << user->get_profile_pic() << "|"
+         << channels_str << "|\n";
 
     if (!file.good()) {
         return "Failed to write user data to file: " + this->file_path;
@@ -144,11 +180,6 @@ std::variant<std::monostate, std::string> UserTable::add_user(User::SharedPtr us
 
     return {};
 }
-
-#include <fstream>
-#include <sstream>
-#include <filesystem>
-#include <iostream>
 
 std::variant<User::SharedPtr, std::string> UserTable::remove_user(UUID user_uid) {
     std::lock_guard<std::mutex> lock(this->mutex);
@@ -178,7 +209,7 @@ std::variant<User::SharedPtr, std::string> UserTable::remove_user(UUID user_uid)
     while (std::getline(infile, line)) {
         std::istringstream iss(line);
         std::string first_token;
-        if (std::getline(iss, first_token, ',')) {
+        if (std::getline(iss, first_token, '|')) {
             // If this line belongs to the user we're removing, skip it.
             if (first_token == user_uid.to_string()) {
                 continue;
@@ -190,7 +221,6 @@ std::variant<User::SharedPtr, std::string> UserTable::remove_user(UUID user_uid)
     infile.close();
     outfile.close();
 
-    // Replace the original file with the temporary file.
     std::error_code ec;
     std::filesystem::remove(this->file_path, ec);
     if (ec) {
@@ -202,4 +232,138 @@ std::variant<User::SharedPtr, std::string> UserTable::remove_user(UUID user_uid)
     }
 
     return user;
+}
+
+std::variant<std::monostate, std::string> UserTable::add_channel_to_user(UUID user_uid, UUID channel_uid) {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    // Find the user in the in-memory map.
+    auto it = this->data.find(user_uid);
+    if (it == this->data.end()) {
+        return "User does not exist";
+    }
+    User::SharedPtr user = it->second;
+    // Add the channel if not already present.
+    bool alreadyExists = false;
+    for (const auto &ch : user->get_channels()) {
+        if (ch == channel_uid) {
+            alreadyExists = true;
+            break;
+        }
+    }
+    if (!alreadyExists) {
+        user->add_channel(channel_uid);
+    }
+    
+    // Now update the CSV file.
+    std::ifstream infile(this->file_path);
+    if (!infile.is_open()) {
+        return "Failed to open file for reading: " + this->file_path;
+    }
+    std::string temp_file_path = this->file_path + ".tmp";
+    std::ofstream outfile(temp_file_path);
+    if (!outfile.is_open()) {
+        return "Failed to open temporary file for writing: " + temp_file_path;
+    }
+    
+    std::string line;
+    while (std::getline(infile, line)) {
+        // Expecting format: uid|username|display_name|profile_pic|channels
+        auto tokens = split(line, '|');
+        if (tokens.size() < 5) {
+            outfile << line << "\n";
+            continue;
+        }
+        if (tokens[0] == user_uid.to_string()) {
+            // Build updated channels string.
+            std::string channels_str;
+            auto updatedChannels = user->get_channels();
+            for (size_t i = 0; i < updatedChannels.size(); ++i) {
+                channels_str += updatedChannels[i].to_string();
+                if (i < updatedChannels.size() - 1) {
+                    channels_str += ";";
+                }
+            }
+            // Reconstruct the line with updated channels.
+            std::string newLine = tokens[0] + "|" + tokens[1] + "|" + tokens[2] + "|" + tokens[3] + "|" + channels_str;
+            outfile << newLine << "\n";
+        } else {
+            outfile << line << "\n";
+        }
+    }
+    infile.close();
+    outfile.close();
+    
+    std::error_code ec;
+    std::filesystem::remove(this->file_path, ec);
+    if (ec) {
+        return "Failed to remove original file: " + this->file_path;
+    }
+    std::filesystem::rename(temp_file_path, this->file_path, ec);
+    if (ec) {
+        return "Failed to rename temporary file: " + ec.message();
+    }
+    
+    return {};
+}
+
+std::variant<std::monostate, std::string> UserTable::remove_channel_from_user(UUID user_uid, UUID channel_uid) {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    // Find the user in the in-memory map.
+    auto it = this->data.find(user_uid);
+    if (it == this->data.end()) {
+        return "User does not exist";
+    }
+    User::SharedPtr user = it->second;
+    // Remove the channel if it exists.
+    user->remove_channel(channel_uid);
+    
+    // Now update the CSV file.
+    std::ifstream infile(this->file_path);
+    if (!infile.is_open()) {
+        return "Failed to open file for reading: " + this->file_path;
+    }
+    std::string temp_file_path = this->file_path + ".tmp";
+    std::ofstream outfile(temp_file_path);
+    if (!outfile.is_open()) {
+        return "Failed to open temporary file for writing: " + temp_file_path;
+    }
+    
+    std::string line;
+    while (std::getline(infile, line)) {
+        auto tokens = split(line, '|');
+        if (tokens.size() < 5) {
+            outfile << line << "\n";
+            continue;
+        }
+        if (tokens[0] == user_uid.to_string()) {
+            // Build updated channels string.
+            std::string channels_str;
+            auto updatedChannels = user->get_channels();
+            for (size_t i = 0; i < updatedChannels.size(); ++i) {
+                channels_str += updatedChannels[i].to_string();
+                if (i < updatedChannels.size() - 1) {
+                    channels_str += ";";
+                }
+            }
+            // Reconstruct the line with updated channels.
+            std::string newLine = tokens[0] + "|" + tokens[1] + "|" + tokens[2] + "|" + tokens[3] + "|" + channels_str;
+            outfile << newLine << "\n";
+        } else {
+            outfile << line << "\n";
+        }
+    }
+    infile.close();
+    outfile.close();
+    
+    std::error_code ec;
+    std::filesystem::remove(this->file_path, ec);
+    if (ec) {
+        return "Failed to remove original file: " + this->file_path;
+    }
+    std::filesystem::rename(temp_file_path, this->file_path, ec);
+    if (ec) {
+        return "Failed to rename temporary file: " + ec.message();
+    }
+    
+    return {};
 }

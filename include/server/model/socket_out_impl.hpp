@@ -84,9 +84,12 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
         session.save_message_stream(request->username(), response);
 
         User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
+        std::cout << "Trying to get channels for user " << user->get_username() << std::endl;
         for (const auto& channel_uid : user->get_channels()) {
             std::optional<Channel::SharedPtr> channel = db.get_channel_by_uid(channel_uid);
+            std::cout << "Channel: " << channel_uid.to_string() << " found" << std::endl;
             if (!channel.has_value()) {
+                std::cout << "Channel value not found!" << std::endl;
                 continue;
             }
             for (const auto& message_snowflake : channel.value()->get_message_snowflakes()) {

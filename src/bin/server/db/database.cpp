@@ -12,7 +12,7 @@
 #include <iostream>
 
 Database::Database() {
-    this->db_dir_path = "db";
+    this->db_dir_path = "db_dir";
 
     if (!std::filesystem::exists(this->db_dir_path)) {
         bool created = std::filesystem::create_directory(this->db_dir_path);
@@ -26,8 +26,8 @@ Database::Database() {
     }
 
     this->users = std::make_unique<UserTable>(this->db_dir_path);
-    this->messages = std::make_unique<MessageTable>();
-    this->channels = std::make_unique<ChannelTable>();
+    this->messages = std::make_unique<MessageTable>(this->db_dir_path);
+    this->channels = std::make_unique<ChannelTable>(this->db_dir_path);
     this->passwords = std::make_unique<PasswordTable>(this->db_dir_path);
 }
 
@@ -168,7 +168,10 @@ std::variant<Channel::SharedPtr, std::string> Database::add_channel(std::string 
         if (!user.has_value()) {
             continue;
         }
-        user.value()->add_channel(channel->get_uid());
+        this->users->add_channel_to_user(user_uid, channel->get_uid());
+        // user.value()->add_channel(channel->get_uid());
+
+        // Update user_table with new channels
 
 #ifdef PROTOCOL_RPC
         Session& session = Session::get_instance();

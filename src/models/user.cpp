@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstdint>
+#include <iostream>
 
 #include "json.hpp"
 #include "models/user.hpp"
@@ -112,6 +113,10 @@ const std::string& User::get_profile_pic() {
 
 const std::vector<UUID>& User::get_channels() {
     std::lock_guard<std::mutex> lock(this->mutex);
+    // Print all channels
+    for (auto& channel : this->channels) {
+        std::cout << "Channel: " << channel.to_string() << std::endl;
+    }
     return this->channels;
 }
 

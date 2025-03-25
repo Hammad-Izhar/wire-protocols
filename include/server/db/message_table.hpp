@@ -23,6 +23,8 @@ class MessageTable {
      */
     MessageTable() = default;
 
+    MessageTable(std::string db_dir_path);
+
     /**
      * @brief Retrieves a message by its unique snowflake identifier (read-only).
      *
@@ -74,4 +76,6 @@ class MessageTable {
     std::unordered_map<uint64_t, Message::SharedPtr> data;
     /// Mutex to ensure thread-safe access to the message table.
     std::mutex mutex;
+
+    std::string file_path;
 };
