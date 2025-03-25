@@ -24,16 +24,13 @@ static std::vector<std::string> split(const std::string& s, char delimiter) {
 MessageTable::MessageTable(std::string db_dir_path) {
     // Use pipe as the delimiter.
     this->file_path = db_dir_path + "/messages.csv";
-
-    std::cout << "Trying to start reading messages from: " << this->file_path << std::endl;
     
     // Check if the file exists; if not, create it.
     if (!std::filesystem::exists(this->file_path)) {
         std::ofstream file(this->file_path);
         if (file) {
-            std::cout << "Created file: " << this->file_path << std::endl;
             // Optionally, write a header:
-            // file << "snowflake|sender_uid|channel_uid|created_at|modified_at|read_by|text" << std::endl;
+            file << "snowflake|sender_uid|channel_uid|created_at|modified_at|read_by|text" << std::endl;
         } else {
             std::cerr << "Failed to create file: " << this->file_path << std::endl;
         }
@@ -41,7 +38,6 @@ MessageTable::MessageTable(std::string db_dir_path) {
         // If the file exists, read its contents into the in-memory data map.
         std::ifstream file(this->file_path);
         if (file) {
-            std::cout << "Found the file! Reading message contents..." << std::endl;
             std::string line;
             // Check if the first line is a header (optional)
             if (std::getline(file, line)) {
@@ -115,7 +111,6 @@ MessageTable::MessageTable(std::string db_dir_path) {
             std::cerr << "Failed to open file: " << this->file_path << std::endl;
         }
     }
-    std::cout << "Finished reading messages" << std::endl;
 }
 
 std::optional<const Message::SharedPtr> MessageTable::get_by_uid(uint64_t message_snowflake) {
@@ -207,4 +202,13 @@ std::variant<std::monostate, std::string> MessageTable::remove_message(uint64_t 
         return "Failed to rename temporary file: " + ec.message();
     }
     return {};
+}
+
+void MessageTable::print_messages() {
+    // Iterate over messages and print them
+    std::cout << "Printing all messages:" << std::endl;
+    for (auto& [key, value] : this->data) {
+        std::cout << "Message: " << value->to_json().c_str() << std::endl;
+    }
+    std::cout << "End of messages" << std::endl;
 }

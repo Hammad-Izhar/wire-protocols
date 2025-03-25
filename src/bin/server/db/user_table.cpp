@@ -27,9 +27,8 @@ UserTable::UserTable(std::string db_dir_path) {
     if (!std::filesystem::exists(this->file_path)) {
         std::ofstream file(this->file_path);
         if (file) {
-            std::cout << "Created file: " << this->file_path << std::endl;
             // Optionally, write a header:
-            // file << "uid|username|display_name|profile_pic|channels" << std::endl;
+            file << "uid|username|display_name|profile_pic|channels" << std::endl;
         } else {
             std::cerr << "Failed to create file: " << this->file_path << std::endl;
         }
@@ -37,14 +36,11 @@ UserTable::UserTable(std::string db_dir_path) {
         // If the file exists, read its contents into the in-memory map.
         std::ifstream file(this->file_path);
         if (file) {
-            std::cout << "Found the file! Reading contents..." << std::endl;
             std::string line;
             // Check if the first line is a header (optional)
             if (std::getline(file, line)) {
                 bool isHeader = (line.find("uid") != std::string::npos);
                 if (!isHeader) {
-                    std::cout << "First line is not a header; processing as data." << std::endl;
-                    std::cout << "Processing line: " << line << std::endl;
                     auto tokens = split(line, '|');
                     if (tokens.size() >= 5) {
                         UUID uid = UUID::from_string(tokens[0]);
@@ -64,14 +60,10 @@ UserTable::UserTable(std::string db_dir_path) {
                         }
                         this->data.insert({uid, user});
                     }
-                } else {
-                    std::cout << "Skipping header line: " << line << std::endl;
                 }
             }
             // Process the remaining lines.
             while (std::getline(file, line)) {
-                std::cout << "Processing line: " << line << std::endl;
-                std::cout << "Tokens size: " << split(line, '|').size() << std::endl;
                 auto tokens = split(line, '|');
                 if (tokens.size() >= 5) {
                     UUID uid = UUID::from_string(tokens[0]);
@@ -89,7 +81,6 @@ UserTable::UserTable(std::string db_dir_path) {
                     for (const auto& ch : channels) {
                         user->add_channel(ch);
                     }
-                    std::cout << "Adding user: " << user->get_username() << std::endl;
                     this->data.insert({uid, user});
                 }
             }
@@ -136,14 +127,10 @@ std::variant<std::vector<UUID>, std::string> UserTable::get_uuids_matching_regex
 std::optional<UUID> UserTable::get_uid_from_username(std::string username) {
     std::lock_guard<std::mutex> lock(this->mutex);
     for (const auto& [uid, user] : this->data) {
-        std::cout << "Checking user: " << user->get_username() << std::endl;
         if (user->get_username() == username) {
-            std::cout << "Match found: " << user->get_uid().to_string() << std::endl;
             return uid;
         }
-        std::cout << "No match" << std::endl;
     }
-    std::cout << "I couldn't find any users at all!" << std::endl;
     return std::nullopt;
 }
 
@@ -172,7 +159,7 @@ std::variant<std::monostate, std::string> UserTable::add_user(User::SharedPtr us
          << user->get_username() << "|"
          << user->get_display_name() << "|"
          << user->get_profile_pic() << "|"
-         << channels_str << "|\n";
+         << channels_str << "\n";
 
     if (!file.good()) {
         return "Failed to write user data to file: " + this->file_path;

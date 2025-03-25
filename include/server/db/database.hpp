@@ -46,6 +46,7 @@ class Database {
      */
     [[nodiscard]] const std::optional<const User::SharedPtr> get_user_by_uid(UUID user_uid) const;
 
+
     /**
      * @brief Retrieves a read-only message by its unique snowflake identifier.
      *
@@ -199,6 +200,8 @@ class Database {
      * @return A variant containing std::monostate on success or an error message string on failure.
      */
     std::variant<std::monostate, std::string> remove_channel(UUID channel_uid);
+
+    void print_messages();
 
    private:
     /// Pointer to the user table.

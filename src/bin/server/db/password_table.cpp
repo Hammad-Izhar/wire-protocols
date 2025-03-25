@@ -16,9 +16,8 @@ PasswordTable::PasswordTable(std::string db_dir_path) {
     if (!std::filesystem::exists(this->file_path)) {
         std::ofstream file(this->file_path);
         if (file) {
-            std::cout << "Created file: " << this->file_path << std::endl;
             // Optionally, write a header to the CSV file:
-            // file << "uid,hashed_password,salt" << std::endl;
+            file << "uid|hashed_password|salt" << std::endl;
         } else {
             std::cerr << "Failed to create file: " << this->file_path << std::endl;
         }
@@ -26,17 +25,15 @@ PasswordTable::PasswordTable(std::string db_dir_path) {
         // If the file exists, read the contents into the unordered_map.
         std::ifstream file(this->file_path);
         if (file) {
-            std::cout << "Found the file! Reading contents..." << std::endl;
             std::string line;
             // Check if the first line is a header (optional)
             if (std::getline(file, line)) {
                 bool isHeader = (line.find("uid") != std::string::npos);
                 if (!isHeader) {
-                    std::cout << "First line is not a header; processing as data." << std::endl;
                     std::istringstream iss(line);
                     std::string token;
                     std::vector<std::string> tokens;
-                    while (std::getline(iss, token, ',')) {
+                    while (std::getline(iss, token, '|')) {
                         tokens.push_back(token);
                     }
                     // Expecting: uid,hashed_password,salt
@@ -44,8 +41,6 @@ PasswordTable::PasswordTable(std::string db_dir_path) {
                         UUID uid = UUID::from_string(tokens[0]);
                         this->data.insert({uid, std::make_pair(tokens[1], tokens[2])});
                     }
-                } else {
-                    std::cout << "Skipping header line: " << line << std::endl;
                 }
             }
             // Process the remaining lines.
@@ -53,11 +48,10 @@ PasswordTable::PasswordTable(std::string db_dir_path) {
                 std::istringstream iss(line);
                 std::string token;
                 std::vector<std::string> tokens;
-                while (std::getline(iss, token, ',')) {
+                while (std::getline(iss, token, '|')) {
                     tokens.push_back(token);
                 }
-                
-                std::cout << "Processing line: " << line << std::endl;
+            
 
                 if (tokens.size() >= 3) {
                     UUID uid = UUID::from_string(tokens[0]);

@@ -50,6 +50,9 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
                                 "Username and password do not match");
         }
 
+        // Print all messages using db's print_messages function
+        db.print_messages();
+
         User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
         socketout::User user_response;
         user_response.set_uuid(user->get_uid().to_string());
@@ -84,12 +87,9 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
         session.save_message_stream(request->username(), response);
 
         User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
-        std::cout << "Trying to get channels for user " << user->get_username() << std::endl;
         for (const auto& channel_uid : user->get_channels()) {
             std::optional<Channel::SharedPtr> channel = db.get_channel_by_uid(channel_uid);
-            std::cout << "Channel: " << channel_uid.to_string() << " found" << std::endl;
             if (!channel.has_value()) {
-                std::cout << "Channel value not found!" << std::endl;
                 continue;
             }
             for (const auto& message_snowflake : channel.value()->get_message_snowflakes()) {
@@ -111,7 +111,6 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
                 for (const auto& reader : message->get_read_by()) {
                     msg->add_read_by(reader.to_string());
                 }
-                std::cout << "Sending Message:" << message_response.DebugString() << std::endl;
                 response->Write(message_response);
             }
         }
@@ -149,7 +148,6 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
         session.save_channel_stream(request->username(), response);
 
         User::SharedPtr user = db.get_user_by_uid(user_uid.value()).value();
-        std::cout << user->to_json() << std::endl;
         for (const auto& channel_uid : user->get_channels()) {
             std::optional<Channel::SharedPtr> channel_opt = db.get_channel_by_uid(channel_uid);
             if (!channel_opt.has_value()) {
@@ -164,7 +162,6 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
             for (const auto& member : channel->get_user_uids()) {
                 channel_msg->add_user_ids(member.to_string());
             }
-            std::cout << "Sending Channel:" << channel_response.DebugString() << std::endl;
             response->Write(channel_response);
         }
 

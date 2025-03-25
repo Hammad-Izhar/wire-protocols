@@ -50,7 +50,7 @@ std::string UUID::to_string() const {
 UUID UUID::from_string(const std::string& str) {
     UUID uuid;  // Creates a new UUID instance
 
-    qDebug() << "Parsing UUID from string: " << str.c_str();
+    // qDebug() << "Parsing UUID from string: " << str.c_str();
 
     for (size_t i = 0; i < str.size(); i += 2) {
         std::string byteString = str.substr(i, 2);
@@ -58,7 +58,7 @@ UUID UUID::from_string(const std::string& str) {
         uuid.value[i / 2] = byte;
     }
 
-    qDebug() << "Parsed UUID: " << uuid.to_string().c_str();
+    // qDebug() << "Parsed UUID: " << uuid.to_string().c_str();
 
     return uuid;
 }

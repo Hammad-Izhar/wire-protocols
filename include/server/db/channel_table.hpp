@@ -9,6 +9,7 @@
 
 #include "models/channel.hpp"
 #include "models/uuid.hpp"
+#include "models/snowflake.hpp"
 
 /**
  * @brief Manages a collection of channels.
@@ -72,6 +73,14 @@ class ChannelTable {
      * @return A variant containing std::monostate on success or an error message string on failure.
      */
     std::variant<std::monostate, std::string> remove_channel(UUID channel_uid);
+
+    std::variant<std::monostate, std::string> add_user_to_channel(UUID user_uid, UUID channel_uid);
+    std::variant<std::monostate, std::string> remove_user_from_channel(UUID user_uid, UUID channel_uid);
+
+    std::variant<std::monostate, std::string> add_message_to_channel(uint64_t message_snowflake, UUID channel_uid);
+    std::variant<std::monostate, std::string> remove_message_from_channel(uint64_t message_snowflake, UUID channel_uid);
+
+    [[nodiscard]] const std::unordered_map<UUID, Channel::SharedPtr>& get_data() const;
 
    private:
     /// Maps channel UUIDs to their corresponding shared pointers.

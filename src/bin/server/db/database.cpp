@@ -17,12 +17,9 @@ Database::Database() {
     if (!std::filesystem::exists(this->db_dir_path)) {
         bool created = std::filesystem::create_directory(this->db_dir_path);
         if (created) {
-            std::cout << "Directory created successfully: " << this->db_dir_path << std::endl;
         } else {
-            std::cout << "Failed to create directory: " << this->db_dir_path << std::endl;
+            std::cerr << "Failed to create directory: " << this->db_dir_path << std::endl;
         }
-    } else {
-        std::cout << "Directory already exists: " << this->db_dir_path << std::endl;
     }
 
     this->users = std::make_unique<UserTable>(this->db_dir_path);
@@ -102,7 +99,8 @@ std::variant<Message::SharedPtr, std::string> Database::add_message(UUID sender_
     }
     Message::SharedPtr message = std::get<Message::SharedPtr>(res);
 
-    channel.value()->add_message(message->get_snowflake());
+    this->channels->add_message_to_channel(message->get_snowflake(), channel_uid);
+    // channel.value()->add_message(message->get_snowflake());
 
 #ifdef PROTOCOL_RPC
     socketout::Message msg;
@@ -205,8 +203,10 @@ std::variant<std::monostate, std::string> Database::add_user_to_channel(UUID use
         return "Channel does not exist";
     }
 
-    user.value()->add_channel(channel_uid);
-    channel.value()->add_user(user_uid);
+    this->channels->add_user_to_channel(user_uid, channel_uid);
+
+    // user.value()->add_channel(channel_uid);
+    // channel.value()->add_user(user_uid);
     return {};
 }
 
@@ -222,7 +222,8 @@ std::variant<User::SharedPtr, std::string> Database::remove_user(UUID user_uid) 
             continue;
         }
         Channel::SharedPtr channel = channel_opt.value();
-        channel->remove_user(user_uid);
+        this->channels->remove_user_from_channel(user_uid, channel_uid);
+        // channel->remove_user(user_uid);
 
         // For each message in the channel, remove those messages from the user
         for (auto& message_snowflake : channel->get_message_snowflakes()) {
@@ -233,7 +234,8 @@ std::variant<User::SharedPtr, std::string> Database::remove_user(UUID user_uid) 
             }
 
             if (message_opt.value()->get_sender_id() == user_uid) {
-                channel->remove_message(message_snowflake);
+                // channel->remove_message(message_snowflake);
+                this->channels->remove_message_from_channel(message_snowflake, channel_uid);
 #ifdef PROTOCOL_RPC
                 socketout::Message msg;
                 msg.set_sender_id(message_opt.value()->get_sender_id().to_string());
@@ -312,7 +314,8 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
 #endif
     }
 
-    channel.value()->remove_message(message_snowflake);
+    // channel.value()->remove_message(message_snowflake);
+    this->channels->remove_message_from_channel(message_snowflake, message.value()->get_channel_id());
     return {};
 }
 
@@ -324,7 +327,8 @@ std::variant<std::monostate, std::string> Database::remove_channel(UUID channel_
         if (!user.has_value()) {
             continue;
         }
-        user.value()->remove_channel(channel_uid);
+        // user.value()->remove_channel(channel_uid);
+        this->channels->remove_user_from_channel(user_uid, channel_uid);
     }
 
     for (auto& message_snowflake : channel.value()->get_message_snowflakes()) {
@@ -337,4 +341,9 @@ std::variant<std::monostate, std::string> Database::remove_channel(UUID channel_
     }
 
     return this->channels->remove_channel(channel_uid);
+}
+
+void Database::print_messages() {
+    // Iterate over messages and print them
+    this->messages->print_messages();
 }

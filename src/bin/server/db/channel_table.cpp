@@ -23,16 +23,12 @@ ChannelTable::ChannelTable(std::string db_dir_path) {
     // Use pipe '|' as the field delimiter.
     this->file_path = db_dir_path + "/channels.csv";
 
-    std::cout << "Channel table file path: " << this->file_path << std::endl;
-    std::cout << "Trying to start reading channels..." << std::endl;
-
     // Check if the file exists; if not, create it.
     if (!std::filesystem::exists(this->file_path)) {
         std::ofstream file(this->file_path);
         if (file) {
-            std::cout << "Created file: " << this->file_path << std::endl;
             // Optionally, write a header:
-            // file << "uid|name|user_uids|message_snowflakes" << std::endl;
+            file << "uid|name|user_uids|message_snowflakes" << std::endl;
         } else {
             std::cerr << "Failed to create file: " << this->file_path << std::endl;
         }
@@ -40,14 +36,11 @@ ChannelTable::ChannelTable(std::string db_dir_path) {
         // Read existing file and populate the in-memory map.
         std::ifstream file(this->file_path);
         if (file) {
-            std::cout << "Found the file! Reading channels..." << std::endl;
             std::string line;
             // Read first line and check if it's a header.
             if (std::getline(file, line)) {
                 bool isHeader = (line.find("uid") != std::string::npos);
                 if (!isHeader) {
-                    std::cout << "First line is not a header; processing as data." << std::endl;
-                    std::cout << "Processing line: " << line << std::endl;
                     auto tokens = split(line, '|');
                     if (tokens.size() >= 3) {
                         // tokens: 0: uid, 1: name, 2: user_uids, 3: messages (optional)
@@ -87,7 +80,6 @@ ChannelTable::ChannelTable(std::string db_dir_path) {
             }
             // Process remaining lines.
             while (std::getline(file, line)) {
-                std::cout << "Processing line: " << line << std::endl;
                 auto tokens = split(line, '|');
                 if (tokens.size() >= 3) {
                     UUID uid = UUID::from_string(tokens[0]);
@@ -128,7 +120,6 @@ ChannelTable::ChannelTable(std::string db_dir_path) {
             std::cerr << "Failed to open file: " << this->file_path << std::endl;
         }
     }
-    std::cout << "Channels read successfully" << std::endl;
 }
 
 std::optional<const Channel::SharedPtr> ChannelTable::get_by_uid(UUID channel_uid) {
@@ -218,3 +209,300 @@ std::variant<std::monostate, std::string> ChannelTable::remove_channel(UUID chan
     }
     return {};
 }
+
+std::variant<std::monostate, std::string> ChannelTable::add_message_to_channel(uint64_t message_snowflake, UUID channel_uid) {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    
+    // Look up the channel.
+    auto it = this->data.find(channel_uid);
+    if (it == this->data.end()) {
+        return "Channel does not exist";
+    }
+    Channel::SharedPtr channel = it->second;
+    
+    // Add the message if not already present.
+    bool exists = false;
+    for (auto ms : channel->get_message_snowflakes()) {
+        if (ms == message_snowflake) {
+            exists = true;
+            break;
+        }
+    }
+    if (!exists) {
+        channel->add_message(message_snowflake);
+    }
+    
+    // Update the CSV file.
+    std::ifstream infile(this->file_path);
+    if (!infile.is_open()) {
+        return "Failed to open file for reading: " + this->file_path;
+    }
+    std::string temp_file_path = this->file_path + ".tmp";
+    std::ofstream outfile(temp_file_path);
+    if (!outfile.is_open()) {
+        return "Failed to open temporary file for writing: " + temp_file_path;
+    }
+    
+    std::string line;
+    while (std::getline(infile, line)) {
+        // Split the line by '|'
+        std::istringstream iss(line);
+        std::string uid_field;
+        if (std::getline(iss, uid_field, '|')) {
+            if (uid_field == channel_uid.to_string()) {
+                // Reconstruct the record using current channel data.
+                // We assume the CSV format is: uid|name|user_uids|message_snowflakes
+                // Read remaining fields (name and user_uids) from the line.
+                std::string name, user_uids;
+                std::getline(iss, name, '|');
+                std::getline(iss, user_uids, '|');
+                
+                // Build a semicolon-separated list of message snowflakes.
+                std::string messages_str;
+                auto messages = channel->get_message_snowflakes();
+                for (size_t i = 0; i < messages.size(); ++i) {
+                    messages_str += std::to_string(messages[i]);
+                    if (i != messages.size() - 1) {
+                        messages_str += ";";
+                    }
+                }
+                std::string newLine = uid_field + "|" + name + "|" + user_uids + "|" + messages_str;
+                outfile << newLine << "\n";
+                continue;
+            }
+        }
+        outfile << line << "\n";
+    }
+    
+    infile.close();
+    outfile.close();
+    
+    std::error_code ec;
+    std::filesystem::remove(this->file_path, ec);
+    if (ec) {
+        return "Failed to remove original file: " + this->file_path;
+    }
+    std::filesystem::rename(temp_file_path, this->file_path, ec);
+    if (ec) {
+        return "Failed to rename temporary file: " + ec.message();
+    }
+    
+    return {};
+}
+
+std::variant<std::monostate, std::string> ChannelTable::remove_message_from_channel(uint64_t message_snowflake, UUID channel_uid) {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    
+    // Look up the channel.
+    auto it = this->data.find(channel_uid);
+    if (it == this->data.end()) {
+        return "Channel does not exist";
+    }
+    Channel::SharedPtr channel = it->second;
+    
+    // Remove the message (if present).
+    channel->remove_message(message_snowflake);
+    
+    // Update the CSV file.
+    std::ifstream infile(this->file_path);
+    if (!infile.is_open()) {
+        return "Failed to open file for reading: " + this->file_path;
+    }
+    std::string temp_file_path = this->file_path + ".tmp";
+    std::ofstream outfile(temp_file_path);
+    if (!outfile.is_open()) {
+        return "Failed to open temporary file for writing: " + temp_file_path;
+    }
+    
+    std::string line;
+    while (std::getline(infile, line)) {
+        std::istringstream iss(line);
+        std::string uid_field;
+        if (std::getline(iss, uid_field, '|')) {
+            if (uid_field == channel_uid.to_string()) {
+                // Reconstruct the record.
+                std::string name, user_uids;
+                std::getline(iss, name, '|');
+                std::getline(iss, user_uids, '|');
+                
+                std::string messages_str;
+                auto messages = channel->get_message_snowflakes();
+                for (size_t i = 0; i < messages.size(); ++i) {
+                    messages_str += std::to_string(messages[i]);
+                    if (i != messages.size() - 1) {
+                        messages_str += ";";
+                    }
+                }
+                std::string newLine = uid_field + "|" + name + "|" + user_uids + "|" + messages_str;
+                outfile << newLine << "\n";
+                continue;
+            }
+        }
+        outfile << line << "\n";
+    }
+    
+    infile.close();
+    outfile.close();
+    
+    std::error_code ec;
+    std::filesystem::remove(this->file_path, ec);
+    if (ec) {
+        return "Failed to remove original file: " + this->file_path;
+    }
+    std::filesystem::rename(temp_file_path, this->file_path, ec);
+    if (ec) {
+        return "Failed to rename temporary file: " + ec.message();
+    }
+    
+    return {};
+}
+
+std::variant<std::monostate, std::string> ChannelTable::add_user_to_channel(UUID user_uid, UUID channel_uid) {
+    std::lock_guard<std::mutex> lock(this->mutex);
+
+    // Find the channel in the in-memory map.
+    auto it = this->data.find(channel_uid);
+    if (it == this->data.end()) {
+        return "Channel does not exist";
+    }
+    Channel::SharedPtr channel = it->second;
+
+    // Check if the user is already in the channel.
+    bool alreadyPresent = false;
+    for (const auto &uid : channel->get_user_uids()) {
+        if (uid == user_uid) {
+            alreadyPresent = true;
+            break;
+        }
+    }
+    if (!alreadyPresent) {
+        channel->add_user(user_uid);
+    }
+
+    // Update the CSV file.
+    std::ifstream infile(this->file_path);
+    if (!infile.is_open()) {
+        return "Failed to open file for reading: " + this->file_path;
+    }
+    std::string temp_file_path = this->file_path + ".tmp";
+    std::ofstream outfile(temp_file_path);
+    if (!outfile.is_open()) {
+        return "Failed to open temporary file for writing: " + temp_file_path;
+    }
+
+    std::string line;
+    while (std::getline(infile, line)) {
+        // Tokenize by '|'
+        std::istringstream iss(line);
+        std::string uid_field;
+        if (std::getline(iss, uid_field, '|')) {
+            if (uid_field == channel_uid.to_string()) {
+                // For this channel, we need to update the user_uids field.
+                std::string name, members_field, messages_field;
+                std::getline(iss, name, '|');
+                std::getline(iss, members_field, '|'); // existing members (ignored)
+                std::getline(iss, messages_field, '|'); // message_snowflakes field
+                // Build updated members string.
+                std::string updated_members;
+                auto members = channel->get_user_uids();
+                for (size_t i = 0; i < members.size(); ++i) {
+                    updated_members += members[i].to_string();
+                    if (i != members.size() - 1) {
+                        updated_members += ";";
+                    }
+                }
+                // Reconstruct the record.
+                std::string newLine = uid_field + "|" + name + "|" + updated_members + "|" + messages_field;
+                outfile << newLine << "\n";
+                continue;
+            }
+        }
+        outfile << line << "\n";
+    }
+    infile.close();
+    outfile.close();
+
+    std::error_code ec;
+    std::filesystem::remove(this->file_path, ec);
+    if (ec) {
+        return "Failed to remove original file: " + this->file_path;
+    }
+    std::filesystem::rename(temp_file_path, this->file_path, ec);
+    if (ec) {
+        return "Failed to rename temporary file: " + ec.message();
+    }
+
+    return {};
+}
+
+std::variant<std::monostate, std::string> ChannelTable::remove_user_from_channel(UUID user_uid, UUID channel_uid) {
+    std::lock_guard<std::mutex> lock(this->mutex);
+
+    // Find the channel in the in-memory map.
+    auto it = this->data.find(channel_uid);
+    if (it == this->data.end()) {
+        return "Channel does not exist";
+    }
+    Channel::SharedPtr channel = it->second;
+
+    // Remove the user.
+    channel->remove_user(user_uid);
+
+    // Update the CSV file.
+    std::ifstream infile(this->file_path);
+    if (!infile.is_open()) {
+        return "Failed to open file for reading: " + this->file_path;
+    }
+    std::string temp_file_path = this->file_path + ".tmp";
+    std::ofstream outfile(temp_file_path);
+    if (!outfile.is_open()) {
+        return "Failed to open temporary file for writing: " + temp_file_path;
+    }
+
+    std::string line;
+    while (std::getline(infile, line)) {
+        std::istringstream iss(line);
+        std::string uid_field;
+        if (std::getline(iss, uid_field, '|')) {
+            if (uid_field == channel_uid.to_string()) {
+                // For this channel, update the user_uids field.
+                std::string name, members_field, messages_field;
+                std::getline(iss, name, '|');
+                std::getline(iss, members_field, '|');
+                std::getline(iss, messages_field, '|');
+                // Build updated members string.
+                std::string updated_members;
+                auto members = channel->get_user_uids();
+                for (size_t i = 0; i < members.size(); ++i) {
+                    updated_members += members[i].to_string();
+                    if (i != members.size() - 1) {
+                        updated_members += ";";
+                    }
+                }
+                std::string newLine = uid_field + "|" + name + "|" + updated_members + "|" + messages_field;
+                outfile << newLine << "\n";
+                continue;
+            }
+        }
+        outfile << line << "\n";
+    }
+    infile.close();
+    outfile.close();
+
+    std::error_code ec;
+    std::filesystem::remove(this->file_path, ec);
+    if (ec) {
+        return "Failed to remove original file: " + this->file_path;
+    }
+    std::filesystem::rename(temp_file_path, this->file_path, ec);
+    if (ec) {
+        return "Failed to rename temporary file: " + ec.message();
+    }
+
+    return {};
+}
+
+const std::unordered_map<UUID, Channel::SharedPtr>& ChannelTable::get_data() const {
+    return this->data;
+}
+

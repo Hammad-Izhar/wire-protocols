@@ -96,7 +96,10 @@ void on_login(QTcpSocket* socket, LoginMessage& msg) {
         qDebug() << "CreateChannelResponse: " << create_channel_response.to_json().c_str();
         emit MessageHandler::get_instance().write_data(buf);
 
+        std::cout << "On channel: " << channel.value()->get_name() << std::endl;
+
         for (auto message_snowflake : channel.value()->get_message_snowflakes()) {
+            std::cout << "Message snowflake: " << message_snowflake << std::endl;
             std::optional<Message::SharedPtr> message = db.get_message_by_uid(message_snowflake);
             if (!message.has_value()) {
                 continue;

@@ -71,6 +71,9 @@ class MessageTable {
      */
     std::variant<std::monostate, std::string> remove_message(uint64_t message_snowflake);
 
+
+    void print_messages();
+
    private:
     /// Maps message snowflake identifiers to their corresponding shared pointers.
     std::unordered_map<uint64_t, Message::SharedPtr> data;
