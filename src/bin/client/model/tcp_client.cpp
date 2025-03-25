@@ -146,9 +146,9 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
                 members.push_back(UUID::from_string(member));
             }
 
-            Channel::SharedPtr channel =
-                std::make_shared<Channel>(UUID::from_string(response.channel().uuid()),
-                                          response.channel().channel_name(), members);
+            Channel::SharedPtr channel = std::make_shared<Channel>(
+                UUID::from_string(response.channel().uuid()), response.channel().channel_name(),
+                members, std::vector<uint64_t>{});
 
             qDebug() << "Received channel on login: " << channel->to_json().c_str();
 
