@@ -92,6 +92,8 @@ class UserTable {
 
     std::variant<std::monostate, std::string> remove_channel_from_user(UUID user_uid, UUID channel_uid);
 
+    [[nodiscard]] const std::unordered_map<UUID, User::SharedPtr>& get_data() const;
+
    private:
     /// Maps user UUIDs to their corresponding shared pointers.
     std::unordered_map<UUID, User::SharedPtr> data;

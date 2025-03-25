@@ -33,6 +33,7 @@ UserTable::UserTable(std::string db_dir_path) {
             std::cerr << "Failed to create file: " << this->file_path << std::endl;
         }
     } else {
+        std::cout << "File found!" << std::endl;
         // If the file exists, read its contents into the in-memory map.
         std::ifstream file(this->file_path);
         if (file) {
@@ -41,6 +42,7 @@ UserTable::UserTable(std::string db_dir_path) {
             if (std::getline(file, line)) {
                 bool isHeader = (line.find("uid") != std::string::npos);
                 if (!isHeader) {
+                    std::cout << "THIS SHOULD NOT HAPPEN" << std::endl;
                     auto tokens = split(line, '|');
                     if (tokens.size() >= 5) {
                         UUID uid = UUID::from_string(tokens[0]);
@@ -64,24 +66,32 @@ UserTable::UserTable(std::string db_dir_path) {
             }
             // Process the remaining lines.
             while (std::getline(file, line)) {
+                std::cout << "LINE: " << line << std::endl;
                 auto tokens = split(line, '|');
-                if (tokens.size() >= 5) {
+                if (tokens.size() >= 4) {
+                    std::cout << "     Adding user" << std::endl;
                     UUID uid = UUID::from_string(tokens[0]);
                     std::string username = tokens[1];
                     std::string display_name = tokens[2];
                     std::string profile_pic = tokens[3];
                     std::vector<UUID> channels;
-                    if (!tokens[4].empty()) {
-                        auto channelTokens = split(tokens[4], ';');
-                        for (const auto& t : channelTokens) {
-                            channels.push_back(UUID::from_string(t));
+                    // If tokens[4] doesn't exist, it means the user has no channels. Skip this step.
+                    if (tokens.size() >= 5) {
+                        if (!tokens[4].empty()) {
+                            auto channelTokens = split(tokens[4], ';');
+                            for (const auto& t : channelTokens) {
+                                channels.push_back(UUID::from_string(t));
+                            }
                         }
                     }
+            
                     auto user = std::make_shared<User>(username, display_name, uid, profile_pic);
                     for (const auto& ch : channels) {
                         user->add_channel(ch);
                     }
                     this->data.insert({uid, user});
+                } else {
+                    std::cout << "     Not Adding. " << line << std::endl;
                 }
             }
             file.close();
@@ -353,4 +363,8 @@ std::variant<std::monostate, std::string> UserTable::remove_channel_from_user(UU
     }
     
     return {};
+}
+
+const std::unordered_map<UUID, User::SharedPtr>& UserTable::get_data() const {
+    return this->data;
 }

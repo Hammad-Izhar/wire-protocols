@@ -20,7 +20,7 @@ static std::vector<std::string> split(const std::string& s, char delimiter) {
 }
 
 // Test fixture that creates a temporary directory ("test_dir") for persistent storage.
-class ChannelTableTestFixture : public ::testing::Test {
+class ChannelTablePersistentTestFixture : public ::testing::Test {
 protected:
     std::string test_dir = "test_dir";
 
@@ -40,7 +40,7 @@ protected:
     }
 };
 
-TEST_F(ChannelTableTestFixture, AddChannelSuccessfully) {
+TEST_F(ChannelTablePersistentTestFixture, AddChannelSuccessfully) {
     ChannelTable channelTable(test_dir);
     UUID user1;
     UUID user2;
@@ -50,7 +50,7 @@ TEST_F(ChannelTableTestFixture, AddChannelSuccessfully) {
     EXPECT_TRUE(std::holds_alternative<Channel::SharedPtr>(result));
 }
 
-TEST_F(ChannelTableTestFixture, GetChannelByUid) {
+TEST_F(ChannelTablePersistentTestFixture, GetChannelByUid) {
     ChannelTable channelTable(test_dir);
     UUID user1;
     UUID user2;
@@ -63,7 +63,7 @@ TEST_F(ChannelTableTestFixture, GetChannelByUid) {
     EXPECT_TRUE(retrievedChannel.has_value());
 }
 
-TEST_F(ChannelTableTestFixture, GetMutChannelByUid) {
+TEST_F(ChannelTablePersistentTestFixture, GetMutChannelByUid) {
     ChannelTable channelTable(test_dir);
     UUID user1;
     UUID user2;
@@ -76,7 +76,7 @@ TEST_F(ChannelTableTestFixture, GetMutChannelByUid) {
     EXPECT_TRUE(retrievedChannel.has_value());
 }
 
-TEST_F(ChannelTableTestFixture, RemoveChannelSuccessfully) {
+TEST_F(ChannelTablePersistentTestFixture, RemoveChannelSuccessfully) {
     ChannelTable channelTable(test_dir);
     UUID user1;
     UUID user2;
@@ -91,21 +91,21 @@ TEST_F(ChannelTableTestFixture, RemoveChannelSuccessfully) {
     EXPECT_FALSE(retrievedChannel.has_value());
 }
 
-TEST_F(ChannelTableTestFixture, RemoveNonexistentChannel) {
+TEST_F(ChannelTablePersistentTestFixture, RemoveNonexistentChannel) {
     ChannelTable channelTable(test_dir);
     UUID channelUid; // Default constructed UID (assumed nonexistent)
     auto result = channelTable.remove_channel(channelUid);
     EXPECT_TRUE(std::holds_alternative<std::monostate>(result));
 }
 
-TEST_F(ChannelTableTestFixture, GetNonexistentChannel) {
+TEST_F(ChannelTablePersistentTestFixture, GetNonexistentChannel) {
     ChannelTable channelTable(test_dir);
     UUID channelUid; // Default constructed UID
     auto retrievedChannel = channelTable.get_by_uid(channelUid);
     EXPECT_FALSE(retrievedChannel.has_value());
 }
 
-TEST_F(ChannelTableTestFixture, PersistentStorageConsistency) {
+TEST_F(ChannelTablePersistentTestFixture, PersistentStorageConsistency) {
     // Create a ChannelTable and add a channel.
     {
         ChannelTable channelTable(test_dir);
