@@ -83,6 +83,8 @@ class MessageTable {
 
     void print_messages();
 
+    [[nodiscard]] const std::unordered_map<uint64_t, Message::SharedPtr>& get_data() const;
+
    private:
     /// Maps message snowflake identifiers to their corresponding shared pointers.
     std::unordered_map<uint64_t, Message::SharedPtr> data;

@@ -28,6 +28,24 @@ Database::Database() {
     this->passwords = std::make_unique<PasswordTable>(this->db_dir_path);
 }
 
+Database::Database(std::string db_dir_path) {
+    this->db_dir_path = db_dir_path;
+
+    if (!std::filesystem::exists(this->db_dir_path)) {
+        bool created = std::filesystem::create_directory(this->db_dir_path);
+        if (created) {
+        } else {
+            std::cerr << "Failed to create directory: " << this->db_dir_path << std::endl;
+        }
+    }
+
+    this->users = std::make_unique<UserTable>(this->db_dir_path);
+    this->messages = std::make_unique<MessageTable>(this->db_dir_path);
+    this->channels = std::make_unique<ChannelTable>(this->db_dir_path);
+    this->passwords = std::make_unique<PasswordTable>(this->db_dir_path);
+
+}
+
 Database& Database::get_instance() {
     static Database instance;
     return instance;

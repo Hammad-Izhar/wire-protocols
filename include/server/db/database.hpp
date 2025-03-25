@@ -29,6 +29,8 @@ class Database {
      */
     Database();
 
+    Database(std::string db_dir_path);
+
     /**
      * @brief Retrieves the singleton instance of the Database.
      *

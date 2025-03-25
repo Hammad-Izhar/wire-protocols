@@ -61,6 +61,8 @@ class PasswordTable {
      */
     std::variant<std::monostate, std::string> remove_password(UUID& user_uid);
 
+    [[nodiscard]] const std::unordered_map<UUID, std::pair<std::string, std::string>>& get_data() const;
+
    private:
     /// Maps a user's UUID to a pair containing the hashed password and its associated salt.
     std::unordered_map<UUID, std::pair<std::string, std::string>> data;

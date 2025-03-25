@@ -1,56 +1,81 @@
-// #include <gtest/gtest.h>
-// #include "server/db/password_table.hpp"
-// #include "models/uuid.hpp"
-// TEST(PasswordTableTest, AddPasswordSuccessfully) {
-//     PasswordTable passwordTable;
-//     UUID user1;
-//     auto result = passwordTable.add_password(user1, "securePass123");
-//     EXPECT_TRUE(std::holds_alternative<std::monostate>(result));
-// }
+#include <gtest/gtest.h>
+#include "server/db/password_table.hpp"
+#include "models/uuid.hpp"
+#include <filesystem>
 
-// TEST(PasswordTableTest, VerifyCorrectPassword) {
-//     PasswordTable passwordTable;
-//     UUID user1;
-//     passwordTable.add_password(user1, "correctPass");
-//     auto result = passwordTable.verify_password(user1, "correctPass");
-//     EXPECT_TRUE(std::holds_alternative<bool>(result));
-//     EXPECT_TRUE(std::get<bool>(result));
-// }
+// Fixture for persistent PasswordTable tests.
+class PasswordTableTestFixture : public ::testing::Test {
+protected:
+    std::string test_dir = "test_dir";
 
-// TEST(PasswordTableTest, VerifyIncorrectPassword) {
-//     PasswordTable passwordTable;
-//     UUID user1;
-//     passwordTable.add_password(user1, "correctPass");
-//     auto result = passwordTable.verify_password(user1, "wrongPass");
-//     EXPECT_TRUE(std::holds_alternative<bool>(result));
-//     EXPECT_FALSE(std::get<bool>(result));
-// }
+    void SetUp() override {
+        // Remove any existing test directory and create a fresh one.
+        if (std::filesystem::exists(test_dir)) {
+            std::filesystem::remove_all(test_dir);
+        }
+        std::filesystem::create_directory(test_dir);
+    }
 
-// TEST(PasswordTableTest, RemovePasswordSuccessfully) {
-//     PasswordTable passwordTable;
-//     UUID user1;
-//     passwordTable.add_password(user1, "securePass123");
-//     auto result = passwordTable.remove_password(user1);
-//     EXPECT_TRUE(std::holds_alternative<std::monostate>(result));
+    void TearDown() override {
+        // Clean up the test directory.
+        if (std::filesystem::exists(test_dir)) {
+            std::filesystem::remove_all(test_dir);
+        }
+    }
+};
+
+TEST_F(PasswordTableTestFixture, AddPasswordSuccessfully) {
+    PasswordTable passwordTable(test_dir);
+    UUID user1;
+    auto result = passwordTable.add_password(user1, "securePass123");
+    EXPECT_TRUE(std::holds_alternative<std::monostate>(result));
+}
+
+TEST_F(PasswordTableTestFixture, VerifyCorrectPassword) {
+    PasswordTable passwordTable(test_dir);
+    UUID user1;
+    passwordTable.add_password(user1, "correctPass");
+    auto result = passwordTable.verify_password(user1, "correctPass");
+    EXPECT_TRUE(std::holds_alternative<bool>(result));
+    EXPECT_TRUE(std::get<bool>(result));
+}
+
+TEST_F(PasswordTableTestFixture, VerifyIncorrectPassword) {
+    PasswordTable passwordTable(test_dir);
+    UUID user1;
+    passwordTable.add_password(user1, "correctPass");
+    auto result = passwordTable.verify_password(user1, "wrongPass");
+    EXPECT_TRUE(std::holds_alternative<bool>(result));
+    EXPECT_FALSE(std::get<bool>(result));
+}
+
+TEST_F(PasswordTableTestFixture, RemovePasswordSuccessfully) {
+    PasswordTable passwordTable(test_dir);
+    UUID user1;
+    passwordTable.add_password(user1, "securePass123");
+    auto result = passwordTable.remove_password(user1);
+    EXPECT_TRUE(std::holds_alternative<std::monostate>(result));
     
-//     auto verifyResult = passwordTable.verify_password(user1, "securePass123");
-//     EXPECT_TRUE(std::holds_alternative<std::string>(verifyResult));
-// }
+    auto verifyResult = passwordTable.verify_password(user1, "securePass123");
+    EXPECT_TRUE(std::holds_alternative<std::string>(verifyResult));
+}
 
-// TEST(PasswordTableTest, RemoveNonexistentPassword) {
-//     PasswordTable passwordTable;
-//     UUID user1;
-//     UUID user2;
-//     passwordTable.add_password(user1, "securePass123");
-//     auto result = passwordTable.remove_password(user2);
-//     // Expect the number of elements in the data map to be unchanged
-//     std::variant<bool, std::string> verification = passwordTable.verify_password(user1, "securePass123");
-//     EXPECT_TRUE(std::holds_alternative<bool>(verification));
-//     EXPECT_TRUE(std::get<bool>(verification));
-// }
+TEST_F(PasswordTableTestFixture, RemoveNonexistentPassword) {
+    PasswordTable passwordTable(test_dir);
+    UUID user1;
+    UUID user2;
+    passwordTable.add_password(user1, "securePass123");
+    auto result = passwordTable.remove_password(user2);
+    // Verify that user1's password is still valid.
+    std::variant<bool, std::string> verification = passwordTable.verify_password(user1, "securePass123");
+    EXPECT_TRUE(std::holds_alternative<bool>(verification));
+    EXPECT_TRUE(std::get<bool>(verification));
+}
 
-// TEST(PasswordTableTest, VerifyNonexistentUser) {
-//     PasswordTable passwordTable;
-//     UUID user1;
-//     auto result = passwordTable.verify_password(user1, "somePass");
-// }
+TEST_F(PasswordTableTestFixture, VerifyNonexistentUser) {
+    PasswordTable passwordTable(test_dir);
+    UUID user1;
+    auto result = passwordTable.verify_password(user1, "somePass");
+    // Expect an error message (std::string) for a nonexistent user.
+    EXPECT_TRUE(std::holds_alternative<std::string>(result));
+}

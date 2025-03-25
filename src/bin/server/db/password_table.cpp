@@ -169,3 +169,7 @@ std::variant<std::monostate, std::string> PasswordTable::remove_password(UUID& u
 
     return {};
 }
+
+const std::unordered_map<UUID, std::pair<std::string, std::string>>& PasswordTable::get_data() const {
+    return this->data;
+}

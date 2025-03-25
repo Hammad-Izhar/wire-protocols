@@ -228,3 +228,7 @@ void MessageTable::print_messages() {
     }
     std::cout << "End of messages" << std::endl;
 }
+
+const std::unordered_map<uint64_t, Message::SharedPtr>& MessageTable::get_data() const {
+    return this->data;
+}
