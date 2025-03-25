@@ -1,5 +1,5 @@
 set(PROTO_DIR "${CMAKE_SOURCE_DIR}/proto")
-set(PROTO_FILES ${PROTO_DIR}/socketout.proto)
+set(PROTO_FILES ${PROTO_DIR}/socketout.proto ${PROTO_DIR}/socketout_server.proto)
 set(PROTOBUF_IMPORT_DIRS "/home/cs2620/grpc/third_party/protobuf/src/")
 
 message(STATUS "Generating protobuf files into ${GEN_DIR}/proto:")

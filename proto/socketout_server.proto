@@ -1,0 +1,46 @@
+import "google/protobuf/empty.proto";
+package socketout_server;
+
+service SocketOutServer {
+    rpc add_user(User) returns (google.protobuf.Empty);
+
+    rpc add_channel(Channel) returns (google.protobuf.Empty);
+
+    rpc add_message(Message) returns (google.protobuf.Empty);
+
+    rpc delete_user(UUID) returns (google.protobuf.Empty);
+
+    rpc delete_message(Snowflake) returns (google.protobuf.Empty);
+}
+
+message UUID {
+    required string uuid = 1;
+}
+
+message Snowflake {
+    required uint64 snowflake = 1;
+}
+
+message User {
+    required string uuid = 1;
+    required string username = 2;
+    required string display_name = 3;
+    required string profile_picture = 4;
+}
+
+message Channel {
+    required string uuid = 1;
+    required string channel_name = 2;
+    repeated string user_ids = 3;
+    repeated uint64 message_snowflakes = 4;
+}
+
+message Message {
+    required string sender_id = 1;
+    required string channel_id = 2;
+    required uint64 snowflake = 3;
+    required uint64 created_at = 4;
+    required uint64 modified_at = 5;
+    required string text = 6;
+    repeated string read_by = 7;
+}
