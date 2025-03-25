@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cstdint>
-#include <iostream>
 
 #include "json.hpp"
 #include "models/user.hpp"

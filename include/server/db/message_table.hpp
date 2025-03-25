@@ -31,34 +31,44 @@ class MessageTable {
      * Searches the table for a message with the specified snowflake identifier.
      *
      * @param message_snowflake The unique snowflake identifier of the message.
-     * @return An optional containing a constant shared pointer to the message if found; std::nullopt otherwise.
+     * @return An optional containing a constant shared pointer to the message if found;
+     * std::nullopt otherwise.
      */
     [[nodiscard]] std::optional<const Message::SharedPtr> get_by_uid(uint64_t message_snowflake);
 
     /**
      * @brief Retrieves a message by its unique snowflake identifier (mutable).
      *
-     * Searches the table for a message with the specified snowflake identifier and returns a mutable shared pointer.
+     * Searches the table for a message with the specified snowflake identifier and returns a
+     * mutable shared pointer.
      *
      * @param message_snowflake The unique snowflake identifier of the message.
-     * @return An optional containing a mutable shared pointer to the message if found; std::nullopt otherwise.
+     * @return An optional containing a mutable shared pointer to the message if found; std::nullopt
+     * otherwise.
      */
     [[nodiscard]] std::optional<Message::SharedPtr> get_mut_by_uid(uint64_t message_snowflake);
 
     /**
      * @brief Adds a new message to the table.
      *
-     * Creates and stores a new message with the given sender, channel, and content. On success, returns a
-     * shared pointer to the newly created message; on failure, returns an error message string.
+     * Creates and stores a new message with the given sender, channel, and content. On success,
+     * returns a shared pointer to the newly created message; on failure, returns an error message
+     * string.
      *
      * @param sender_uid The UUID of the sender.
      * @param channel_uid The UUID of the channel.
      * @param content The content of the message.
-     * @return A variant containing either a shared pointer to the new message on success or an error message string on failure.
+     * @return A variant containing either a shared pointer to the new message on success or an
+     * error message string on failure.
      */
-    std::variant<Message::SharedPtr, std::string> add_message(UUID sender_uid,
-                                                              UUID channel_uid,
-                                                              std::string content);
+    std::variant<Message::SharedPtr, std::string> add_message(
+        UUID sender_uid,
+        UUID channel_uid,
+        std::string content,
+        std::optional<uint64_t> snowflake = std::nullopt,
+        std::optional<uint64_t> created_at = std::nullopt,
+        std::optional<uint64_t> modified_at = std::nullopt,
+        std::optional<std::vector<UUID>> read_by = std::nullopt);
 
     /**
      * @brief Removes a message from the table.
@@ -70,7 +80,6 @@ class MessageTable {
      * @return A variant containing std::monostate on success or an error message string on failure.
      */
     std::variant<std::monostate, std::string> remove_message(uint64_t message_snowflake);
-
 
     void print_messages();
 

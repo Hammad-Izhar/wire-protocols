@@ -21,7 +21,9 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
                                 "User already exists in the replica");
         }
 
-        User::SharedPtr user = std::make_shared<User>(request->username(), request->display_name());
+        User::SharedPtr user =
+            std::make_shared<User>(request->username(), request->display_name(),
+                                   UUID::from_string(request->uuid()), request->profile_picture());
         std::variant<std::monostate, std::string> result = db.add_user(user, request->password());
 
         if (std::holds_alternative<std::string>(result)) {

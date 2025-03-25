@@ -84,15 +84,21 @@ std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr use
     return this->users->add_user(user);
 }
 
-std::variant<Message::SharedPtr, std::string> Database::add_message(UUID sender_uid,
-                                                                    UUID channel_uid,
-                                                                    std::string content) {
+std::variant<Message::SharedPtr, std::string> Database::add_message(
+    UUID sender_uid,
+    UUID channel_uid,
+    std::string content,
+    std::optional<uint64_t> snowflake,
+    std::optional<uint64_t> created_at,
+    std::optional<uint64_t> modified_at,
+    std::optional<std::vector<UUID>> read_by) {
     std::optional<Channel::SharedPtr> channel = this->channels->get_mut_by_uid(channel_uid);
     if (!channel.has_value()) {
         return "Channel does not exist";
     }
 
-    auto res = this->messages->add_message(sender_uid, channel_uid, content);
+    auto res = this->messages->add_message(sender_uid, channel_uid, content, snowflake, created_at,
+                                           modified_at, read_by);
     if (std::holds_alternative<std::string>(res)) {
         return std::get<std::string>(res);
     }
@@ -317,7 +323,8 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
     }
 
     // channel.value()->remove_message(message_snowflake);
-    this->channels->remove_message_from_channel(message_snowflake, message.value()->get_channel_id());
+    this->channels->remove_message_from_channel(message_snowflake,
+                                                message.value()->get_channel_id());
     return {};
 }
 

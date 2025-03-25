@@ -47,7 +47,6 @@ class Database {
      */
     [[nodiscard]] const std::optional<const User::SharedPtr> get_user_by_uid(UUID user_uid) const;
 
-
     /**
      * @brief Retrieves a read-only message by its unique snowflake identifier.
      *
@@ -152,9 +151,14 @@ class Database {
      * @return A variant containing a shared pointer to the newly created Message on success, or an
      * error message string on failure.
      */
-    std::variant<Message::SharedPtr, std::string> add_message(UUID sender_uid,
-                                                              UUID channel_uid,
-                                                              std::string content);
+    std::variant<Message::SharedPtr, std::string> add_message(
+        UUID sender_uid,
+        UUID channel_uid,
+        std::string content,
+        std::optional<uint64_t> snowflake = std::nullopt,
+        std::optional<uint64_t> created_at = std::nullopt,
+        std::optional<uint64_t> modified_at = std::nullopt,
+        std::optional<std::vector<UUID>> read_by = std::nullopt);
 
     /**
      * @brief Adds a new channel to the database.
