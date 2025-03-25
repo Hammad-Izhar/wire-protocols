@@ -80,5 +80,5 @@ class MessageTable {
     /// Mutex to ensure thread-safe access to the message table.
     std::mutex mutex;
 
-    std::string file_path;
+    std::string file_path = "db_temp/messages.csv";
 };

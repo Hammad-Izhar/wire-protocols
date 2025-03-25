@@ -14,7 +14,10 @@ TEST(MessageDBTest, AddMessageAndGetByUid) {
     MessageTable db;
     UUID sender = UUID();
     UUID channel = UUID();
+
+
     auto message = db.add_message(sender, channel, "Hello World");
+
     auto message_opt = db.get_by_uid(std::get<Message::SharedPtr>(message)->get_snowflake());
     ASSERT_TRUE(message_opt.has_value());
     Message::SharedPtr message_ref = message_opt.value();
