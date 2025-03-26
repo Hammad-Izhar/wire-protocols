@@ -11,43 +11,26 @@
 #include <filesystem>
 #include <iostream>
 
-Database::Database() {
-    this->db_dir_path = "db_dir";
-
-    if (!std::filesystem::exists(this->db_dir_path)) {
-        bool created = std::filesystem::create_directory(this->db_dir_path);
+Database::Database(std::optional<std::string> db_path) : db_path(db_path.value_or("db_dir")) {
+    if (!std::filesystem::exists(this->db_path)) {
+        bool created = std::filesystem::create_directory(this->db_path);
         if (created) {
         } else {
-            std::cerr << "Failed to create directory: " << this->db_dir_path << std::endl;
+            std::cerr << "Failed to create directory: " << this->db_path << std::endl;
         }
     }
 
-    this->users = std::make_unique<UserTable>(this->db_dir_path);
-    this->messages = std::make_unique<MessageTable>(this->db_dir_path);
-    this->channels = std::make_unique<ChannelTable>(this->db_dir_path);
-    this->passwords = std::make_unique<PasswordTable>(this->db_dir_path);
+    std::cout << "should only see this once" << std::endl;
+
+    this->users = std::make_unique<UserTable>(this->db_path);
+    this->messages = std::make_unique<MessageTable>(this->db_path);
+    this->channels = std::make_unique<ChannelTable>(this->db_path);
+    this->passwords = std::make_unique<PasswordTable>(this->db_path);
 }
 
-Database::Database(std::string db_dir_path) {
-    this->db_dir_path = db_dir_path;
+Database& Database::get_instance(std::optional<std::string> db_path) {
+    static Database instance(db_path);
 
-    if (!std::filesystem::exists(this->db_dir_path)) {
-        bool created = std::filesystem::create_directory(this->db_dir_path);
-        if (created) {
-        } else {
-            std::cerr << "Failed to create directory: " << this->db_dir_path << std::endl;
-        }
-    }
-
-    this->users = std::make_unique<UserTable>(this->db_dir_path);
-    this->messages = std::make_unique<MessageTable>(this->db_dir_path);
-    this->channels = std::make_unique<ChannelTable>(this->db_dir_path);
-    this->passwords = std::make_unique<PasswordTable>(this->db_dir_path);
-
-}
-
-Database& Database::get_instance() {
-    static Database instance;
     return instance;
 }
 

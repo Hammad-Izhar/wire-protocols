@@ -49,5 +49,10 @@ RUN cd /home/cs2620/grpc && \
     make -j4 && \
     make install
 
+RUN apt-get install -y \
+    python3-pip tmux
+
+RUN pip3 install --break-system-packages pyyaml
+
 USER cs2620
 CMD ["/bin/bash"]

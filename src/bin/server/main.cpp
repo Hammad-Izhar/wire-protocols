@@ -113,7 +113,16 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    if (!jsonObj.contains("db") || !jsonObj["db"].isString()) {
+        std::cerr << "Error: 'db' field missing or invalid in JSON." << std::endl;
+        return -1;
+    }
+
     int port = jsonObj["port"].toInt();
+    std::string db = jsonObj["db"].toString().toStdString();
+
+    std::cout << "'Connecting' to database at: " << db << std::endl;
+    Database& database = Database::get_instance(db);
 
 #ifdef PROTOCOL_RPC
     std::cout << "Starting gRPC server on port " << port << std::endl;

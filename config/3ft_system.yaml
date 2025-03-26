@@ -1,0 +1,18 @@
+load_balancer:
+    - name: lb_1
+      port: 10000
+    - name: lb_2
+      port: 10001
+    - name: lb_3
+      port: 10002
+
+replica:
+    - name: replica_1
+      port: 12345
+      db: "replica_db/replica_1"
+    - name: replica_2
+      port: 12346
+      db: "replica_db/replica_2"
+    - name: replica_3
+      port: 12347
+      db: "replica_db/replica_3"

@@ -27,16 +27,14 @@ class Database {
      *
      * Initializes the underlying tables for users, messages, channels, and passwords.
      */
-    Database();
-
-    Database(std::string db_dir_path);
+    Database(std::optional<std::string> db_path = std::nullopt);
 
     /**
      * @brief Retrieves the singleton instance of the Database.
      *
      * @return A reference to the singleton Database instance.
      */
-    static Database& get_instance();
+    static Database& get_instance(std::optional<std::string> db_path = std::nullopt);
 
     // Getters
 
@@ -234,5 +232,5 @@ class Database {
     /// Pointer to the password table.
     std::unique_ptr<PasswordTable> passwords;
 
-    std::string db_dir_path;
+    std::string db_path;
 };
