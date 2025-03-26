@@ -1,4 +1,5 @@
 #pragma once
+#include "models/uuid.hpp"
 #ifdef PROTOCOL_RPC
 #include <google/protobuf/empty.pb.h>
 #include <grpcpp/grpcpp.h>
@@ -60,10 +61,16 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
         std::cout << "Attempting to add message copy received from another replica: "
                   << request->text() << std::endl;
 
+        std::vector<UUID> read_by;
+        for (const auto& reader : request->read_by()) {
+            read_by.push_back(UUID::from_string(reader));
+        }
+
         Database& db = Database::get_instance();
-        std::variant<Message::SharedPtr, std::string> result =
-            db.add_message(UUID::from_string(request->sender_id()),
-                           UUID::from_string(request->channel_id()), request->text());
+        std::variant<Message::SharedPtr, std::string> result = db.add_message(
+            UUID::from_string(request->sender_id()), UUID::from_string(request->channel_id()),
+            request->text(), request->snowflake(), request->created_at(), request->modified_at(),
+            read_by);
 
         if (std::holds_alternative<std::string>(result)) {
             std::cerr << "Failed to add message copy:  " << std::get<std::string>(result)
