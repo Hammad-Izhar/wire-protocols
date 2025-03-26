@@ -4,12 +4,14 @@ replica:
     - name: replica_1
       port: 12345
       db: "replica_db/replica_1"
-      hostname: 192.168.1.4
     - name: replica_2
       port: 12346
       db: "replica_db/replica_2"
-      hostname: 192.168.1.4
     - name: replica_3
       port: 12347
       db: "replica_db/replica_3"
-      hostname: 192.168.1.4
+
+topology:
+  - ["replica_1", "replica_2"]
+  - ["replica_2", "replica_3"]
+  - ["replica_1", "replica_3"]

@@ -220,7 +220,8 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
         }
 
         grpc::Status status = message_reader->Finish();
-        qDebug() << "Message subscription finished with status: " << status.error_message().c_str();
+        qDebug() << "Message subscription finished with status: " << status.error_code() << " "
+                 << status.error_message().c_str();
     });
 
     t_channel.detach();

@@ -116,7 +116,8 @@ void runRepl() {
         grpc::ClientContext context;
         grpc::Status status = stub->attach(&context, request, &response);
 
-        session.attach(response.hostname(), response.port());
+        if (status.ok())
+            session.attach(response.hostname(), response.port());
     }
 }
 
@@ -174,6 +175,7 @@ int main(int argc, char* argv[]) {
     int port = jsonObj["port"].toInt();
     std::string db = jsonObj["db"].toString().toStdString();
 
+    std::cout << "Hostname: " << hostname;
     std::cout << "'Connecting' to database at: " << db << std::endl;
     Database& database = Database::get_instance(db);
     Session& session = Session::get_instance(hostname, port);

@@ -17,7 +17,8 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
     grpc::Status attach(grpc::ServerContext* context,
                         const socketout_server::AttachRequest* request,
                         socketout_server::AttachRequest* response) override {
-        std::cout << "Attempting to attach to replica: " << request->port() << std::endl;
+        std::cout << "Attempting to attach to replica: " << request->hostname() << request->port()
+                  << std::endl;
 
         Session& session = Session::get_instance();
         session.attach(request->hostname(), request->port());

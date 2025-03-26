@@ -304,6 +304,25 @@ std::variant<User::SharedPtr, std::string> Database::remove_user(UUID user_uid) 
         return "User does not exist";
     }
 
+    auto res = this->users->remove_user(user_uid);
+
+    if (std::holds_alternative<std::string>(res)) {
+        return std::get<std::string>(res);
+    }
+
+#ifdef PROTOCOL_RPC
+    Session& session = Session::get_instance();
+    for (const auto& [hostname, port] : session.get_replicas()) {
+        socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+            hostname + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
+        socketout_server::UUID request;
+        request.set_uuid(user_uid.to_string());
+        google::protobuf::Empty empty_response;
+        grpc::ClientContext ctx;
+        stub.delete_user(&ctx, request, &empty_response);
+    }
+#endif
+
     for (auto& channel_uid : user.value()->get_channels()) {
         std::optional<Channel::SharedPtr> channel_opt = this->channels->get_mut_by_uid(channel_uid);
         if (!channel_opt.has_value()) {
@@ -354,25 +373,6 @@ std::variant<User::SharedPtr, std::string> Database::remove_user(UUID user_uid) 
         }
     }
 
-    auto res = this->users->remove_user(user_uid);
-
-    if (std::holds_alternative<std::string>(res)) {
-        return std::get<std::string>(res);
-    }
-
-#ifdef PROTOCOL_RPC
-    Session& session = Session::get_instance();
-    for (const auto& [hostname, port] : session.get_replicas()) {
-        socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
-            hostname + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
-        socketout_server::UUID request;
-        request.set_uuid(user_uid.to_string());
-        google::protobuf::Empty empty_response;
-        grpc::ClientContext ctx;
-        stub.delete_user(&ctx, request, &empty_response);
-    }
-#endif
-
     return res;
 }
 
@@ -402,6 +402,26 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
     msg.set_modified_at(message.value()->get_modified_at());
     msg.set_text(message.value()->get_text());
 #endif
+    // channel.value()->remove_message(message_snowflake);
+    this->channels->remove_message_from_channel(message_snowflake,
+                                                message.value()->get_channel_id());
+
+#ifdef PROTOCOL_RPC
+    // send delete message to all replicas
+    Session& session = Session::get_instance();
+    for (const auto& [hostname, port] : session.get_replicas()) {
+        socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+            hostname + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
+        std::cout << "Forwarding delete message to replica: " << hostname << ":" << port
+                  << std::endl;
+        socketout_server::Snowflake request;
+        request.set_snowflake(message_snowflake);
+        google::protobuf::Empty empty_response;
+        grpc::ClientContext ctx;
+        stub.delete_message(&ctx, request, &empty_response);
+    }
+#endif
+
     for (auto user_uid : channel.value()->get_user_uids()) {
         std::optional<User::SharedPtr> user = this->users->get_mut_by_uid(user_uid);
         if (!user.has_value()) {
@@ -420,24 +440,6 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
         emit user.value()->message_deleted(message.value());
 #endif
     }
-
-    // channel.value()->remove_message(message_snowflake);
-    this->channels->remove_message_from_channel(message_snowflake,
-                                                message.value()->get_channel_id());
-
-#ifdef PROTOCOL_RPC
-    // send delete message to all replicas
-    Session& session = Session::get_instance();
-    for (const auto& [hostname, port] : session.get_replicas()) {
-        socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
-            hostname + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
-        socketout_server::Snowflake request;
-        request.set_snowflake(message_snowflake);
-        google::protobuf::Empty empty_response;
-        grpc::ClientContext ctx;
-        stub.delete_message(&ctx, request, &empty_response);
-    }
-#endif
 
     return {};
 }
