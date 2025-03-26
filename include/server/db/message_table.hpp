@@ -4,6 +4,7 @@
 #include <optional>
 #include <unordered_map>
 #include <variant>
+#include <vector>
 
 #include "models/message.hpp"
 
@@ -84,6 +85,15 @@ class MessageTable {
     void print_messages();
 
     [[nodiscard]] const std::unordered_map<uint64_t, Message::SharedPtr>& get_data() const;
+
+    std::vector<Message::SharedPtr> get_all_messages() {
+        std::lock_guard<std::mutex> lock(mutex);
+        std::vector<Message::SharedPtr> messages;
+        for (const auto& [_, message] : data) {
+            messages.push_back(message);
+        }
+        return messages;
+    }
 
    private:
     /// Maps message snowflake identifiers to their corresponding shared pointers.

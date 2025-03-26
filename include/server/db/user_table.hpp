@@ -1,10 +1,10 @@
 #pragma once
 #include <mutex>
 #include <optional>
+#include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include <string>
 
 #include "models/user.hpp"
 #include "models/uuid.hpp"
@@ -33,17 +33,20 @@ class UserTable {
      * Searches the user table for a user with the specified UUID.
      *
      * @param user_uid The UUID of the user to retrieve.
-     * @return An optional containing a constant shared pointer to the user if found, or std::nullopt otherwise.
+     * @return An optional containing a constant shared pointer to the user if found, or
+     * std::nullopt otherwise.
      */
     [[nodiscard]] std::optional<const User::SharedPtr> get_by_uid(UUID user_uid);
 
     /**
      * @brief Retrieves a user by their unique identifier (mutable).
      *
-     * Searches the user table for a user with the specified UUID and returns a mutable shared pointer.
+     * Searches the user table for a user with the specified UUID and returns a mutable shared
+     * pointer.
      *
      * @param user_uid The UUID of the user to retrieve.
-     * @return An optional containing a mutable shared pointer to the user if found, or std::nullopt otherwise.
+     * @return An optional containing a mutable shared pointer to the user if found, or std::nullopt
+     * otherwise.
      */
     [[nodiscard]] std::optional<User::SharedPtr> get_mut_by_uid(UUID user_uid);
 
@@ -54,9 +57,11 @@ class UserTable {
      * data matches the specified regex.
      *
      * @param regex The regular expression to match against.
-     * @return A variant containing a vector of matching UUIDs on success, or an error message string on failure.
+     * @return A variant containing a vector of matching UUIDs on success, or an error message
+     * string on failure.
      */
-    [[nodiscard]] std::variant<std::vector<UUID>, std::string> get_uuids_matching_regex(std::string regex);
+    [[nodiscard]] std::variant<std::vector<UUID>, std::string> get_uuids_matching_regex(
+        std::string regex);
 
     /**
      * @brief Retrieves a user's UUID from their username.
@@ -74,7 +79,8 @@ class UserTable {
      * Inserts the provided user into the table.
      *
      * @param user A shared pointer to the User to add.
-     * @return A variant containing std::monostate on success, or an error message string on failure.
+     * @return A variant containing std::monostate on success, or an error message string on
+     * failure.
      */
     std::variant<std::monostate, std::string> add_user(User::SharedPtr user);
 
@@ -84,21 +90,32 @@ class UserTable {
      * Deletes the user with the specified UUID from the table.
      *
      * @param user_uid The UUID of the user to remove.
-     * @return A variant containing a shared pointer to the removed User on success, or an error message string on failure.
+     * @return A variant containing a shared pointer to the removed User on success, or an error
+     * message string on failure.
      */
     std::variant<User::SharedPtr, std::string> remove_user(UUID user_uid);
 
     std::variant<std::monostate, std::string> add_channel_to_user(UUID user_uid, UUID channel_uid);
 
-    std::variant<std::monostate, std::string> remove_channel_from_user(UUID user_uid, UUID channel_uid);
+    std::variant<std::monostate, std::string> remove_channel_from_user(UUID user_uid,
+                                                                       UUID channel_uid);
 
     [[nodiscard]] const std::unordered_map<UUID, User::SharedPtr>& get_data() const;
+
+    std::vector<User::SharedPtr> get_all_users() {
+        std::lock_guard<std::mutex> lock(mutex);
+        std::vector<User::SharedPtr> users;
+        for (const auto& [_, user] : data) {
+            users.push_back(user);
+        }
+        return users;
+    }
 
    private:
     /// Maps user UUIDs to their corresponding shared pointers.
     std::unordered_map<UUID, User::SharedPtr> data;
     /// Mutex to ensure thread-safe access to the user table.
     std::mutex mutex;
-    
+
     std::string file_path;
 };

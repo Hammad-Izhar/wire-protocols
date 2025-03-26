@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "models/channel.hpp"
-#include "models/uuid.hpp"
 #include "models/snowflake.hpp"
+#include "models/uuid.hpp"
 
 /**
  * @brief Manages a collection of channels.
@@ -83,12 +83,25 @@ class ChannelTable {
     std::variant<std::monostate, std::string> remove_channel(UUID channel_uid);
 
     std::variant<std::monostate, std::string> add_user_to_channel(UUID user_uid, UUID channel_uid);
-    std::variant<std::monostate, std::string> remove_user_from_channel(UUID user_uid, UUID channel_uid);
+    std::variant<std::monostate, std::string> remove_user_from_channel(UUID user_uid,
+                                                                       UUID channel_uid);
 
-    std::variant<std::monostate, std::string> add_message_to_channel(uint64_t message_snowflake, UUID channel_uid);
-    std::variant<std::monostate, std::string> remove_message_from_channel(uint64_t message_snowflake, UUID channel_uid);
+    std::variant<std::monostate, std::string> add_message_to_channel(uint64_t message_snowflake,
+                                                                     UUID channel_uid);
+    std::variant<std::monostate, std::string> remove_message_from_channel(
+        uint64_t message_snowflake,
+        UUID channel_uid);
 
     [[nodiscard]] const std::unordered_map<UUID, Channel::SharedPtr>& get_data() const;
+
+    std::vector<Channel::SharedPtr> get_all_channels() {
+        std::lock_guard<std::mutex> lock(mutex);
+        std::vector<Channel::SharedPtr> channels;
+        for (const auto& [_, channel] : data) {
+            channels.push_back(channel);
+        }
+        return channels;
+    }
 
    private:
     /// Maps channel UUIDs to their corresponding shared pointers.

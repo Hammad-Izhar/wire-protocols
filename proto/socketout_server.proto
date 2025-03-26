@@ -6,6 +6,8 @@ service SocketOutServer {
 
     rpc add_user(User) returns (google.protobuf.Empty);
 
+    rpc add_user_with_hashed_password_and_salt(UserPassSalt) returns (google.protobuf.Empty);
+
     rpc add_channel(Channel) returns (google.protobuf.Empty);
 
     rpc add_message(Message) returns (google.protobuf.Empty);
@@ -35,6 +37,14 @@ message User {
     required string display_name = 3;
     required string profile_picture = 4;
     required string password = 5;
+}
+message UserPassSalt {
+    required string uuid = 1;
+    required string username = 2;
+    required string display_name = 3;
+    required string profile_picture = 4;
+    required string hashed_password = 5;
+    required string salt = 6;
 }
 
 message Channel {

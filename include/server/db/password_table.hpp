@@ -11,9 +11,9 @@
 /**
  * @brief Manages user passwords with secure storage and verification.
  *
- * The PasswordTable class is responsible for storing and managing passwords associated with user UUIDs.
- * It provides methods to verify, add, and remove passwords. Passwords are stored in a hashed form along
- * with a salt for added security. The class ensures thread-safe access using a mutex.
+ * The PasswordTable class is responsible for storing and managing passwords associated with user
+ * UUIDs. It provides methods to verify, add, and remove passwords. Passwords are stored in a hashed
+ * form along with a salt for added security. The class ensures thread-safe access using a mutex.
  */
 class PasswordTable {
    public:
@@ -29,7 +29,8 @@ class PasswordTable {
     /**
      * @brief Verifies the password for a given user.
      *
-     * Checks if the provided password, when hashed with the stored salt, matches the stored hashed password.
+     * Checks if the provided password, when hashed with the stored salt, matches the stored hashed
+     * password.
      *
      * @param user_uid A reference to the UUID of the user.
      * @param password The password to verify.
@@ -47,9 +48,17 @@ class PasswordTable {
      *
      * @param user_uid A reference to the UUID of the user.
      * @param password The password to add.
-     * @return A variant containing std::monostate on success, or an error message string on failure.
+     * @return A variant containing std::monostate on success, or an error message string on
+     * failure.
      */
     std::variant<std::monostate, std::string> add_password(UUID& user_uid, std::string password);
+
+    std::variant<std::monostate, std::string> add_hashed_password(UUID& user_uid,
+                                                                  std::string hashed_password,
+                                                                  std::string salt);
+
+    std::variant<std::pair<std::string, std::string>, std::string> get_password_and_salt(
+        UUID& user_uid);
 
     /**
      * @brief Removes a user's password.
@@ -57,11 +66,22 @@ class PasswordTable {
      * Deletes the password entry associated with the given user UUID.
      *
      * @param user_uid A reference to the UUID of the user whose password is to be removed.
-     * @return A variant containing std::monostate on success, or an error message string on failure.
+     * @return A variant containing std::monostate on success, or an error message string on
+     * failure.
      */
     std::variant<std::monostate, std::string> remove_password(UUID& user_uid);
 
-    [[nodiscard]] const std::unordered_map<UUID, std::pair<std::string, std::string>>& get_data() const;
+    [[nodiscard]] const std::unordered_map<UUID, std::pair<std::string, std::string>>& get_data()
+        const;
+
+    std::vector<std::pair<UUID, std::string>> get_all_passwords() {
+        std::lock_guard<std::mutex> lock(mutex);
+        std::vector<std::pair<UUID, std::string>> passwords;
+        for (const auto& [uuid, password_pair] : data) {
+            passwords.emplace_back(uuid, password_pair.first);  // Store UUID and hashed password
+        }
+        return passwords;
+    }
 
    private:
     /// Maps a user's UUID to a pair containing the hashed password and its associated salt.

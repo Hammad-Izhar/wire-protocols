@@ -1,11 +1,11 @@
 #include <openssl/evp.h>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <mutex>
 #include <random>
 #include <sstream>
-#include <iostream>
-#include <fstream>
-#include <filesystem>
 #include <vector>
-#include <mutex>
 
 #include "server/db/password_table.hpp"
 
@@ -51,7 +51,6 @@ PasswordTable::PasswordTable(std::string db_dir_path) {
                 while (std::getline(iss, token, '|')) {
                     tokens.push_back(token);
                 }
-            
 
                 if (tokens.size() >= 3) {
                     UUID uid = UUID::from_string(tokens[0]);
@@ -121,6 +120,33 @@ std::variant<std::monostate, std::string> PasswordTable::add_password(UUID& user
     return {};
 }
 
+std::variant<std::monostate, std::string> PasswordTable::add_hashed_password(UUID& user_uid,
+                                                                             std::string hashed,
+                                                                             std::string salt) {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    this->data.insert({user_uid, std::make_pair(hashed, salt)});
+
+    // Append the new password entry to the CSV file.
+    std::ofstream file(this->file_path, std::ios::app);
+    if (!file.is_open()) {
+        return "Failed to open file for appending: " + this->file_path;
+    }
+    file << user_uid.to_string() << "|" << hashed << "|" << salt << "\n";
+    if (!file.good()) {
+        return "Failed to write password data to file: " + this->file_path;
+    }
+    return {};
+}
+
+std::variant<std::pair<std::string, std::string>, std::string> PasswordTable::get_password_and_salt(
+    UUID& user_uid) {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    if (this->data.find(user_uid) == this->data.end()) {
+        return "User does not exist";
+    }
+    return this->data.at(user_uid);
+}
+
 std::variant<std::monostate, std::string> PasswordTable::remove_password(UUID& user_uid) {
     std::lock_guard<std::mutex> lock(this->mutex);
     if (this->data.find(user_uid) == this->data.end()) {
@@ -170,6 +196,7 @@ std::variant<std::monostate, std::string> PasswordTable::remove_password(UUID& u
     return {};
 }
 
-const std::unordered_map<UUID, std::pair<std::string, std::string>>& PasswordTable::get_data() const {
+const std::unordered_map<UUID, std::pair<std::string, std::string>>& PasswordTable::get_data()
+    const {
     return this->data;
 }

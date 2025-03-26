@@ -111,6 +111,32 @@ std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr use
     return user_res;
 }
 
+std::variant<std::monostate, std::string> Database::add_user_with_hashed_password_and_salt(
+    User::SharedPtr user,
+    std::string hashed_password,
+    std::string salt) {
+    // Add the password
+    UUID user_uid = user->get_uid();
+    std::variant<std::monostate, std::string> res =
+        this->passwords->add_hashed_password(user_uid, hashed_password, salt);
+    if (std::holds_alternative<std::string>(res)) {
+        return std::get<std::string>(res);
+    }
+    // Add the user
+
+    auto user_res = this->users->add_user(user);
+    if (std::holds_alternative<std::string>(res)) {
+        return std::get<std::string>(res);
+    }
+
+    return user_res;
+}
+
+std::variant<std::pair<std::string, std::string>, std::string> Database::get_password_and_salt(
+    UUID user_uid) {
+    return this->passwords->get_password_and_salt(user_uid);
+}
+
 std::variant<Message::SharedPtr, std::string> Database::add_message(
     UUID sender_uid,
     UUID channel_uid,

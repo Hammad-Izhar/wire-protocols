@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include <variant>
+#include <vector>
 
 #include "models/channel.hpp"
 #include "models/message.hpp"
@@ -107,6 +108,9 @@ class Database {
     [[nodiscard]] std::variant<std::vector<UUID>, std::string> get_uuids_matching_regex(
         std::string regex) const;
 
+    std::variant<std::pair<std::string, std::string>, std::string> get_password_and_salt(
+        UUID user_uid);
+
     /**
      * @brief Retrieves a user's UUID by their username.
      *
@@ -138,6 +142,11 @@ class Database {
      * @return A variant containing std::monostate on success or an error message string on failure.
      */
     std::variant<std::monostate, std::string> add_user(User::SharedPtr user, std::string password);
+
+    std::variant<std::monostate, std::string> add_user_with_hashed_password_and_salt(
+        User::SharedPtr user,
+        std::string hashed_password,
+        std::string salt);
 
     /**
      * @brief Adds a new message to the database.
@@ -221,6 +230,10 @@ class Database {
     std::variant<std::monostate, std::string> remove_channel(UUID channel_uid);
 
     void print_messages();
+
+    std::vector<User::SharedPtr> get_all_users() { return users->get_all_users(); };
+    std::vector<Message::SharedPtr> get_all_messages() { return messages->get_all_messages(); };
+    std::vector<Channel::SharedPtr> get_all_channels() { return channels->get_all_channels(); };
 
    private:
     /// Pointer to the user table.
