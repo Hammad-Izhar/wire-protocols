@@ -19,10 +19,10 @@ void Session::save_channel_stream(const std::string& username,
     channel_streams[username] = response;
 }
 
-void Session::attach(const uint16_t port) {
-    std::cout << "Added replica at: " << port << std::endl;
+void Session::attach(const std::string hostname, const uint16_t port) {
+    std::cout << "Added replica at: " << hostname << ":" << port << std::endl;
     if (port != 0) {
-        replica_ports.insert(port);
+        replicas.insert(std::make_pair(hostname, port));
     }
 }
 

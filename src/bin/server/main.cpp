@@ -110,12 +110,15 @@ void runRepl() {
                                            grpc::InsecureChannelCredentials());
         auto stub = socketout_server::SocketOutServer::NewStub(channel);
         socketout_server::AttachRequest request;
+        char hostname[HOST_NAME_MAX];
+        gethostname(hostname, sizeof(hostname));
+        request.set_hostname(hostname);
         request.set_port(session.get_port());
         socketout_server::AttachRequest response;
         grpc::ClientContext context;
         grpc::Status status = stub->attach(&context, request, &response);
 
-        session.attach(response.port());
+        session.attach(response.hostname(), response.port());
     }
 }
 

@@ -92,21 +92,19 @@ std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr use
 
 #ifdef PROTOCOL_RPC
     Session& session = Session::get_instance();
-    for (const auto& port : session.get_replicas()) {
-        if (port != session.get_port()) {
-            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
-                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
-            socketout_server::User request;
-            request.set_username(user->get_username());
-            request.set_uuid(user_uid.to_string());
-            request.set_display_name(user->get_display_name());
-            request.set_profile_picture(user->get_profile_pic());
-            request.set_password(password);
+    for (const auto& [hostname, port] : session.get_replicas()) {
+        socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+            hostname + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
+        socketout_server::User request;
+        request.set_username(user->get_username());
+        request.set_uuid(user_uid.to_string());
+        request.set_display_name(user->get_display_name());
+        request.set_profile_picture(user->get_profile_pic());
+        request.set_password(password);
 
-            google::protobuf::Empty empty_response;
-            grpc::ClientContext ctx;
-            stub.add_user(&ctx, request, &empty_response);
-        }
+        google::protobuf::Empty empty_response;
+        grpc::ClientContext ctx;
+        stub.add_user(&ctx, request, &empty_response);
     }
 #endif
 
@@ -183,26 +181,24 @@ std::variant<Message::SharedPtr, std::string> Database::add_message(
 #ifdef PROTOCOL_RPC
     // send message to all replicas
     Session& session = Session::get_instance();
-    for (const auto& port : session.get_replicas()) {
-        if (port != session.get_port()) {
-            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
-                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
-            socketout_server::Message request;
-            request.set_sender_id(message->get_sender_id().to_string());
-            request.set_channel_id(message->get_channel_id().to_string());
-            request.set_snowflake(message->get_snowflake());
-            request.set_created_at(message->get_created_at());
-            request.set_modified_at(message->get_modified_at());
-            request.set_text(message->get_text());
+    for (const auto& [hostname, port] : session.get_replicas()) {
+        socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+            hostname + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
+        socketout_server::Message request;
+        request.set_sender_id(message->get_sender_id().to_string());
+        request.set_channel_id(message->get_channel_id().to_string());
+        request.set_snowflake(message->get_snowflake());
+        request.set_created_at(message->get_created_at());
+        request.set_modified_at(message->get_modified_at());
+        request.set_text(message->get_text());
 
-            for (auto& user_uid : message->get_read_by()) {
-                request.add_read_by(user_uid.to_string());
-            }
-
-            google::protobuf::Empty empty_response;
-            grpc::ClientContext ctx;
-            stub.add_message(&ctx, request, &empty_response);
+        for (auto& user_uid : message->get_read_by()) {
+            request.add_read_by(user_uid.to_string());
         }
+
+        google::protobuf::Empty empty_response;
+        grpc::ClientContext ctx;
+        stub.add_message(&ctx, request, &empty_response);
     }
 #endif
 
@@ -261,24 +257,22 @@ std::variant<Channel::SharedPtr, std::string> Database::add_channel(
 
 #ifdef PROTOCOL_RPC
     Session& session = Session::get_instance();
-    for (const auto& port : session.get_replicas()) {
-        if (port != session.get_port()) {
-            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
-                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
-            socketout_server::Channel request;
-            request.set_channel_name(channel->get_name());
-            request.set_uuid(channel->get_uid().to_string());
-            for (int i = 0; i < channel->get_user_uids().size(); i++) {
-                request.add_user_ids(channel->get_user_uids()[i].to_string());
-            }
-            for (int i = 0; i < channel->get_message_snowflakes().size(); i++) {
-                request.add_message_snowflakes(channel->get_message_snowflakes()[i]);
-            }
-
-            google::protobuf::Empty empty_response;
-            grpc::ClientContext ctx;
-            stub.add_channel(&ctx, request, &empty_response);
+    for (const auto& [hostname, port] : session.get_replicas()) {
+        socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+            hostname + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
+        socketout_server::Channel request;
+        request.set_channel_name(channel->get_name());
+        request.set_uuid(channel->get_uid().to_string());
+        for (int i = 0; i < channel->get_user_uids().size(); i++) {
+            request.add_user_ids(channel->get_user_uids()[i].to_string());
         }
+        for (int i = 0; i < channel->get_message_snowflakes().size(); i++) {
+            request.add_message_snowflakes(channel->get_message_snowflakes()[i]);
+        }
+
+        google::protobuf::Empty empty_response;
+        grpc::ClientContext ctx;
+        stub.add_channel(&ctx, request, &empty_response);
     }
 #endif
 
@@ -368,16 +362,14 @@ std::variant<User::SharedPtr, std::string> Database::remove_user(UUID user_uid) 
 
 #ifdef PROTOCOL_RPC
     Session& session = Session::get_instance();
-    for (const auto& port : session.get_replicas()) {
-        if (port != session.get_port()) {
-            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
-                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
-            socketout_server::UUID request;
-            request.set_uuid(user_uid.to_string());
-            google::protobuf::Empty empty_response;
-            grpc::ClientContext ctx;
-            stub.delete_user(&ctx, request, &empty_response);
-        }
+    for (const auto& [hostname, port] : session.get_replicas()) {
+        socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+            hostname + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
+        socketout_server::UUID request;
+        request.set_uuid(user_uid.to_string());
+        google::protobuf::Empty empty_response;
+        grpc::ClientContext ctx;
+        stub.delete_user(&ctx, request, &empty_response);
     }
 #endif
 
@@ -436,16 +428,14 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
 #ifdef PROTOCOL_RPC
     // send delete message to all replicas
     Session& session = Session::get_instance();
-    for (const auto& port : session.get_replicas()) {
-        if (port != session.get_port()) {
-            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
-                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
-            socketout_server::Snowflake request;
-            request.set_snowflake(message_snowflake);
-            google::protobuf::Empty empty_response;
-            grpc::ClientContext ctx;
-            stub.delete_message(&ctx, request, &empty_response);
-        }
+    for (const auto& [hostname, port] : session.get_replicas()) {
+        socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+            hostname + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
+        socketout_server::Snowflake request;
+        request.set_snowflake(message_snowflake);
+        google::protobuf::Empty empty_response;
+        grpc::ClientContext ctx;
+        stub.delete_message(&ctx, request, &empty_response);
     }
 #endif
 

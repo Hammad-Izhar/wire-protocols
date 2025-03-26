@@ -1,4 +1,5 @@
 #pragma once
+#include <unistd.h>
 #include "models/uuid.hpp"
 #ifdef PROTOCOL_RPC
 #include <google/protobuf/empty.pb.h>
@@ -19,8 +20,12 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
         std::cout << "Attempting to attach to replica: " << request->port() << std::endl;
 
         Session& session = Session::get_instance();
-        session.attach(request->port());
+        session.attach(request->hostname(), request->port());
 
+        char hostname[HOST_NAME_MAX];
+        gethostname(hostname, sizeof(hostname));
+        std::cout << "MY Hostname: " << hostname << std::endl;
+        response->set_hostname(hostname);
         response->set_port(session.get_port());
         return grpc::Status::OK;
     }

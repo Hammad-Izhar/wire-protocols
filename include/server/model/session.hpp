@@ -10,6 +10,18 @@
 
 #include "socketout.pb.h"
 
+namespace std {
+template <>
+struct hash<std::pair<std::string, uint16_t>> {
+    size_t operator()(const std::pair<std::string, uint16_t>& p) const {
+        size_t h1 = std::hash<std::string>{}(p.first);
+        size_t h2 = std::hash<uint16_t>{}(p.second);
+        // Combine the two hash values (simple combination)
+        return h1 ^ (h2 << 1);
+    }
+};
+}  // namespace std
+
 class Session {
     Session(uint16_t port) : port(port) {}
 
@@ -24,9 +36,9 @@ class Session {
 
     uint16_t get_port() const { return port; }
 
-    std::unordered_set<uint16_t> get_replicas() const { return replica_ports; }
+    std::unordered_set<std::pair<std::string, uint16_t>> get_replicas() const { return replicas; }
 
-    void attach(const uint16_t port);
+    void attach(std::string hostname, const uint16_t port);
 
     std::optional<grpc::ServerWriter<socketout::MessageResponse>*> get_message_stream(
         const std::string& username);
@@ -44,6 +56,6 @@ class Session {
         message_streams;
     std::unordered_map<std::string, grpc::ServerWriter<socketout::ChannelResponse>*>
         channel_streams;
-    std::unordered_set<uint16_t> replica_ports;
+    std::unordered_set<std::pair<std::string, uint16_t>> replicas;
 };
 #endif

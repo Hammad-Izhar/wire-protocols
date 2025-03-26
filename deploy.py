@@ -34,13 +34,12 @@ if __name__ == "__main__":
 
     # tmux make a window for replicas and a window for load balancers
     subprocess.run(["tmux", "rename-window", "-t", "socketout:0", "replicas"])
-    subprocess.run(["tmux", "new-window", "-t", "socketout:1", "-n", "load_balancers"])
 
 
     if config["replica"] and len(config["replica"]) > 0:
         subprocess.run([
             "tmux", "send-keys", "-t", "socketout:replicas.0",
-            f"build/server_rpc --config {os.path.join(config_dir, f'{config['replica'][0]['name']}_config.json')}"
+            f"build/server_rpc --config {os.path.join(config_dir, f'{config['replica'][0]['name']}_config.json')}", "C-m"
         ])
 
         if len(config["replica"]) > 1:
@@ -50,25 +49,10 @@ if __name__ == "__main__":
                 # Send the command to the new (active) pane.
                 subprocess.run([
                     "tmux", "send-keys", "-t", "socketout:replicas",
-                      f"build/server_rpc --config {os.path.join(config_dir, f'{replica['name']}_config.json')}"
+                      f"build/server_rpc --config {os.path.join(config_dir, f'{replica['name']}_config.json')}", "C-m"
                 ])
                 # Rearrange the layout to keep it tiled.
                 subprocess.run(["tmux", "select-layout", "-t", "socketout:replicas", "tiled"])
-
-    if config["load_balancer"] and len(config["load_balancer"]) > 0:
-        subprocess.run([
-            "tmux", "send-keys", "-t", "socketout:load_balancers.0",
-            f"python3 socketout.py {config['load_balancer'][0]['name']}_config.json"
-        ])
-        if len(config["load_balancer"]) > 1:
-            for load_balancer in config["load_balancer"][1:]:
-                subprocess.run(["tmux", "split-window", "-h", "-t", "socketout:load_balancers"])
-                subprocess.run([
-                    "tmux", "send-keys", "-t", "socketout:load_balancers",
-                    f"python3 socketout.py {load_balancer['name']}_config.json"
-                ])
-                subprocess.run(["tmux", "select-layout", "-t", "socketout:load_balancers", "tiled"])
-
 
     subprocess.run(["tmux", "set", "-g", "mouse", "on"])
     subprocess.run(["tmux", "select-window", "-t", "socketout:replicas"])
