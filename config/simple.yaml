@@ -3,3 +3,4 @@ replica:
     - name: replica_1
       port: 12345
       db: "replica_db/replica_1"
+      hostname: 192.168.1.8

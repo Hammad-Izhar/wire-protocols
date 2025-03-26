@@ -22,10 +22,7 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
         Session& session = Session::get_instance();
         session.attach(request->hostname(), request->port());
 
-        char hostname[HOST_NAME_MAX];
-        gethostname(hostname, sizeof(hostname));
-        std::cout << "MY Hostname: " << hostname << std::endl;
-        response->set_hostname(hostname);
+        response->set_hostname(session.get_hostname());
         response->set_port(session.get_port());
         return grpc::Status::OK;
     }

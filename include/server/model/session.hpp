@@ -23,16 +23,19 @@ struct hash<std::pair<std::string, uint16_t>> {
 }  // namespace std
 
 class Session {
-    Session(uint16_t port) : port(port) {}
+    Session(std::string hostname, uint16_t port) : hostname(hostname), port(port) {}
 
    public:
-    static Session& get_instance(std::optional<uint16_t> port = std::nullopt);
+    static Session& get_instance(std::optional<std::string> hostname = std::nullopt,
+                                 std::optional<uint16_t> port = std::nullopt);
 
     void save_message_stream(const std::string& username,
                              grpc::ServerWriter<socketout::MessageResponse>* response);
 
     void save_channel_stream(const std::string& username,
                              grpc::ServerWriter<socketout::ChannelResponse>* response);
+
+    std::string get_hostname() const { return hostname; }
 
     uint16_t get_port() const { return port; }
 
@@ -51,6 +54,7 @@ class Session {
     void remove_channel_stream(const std::string& username);
 
    private:
+    std::string hostname;
     uint16_t port;
     std::unordered_map<std::string, grpc::ServerWriter<socketout::MessageResponse>*>
         message_streams;

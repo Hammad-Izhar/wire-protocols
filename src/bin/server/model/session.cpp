@@ -3,9 +3,12 @@
 #ifdef PROTOCOL_RPC
 #include "server/model/session.hpp"
 
-Session& Session::get_instance(std::optional<uint16_t> port) {
-    static Session instance(port.value_or(0));  // Default to 0 if no port is provided
+Session& Session::get_instance(std::optional<std::string> hostname, std::optional<uint16_t> port) {
+    static Session instance(hostname.value_or(""),
+                            port.value_or(0));  // Default to 0 if no port is provided
     assert(instance.port != 0);
+    assert(instance.hostname != "");
+
     return instance;
 }
 

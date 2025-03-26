@@ -110,9 +110,7 @@ void runRepl() {
                                            grpc::InsecureChannelCredentials());
         auto stub = socketout_server::SocketOutServer::NewStub(channel);
         socketout_server::AttachRequest request;
-        char hostname[HOST_NAME_MAX];
-        gethostname(hostname, sizeof(hostname));
-        request.set_hostname(hostname);
+        request.set_hostname(session.get_hostname());
         request.set_port(session.get_port());
         socketout_server::AttachRequest response;
         grpc::ClientContext context;
@@ -172,12 +170,13 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    std::string hostname = jsonObj["hostname"].toString().toStdString();
     int port = jsonObj["port"].toInt();
     std::string db = jsonObj["db"].toString().toStdString();
 
     std::cout << "'Connecting' to database at: " << db << std::endl;
     Database& database = Database::get_instance(db);
-    Session& session = Session::get_instance(port);
+    Session& session = Session::get_instance(hostname, port);
 
     std::thread replThread(runRepl);
     replThread.detach();
