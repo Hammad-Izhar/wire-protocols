@@ -73,13 +73,11 @@ void SearchTab::onSearchSuccess(const std::vector<User::SharedPtr>& accounts) {
 
         qDebug() << account->get_username().c_str();
     }
-    // TODO: update gui to show search results
 }
 
 void SearchTab::onSearchFailure(const QString& errorMessage) {
     set_loading(false);
     qDebug() << "search failed" << errorMessage;
-    // TODO: update gui
 }
 
 void SearchTab::reset() {

@@ -41,26 +41,26 @@ list(REMOVE_ITEM SERVER_SOURCE_FILES src/bin/server/main.cpp)
 add_subdirectory(proto)
 
 # Define Client executable
-qt_add_executable(client
-    src/bin/client/main.cpp
-    ${CLIENT_SOURCE_FILES}
-    ${SOURCE_FILES}
-    ${CLIENT_QT_HEADERS}
-)
+# qt_add_executable(client
+#     src/bin/client/main.cpp
+#     ${CLIENT_SOURCE_FILES}
+#     ${SOURCE_FILES}
+#     ${CLIENT_QT_HEADERS}
+# )
 
-qt_add_resources(client_resources "resources.qrc")
+# qt_add_resources(client_resources "resources.qrc")
 
-target_sources(client PRIVATE ${client_resources})
+# target_sources(client PRIVATE ${client_resources})
 
-set_target_properties(client PROPERTIES
-    WIN32_EXECUTABLE TRUE
-    MACOSX_BUNDLE TRUE
-    AUTOMOC ON  # Ensures Q_OBJECT macro is processed
-    AUTOUIC ON  # Enable Qt UI file processing (if needed)
-    AUTORCC ON  # Enable Qt resource processing (if needed)
-)
+# set_target_properties(client PROPERTIES
+#     WIN32_EXECUTABLE TRUE
+#     MACOSX_BUNDLE TRUE
+#     AUTOMOC ON  # Ensures Q_OBJECT macro is processed
+#     AUTOUIC ON  # Enable Qt UI file processing (if needed)
+#     AUTORCC ON  # Enable Qt resource processing (if needed)
+# )
 
-target_link_libraries(client PRIVATE Qt6::Widgets Qt6::Network)
+# target_link_libraries(client PRIVATE Qt6::Widgets Qt6::Network)
 
 # # Define Client_JSON executable
 # qt_add_executable(client_json

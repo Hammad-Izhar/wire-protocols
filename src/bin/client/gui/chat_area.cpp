@@ -103,6 +103,14 @@ void ChatArea::onActiveChannelChanged() {
         });
     } else {
         chatTitle->setText("");
+        messageInput->setEnabled(false);
+        // Clear existing messages
+        QLayoutItem* child;
+        while ((child = messageLayout->takeAt(0)) != nullptr) {
+            delete child->widget();
+            delete child;
+        }
+        messageContainer->adjustSize();  // Adjust size after clearing messages
     }
 }
 

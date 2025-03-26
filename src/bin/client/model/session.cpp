@@ -4,6 +4,7 @@
 #include "client/gui/chat_window.hpp"
 #include "client/gui/connection_window.hpp"
 
+#include <qglobal.h>
 #include "client/model/session.hpp"
 
 Session& Session::get_instance() {
@@ -35,10 +36,30 @@ void Session::reset() {
 
 void Session::add_message(const Message::SharedPtr& message) {
     if (channel_messages.find(message->get_channel_id()) == channel_messages.end()) {
+        qDebug()
+            << "Channel ID not found in channel_messages. Adding message to unmatched messages.";
+        if (unmatched_messages.find(message->get_channel_id()) == unmatched_messages.end()) {
+            unmatched_messages[message->get_channel_id()] = {};
+        }
+        unmatched_messages[message->get_channel_id()].push_back(message);
+        auto it = std::unique(unmatched_messages[message->get_channel_id()].begin(),
+                              unmatched_messages[message->get_channel_id()].end(),
+                              [](const Message::SharedPtr& a, const Message::SharedPtr& b) {
+                                  return a->get_snowflake() == b->get_snowflake();
+                              });
+        unmatched_messages[message->get_channel_id()].erase(
+            it, unmatched_messages[message->get_channel_id()].end());
         return;
     }
 
     channel_messages[message->get_channel_id()].push_back(message);
+    auto it = std::unique(channel_messages[message->get_channel_id()].begin(),
+                          channel_messages[message->get_channel_id()].end(),
+                          [](const Message::SharedPtr& a, const Message::SharedPtr& b) {
+                              return a->get_snowflake() == b->get_snowflake();
+                          });
+    channel_messages[message->get_channel_id()].erase(
+        it, channel_messages[message->get_channel_id()].end());
     channels[message->get_channel_id()]->add_message(message->get_snowflake());
 }
 
@@ -51,7 +72,7 @@ const std::vector<Message::SharedPtr>& Session::get_active_channel_messages() co
     }
 }
 
-void Session::set_active_channel(const Channel::SharedPtr& channel) {
+void Session::set_active_channel(std::optional<const Channel::SharedPtr> channel) {
     open_channel = channel;
     emit updateActiveChannel();
 }
@@ -59,6 +80,13 @@ void Session::set_active_channel(const Channel::SharedPtr& channel) {
 void Session::add_channel(const Channel::SharedPtr& channel) {
     channels[channel->get_uid()] = channel;
     channel_messages[channel->get_uid()] = {};
+
+    if (unmatched_messages.find(channel->get_uid()) != unmatched_messages.end()) {
+        for (const auto& message : unmatched_messages[channel->get_uid()]) {
+            add_message(message);
+        }
+        unmatched_messages.erase(channel->get_uid());
+    }
 }
 
 void Session::remove_message(const Message::SharedPtr& message) {

@@ -1,5 +1,6 @@
 #include <QThread>
 
+#include <qglobal.h>
 #include "client/model/tcp_client.hpp"
 
 #include "client/model/session.hpp"
@@ -44,6 +45,7 @@ void TcpClient::connectToServer(const QString& host, quint16 port) {
     auto channel = grpc::CreateChannel(host.toStdString() + ":" + std::to_string(port),
                                        grpc::InsecureChannelCredentials());
     stub = socketout::SocketOut::NewStub(channel);
+
     onConnected();
 #else
     if (socket->state() == QAbstractSocket::ConnectedState) {
@@ -75,6 +77,8 @@ void TcpClient::onDisconnected() {
 void TcpClient::register_user(const std::string& username,
                               const std::string& displayName,
                               const std::string& password) {
+    qDebug() << "Registring a new user: " << QString::fromStdString(username) << " "
+             << QString::fromStdString(displayName);
 #ifdef PROTOCOL_RPC
     socketout::RegisterRequest message;
     message.set_username(username);
@@ -99,6 +103,7 @@ void TcpClient::register_user(const std::string& username,
 }
 
 void TcpClient::login_user(const std::string& username, const std::string& password) {
+    qDebug() << "Logging in user: " << QString::fromStdString(username);
 #ifdef PROTOCOL_RPC
     socketout::LoginRequest request;
     request.set_username(username);
@@ -153,7 +158,7 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
             qDebug() << "Received channel on login: " << channel->to_json().c_str();
 
             session.add_channel(channel);
-            session.set_active_channel(channel);
+            // session.set_active_channel(channel);
 
             emit createChannelSuccess(channel);
         }
@@ -197,6 +202,7 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
         }
 
         grpc::Status status = message_reader->Finish();
+        //  TODO: perhaps we can use this to disconnect
     });
 
     t_channel.detach();
@@ -212,6 +218,7 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
 }
 
 void TcpClient::search_accounts(const std::string& regex) {
+    qDebug() << "Searching for accounts matching regex: " << QString::fromStdString(regex);
 #ifdef PROTOCOL_RPC
     socketout::ListAccountsRequest message;
     message.set_regex(regex);
@@ -241,6 +248,7 @@ void TcpClient::search_accounts(const std::string& regex) {
 }
 
 void TcpClient::delete_account(const std::string& username, const std::string& password) {
+    qDebug() << "Deleting account: " << QString::fromStdString(username);
 #ifdef PROTOCOL_RPC
     socketout::DeleteAccountRequest message;
     message.set_username(username);
@@ -268,6 +276,11 @@ void TcpClient::delete_account(const std::string& username, const std::string& p
 }
 
 void TcpClient::create_channel(const std::string& channelName, const std::vector<UUID>& members) {
+    qDebug() << "Creating channel: " << QString::fromStdString(channelName);
+    if (members.empty()) {
+        emit createChannelFailure("Channel must have at least one member");
+        return;
+    }
 #ifdef PROTOCOL_RPC
     socketout::CreateChannelRequest message;
     message.set_channel_name(channelName);
@@ -294,6 +307,9 @@ void TcpClient::create_channel(const std::string& channelName, const std::vector
 void TcpClient::send_text_message(const UUID& channel_uid,
                                   const UUID& sender_uid,
                                   const std::string& text) {
+    qDebug() << "Sending message to channel: " << QString::fromStdString(channel_uid.to_string())
+             << " from " << QString::fromStdString(sender_uid.to_string())
+             << " with text: " << QString::fromStdString(text);
 #ifdef PROTOCOL_RPC
     socketout::SendMessageRequest message;
     message.set_channel_id(channel_uid.to_string());
@@ -317,6 +333,9 @@ void TcpClient::send_text_message(const UUID& channel_uid,
 }
 
 void TcpClient::delete_message(Message::SharedPtr message) {
+    qDebug() << "Deleting message with snowflake: " << message->get_snowflake()
+             << " from channel: " << QString::fromStdString(message->get_channel_id().to_string());
+
 #ifdef PROTOCOL_RPC
     socketout::DeleteMessageRequest msg;
     msg.set_channel_id(message->get_channel_id().to_string());

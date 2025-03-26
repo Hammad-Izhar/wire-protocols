@@ -11,12 +11,16 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
     grpc::Status add_user(grpc::ServerContext* context,
                           const socketout_server::User* request,
                           google::protobuf::Empty* response) override {
+        std::cout << "Attempting to add user copy received from another replica: "
+                  << request->uuid() << std::endl;
+
         // Implementation for adding a user
         Database& db = Database::get_instance();
         std::optional<UUID> user_id = db.get_uid_from_username(request->username());
 
         if (user_id.has_value()) {
-            std::cerr << "User already exists: " << request->username() << std::endl;
+            std::cerr << "Failed to add user copy since user already exists: "
+                      << request->username() << std::endl;
             return grpc::Status(grpc::StatusCode::ALREADY_EXISTS,
                                 "User already exists in the replica");
         }
@@ -27,6 +31,7 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
         std::variant<std::monostate, std::string> result = db.add_user(user, request->password());
 
         if (std::holds_alternative<std::string>(result)) {
+            std::cerr << "Error adding user: " << std::get<std::string>(result) << std::endl;
             return grpc::Status(grpc::StatusCode::INTERNAL, std::get<std::string>(result));
         }
         return grpc::Status::OK;
@@ -35,13 +40,17 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
     grpc::Status add_message(grpc::ServerContext* context,
                              const socketout_server::Message* request,
                              google::protobuf::Empty* response) override {
+        std::cout << "Attempting to add message copy received from another replica: "
+                  << request->text() << std::endl;
+
         Database& db = Database::get_instance();
         std::variant<Message::SharedPtr, std::string> result =
             db.add_message(UUID::from_string(request->sender_id()),
                            UUID::from_string(request->channel_id()), request->text());
 
         if (std::holds_alternative<std::string>(result)) {
-            std::cerr << "Error adding message: " << std::get<std::string>(result) << std::endl;
+            std::cerr << "Failed to add message copy:  " << std::get<std::string>(result)
+                      << std::endl;
             return grpc::Status(grpc::StatusCode::INTERNAL, std::get<std::string>(result));
         }
 
@@ -51,6 +60,9 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
     grpc::Status add_channel(grpc::ServerContext* context,
                              const socketout_server::Channel* request,
                              google::protobuf::Empty* response) override {
+        std::cout << "Attempting to add channel copy received from another replica: "
+                  << request->uuid() << std::endl;
+
         Database& db = Database::get_instance();
         std::vector<UUID> members;
         for (const auto& member : request->user_ids()) {
@@ -65,7 +77,7 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
         std::optional<Channel::SharedPtr> existing_channel =
             db.get_channel_by_uid(UUID::from_string(request->uuid()));
         if (existing_channel.has_value()) {
-            std::cerr << "Channel already exists: " << request->channel_name() << std::endl;
+            std::cerr << "!Channel already exists: " << request->channel_name() << std::endl;
             return grpc::Status(grpc::StatusCode::ALREADY_EXISTS,
                                 "Channel already exists in the replica");
         }
@@ -85,11 +97,14 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
     grpc::Status delete_message(grpc::ServerContext* context,
                                 const socketout_server::Snowflake* request,
                                 google::protobuf::Empty* response) override {
+        std::cout << "Attempting to delete message copy received from another replica: "
+                  << request->snowflake() << std::endl;
+
         Database& db = Database::get_instance();
         std::variant<std::monostate, std::string> result = db.remove_message(request->snowflake());
 
         if (std::holds_alternative<std::string>(result)) {
-            std::cerr << "Error deleting message: " << std::get<std::string>(result) << std::endl;
+            std::cerr << "!Error deleting message: " << std::get<std::string>(result) << std::endl;
             return grpc::Status(grpc::StatusCode::INTERNAL, std::get<std::string>(result));
         }
 
@@ -98,13 +113,16 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
     grpc::Status delete_user(grpc::ServerContext* context,
                              const socketout_server::UUID* request,
                              google::protobuf::Empty* response) override {
+        std::cout << "Attempting to delete user copy received from another replica: "
+                  << request->uuid() << std::endl;
+
         Database& db = Database::get_instance();
         UUID user_uid = UUID::from_string(request->uuid());
 
         std::variant<User::SharedPtr, std::string> result = db.remove_user(user_uid);
 
         if (std::holds_alternative<std::string>(result)) {
-            std::cerr << "Error deleting user: " << std::get<std::string>(result) << std::endl;
+            std::cerr << "!Error deleting user: " << std::get<std::string>(result) << std::endl;
             return grpc::Status(grpc::StatusCode::INTERNAL, std::get<std::string>(result));
         }
 

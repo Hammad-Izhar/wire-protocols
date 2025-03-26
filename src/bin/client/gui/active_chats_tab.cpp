@@ -30,7 +30,7 @@ void ActiveChatsTab::onCreateChannelSuccess(Channel::SharedPtr channel) {
     item->setSizeHint(channelWidget->sizeHint());
     activeChats->setItemWidget(activeChats->item(activeChats->count() - 1), channelWidget);
 
-    activeChats->setCurrentItem(activeChats->item(activeChats->count() - 1));
+    // activeChats->setCurrentItem(activeChats->item(activeChats->count() - 1));
 }
 
 void ActiveChatsTab::onChatSelected(QListWidgetItem* item) {

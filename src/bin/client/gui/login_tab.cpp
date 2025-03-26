@@ -2,6 +2,7 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <optional>
 
 #include "client/gui/components/validated_text_input.hpp"
 #include "client/gui/login_tab.hpp"
@@ -81,6 +82,7 @@ void LoginTab::onLoginSuccess() {
     set_loading(false);
     Session& session = Session::get_instance();
     session.main_window->animatePageTransition(Window::MAIN);
+    session.set_active_channel(std::nullopt);
 }
 
 void LoginTab::onLoginFailure(const QString& errorMessage) {

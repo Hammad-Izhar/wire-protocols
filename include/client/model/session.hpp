@@ -66,7 +66,7 @@ class Session : public QObject {
      * @brief Sets the active channel.
      * @param channel A shared pointer to the channel to be set as active.
      */
-    void set_active_channel(const Channel::SharedPtr& channel);
+    void set_active_channel(std::optional<const Channel::SharedPtr> channel);
 
     /**
      * @brief Adds a new channel to the session.
@@ -101,6 +101,7 @@ class Session : public QObject {
     std::optional<Channel::SharedPtr> open_channel;
     std::unordered_map<UUID, Channel::SharedPtr> channels;
     std::unordered_map<UUID, std::vector<Message::SharedPtr>> channel_messages;
+    std::unordered_map<UUID, std::vector<Message::SharedPtr>> unmatched_messages;
 
     /**
      * @brief Private constructor to enforce the singleton pattern.

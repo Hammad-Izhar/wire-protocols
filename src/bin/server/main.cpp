@@ -127,18 +127,20 @@ int main(int argc, char* argv[]) {
 #ifdef PROTOCOL_RPC
     std::cout << "Starting gRPC server on port " << port << std::endl;
     std::string server_address = "0.0.0.0:" + std::to_string(port);
-    SocketOutImpl service;
+    SocketOutImpl public_service;
 
     grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    builder.RegisterService(&service);
+    builder.RegisterService(&public_service);
 
+#ifdef GRPC_INTERCEPTOR
     std::vector<std::unique_ptr<grpc::experimental::ServerInterceptorFactoryInterface>>
         interceptor_creators;
     interceptor_creators.push_back(
         std::unique_ptr<grpc::experimental::ServerInterceptorFactoryInterface>(
             new MessageSizeInterceptorFactory()));
     builder.experimental().SetInterceptorCreators(std::move(interceptor_creators));
+#endif
 
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
     std::cout << "Server started on port " << port << std::endl;
