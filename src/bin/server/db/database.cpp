@@ -5,7 +5,9 @@
 #include "server/db/database.hpp"
 #include "server/model/session.hpp"
 #ifdef PROTOCOL_RPC
+#include <grpcpp/grpcpp.h>
 #include "socketout.pb.h"
+#include "socketout_server.grpc.pb.h"
 #endif
 
 #include <filesystem>
@@ -82,7 +84,33 @@ std::variant<std::monostate, std::string> Database::add_user(User::SharedPtr use
         return std::get<std::string>(res);
     }
     // Add the user
-    return this->users->add_user(user);
+
+    auto user_res = this->users->add_user(user);
+    if (std::holds_alternative<std::string>(res)) {
+        return std::get<std::string>(res);
+    }
+
+#ifdef PROTOCOL_RPC
+    Session& session = Session::get_instance();
+    for (const auto& port : session.get_replicas()) {
+        if (port != session.get_port()) {
+            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
+            socketout_server::User request;
+            request.set_username(user->get_username());
+            request.set_uuid(user_uid.to_string());
+            request.set_display_name(user->get_display_name());
+            request.set_profile_picture(user->get_profile_pic());
+            request.set_password(password);
+
+            google::protobuf::Empty empty_response;
+            grpc::ClientContext ctx;
+            stub.add_user(&ctx, request, &empty_response);
+        }
+    }
+#endif
+
+    return user_res;
 }
 
 std::variant<Message::SharedPtr, std::string> Database::add_message(
@@ -96,6 +124,14 @@ std::variant<Message::SharedPtr, std::string> Database::add_message(
     std::optional<Channel::SharedPtr> channel = this->channels->get_mut_by_uid(channel_uid);
     if (!channel.has_value()) {
         return "Channel does not exist";
+    }
+
+    if (snowflake.has_value()) {
+        std::optional<const Message::SharedPtr> existing_message =
+            this->messages->get_by_uid(snowflake.value());
+        if (existing_message.has_value()) {
+            return "Message with this snowflake already exists";
+        }
     }
 
     auto res = this->messages->add_message(sender_uid, channel_uid, content, snowflake, created_at,
@@ -143,6 +179,32 @@ std::variant<Message::SharedPtr, std::string> Database::add_message(
         emit user.value()->message_received(message);
 #endif
     }
+
+#ifdef PROTOCOL_RPC
+    // send message to all replicas
+    Session& session = Session::get_instance();
+    for (const auto& port : session.get_replicas()) {
+        if (port != session.get_port()) {
+            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
+            socketout_server::Message request;
+            request.set_sender_id(message->get_sender_id().to_string());
+            request.set_channel_id(message->get_channel_id().to_string());
+            request.set_snowflake(message->get_snowflake());
+            request.set_created_at(message->get_created_at());
+            request.set_modified_at(message->get_modified_at());
+            request.set_text(message->get_text());
+
+            for (auto& user_uid : message->get_read_by()) {
+                request.add_read_by(user_uid.to_string());
+            }
+
+            google::protobuf::Empty empty_response;
+            grpc::ClientContext ctx;
+            stub.add_message(&ctx, request, &empty_response);
+        }
+    }
+#endif
 
     return message;
 }
@@ -196,6 +258,29 @@ std::variant<Channel::SharedPtr, std::string> Database::add_channel(
         emit user.value()->channel_added(channel);
 #endif
     }
+
+#ifdef PROTOCOL_RPC
+    Session& session = Session::get_instance();
+    for (const auto& port : session.get_replicas()) {
+        if (port != session.get_port()) {
+            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
+            socketout_server::Channel request;
+            request.set_channel_name(channel->get_name());
+            request.set_uuid(channel->get_uid().to_string());
+            for (int i = 0; i < channel->get_user_uids().size(); i++) {
+                request.add_user_ids(channel->get_user_uids()[i].to_string());
+            }
+            for (int i = 0; i < channel->get_message_snowflakes().size(); i++) {
+                request.add_message_snowflakes(channel->get_message_snowflakes()[i]);
+            }
+
+            google::protobuf::Empty empty_response;
+            grpc::ClientContext ctx;
+            stub.add_channel(&ctx, request, &empty_response);
+        }
+    }
+#endif
 
     return channel;
 }
@@ -275,7 +360,28 @@ std::variant<User::SharedPtr, std::string> Database::remove_user(UUID user_uid) 
         }
     }
 
-    return this->users->remove_user(user_uid);
+    auto res = this->users->remove_user(user_uid);
+
+    if (std::holds_alternative<std::string>(res)) {
+        return std::get<std::string>(res);
+    }
+
+#ifdef PROTOCOL_RPC
+    Session& session = Session::get_instance();
+    for (const auto& port : session.get_replicas()) {
+        if (port != session.get_port()) {
+            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
+            socketout_server::UUID request;
+            request.set_uuid(user_uid.to_string());
+            google::protobuf::Empty empty_response;
+            grpc::ClientContext ctx;
+            stub.delete_user(&ctx, request, &empty_response);
+        }
+    }
+#endif
+
+    return res;
 }
 
 std::variant<std::monostate, std::string> Database::remove_message(uint64_t message_snowflake) {
@@ -326,6 +432,23 @@ std::variant<std::monostate, std::string> Database::remove_message(uint64_t mess
     // channel.value()->remove_message(message_snowflake);
     this->channels->remove_message_from_channel(message_snowflake,
                                                 message.value()->get_channel_id());
+
+#ifdef PROTOCOL_RPC
+    // send delete message to all replicas
+    Session& session = Session::get_instance();
+    for (const auto& port : session.get_replicas()) {
+        if (port != session.get_port()) {
+            socketout_server::SocketOutServer::Stub stub(grpc::CreateChannel(
+                "localhost:" + std::to_string(port), grpc::InsecureChannelCredentials()));
+            socketout_server::Snowflake request;
+            request.set_snowflake(message_snowflake);
+            google::protobuf::Empty empty_response;
+            grpc::ClientContext ctx;
+            stub.delete_message(&ctx, request, &empty_response);
+        }
+    }
+#endif
+
     return {};
 }
 

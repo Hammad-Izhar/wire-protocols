@@ -1,6 +1,7 @@
 #pragma once
 #include <QHostAddress>
 #include <QTcpSocket>
+#include <unordered_map>
 
 #ifdef PROTOCOL_RPC
 #include "socketout.grpc.pb.h"
@@ -185,6 +186,9 @@ class TcpClient : public QObject {
 #ifdef PROTOCOL_RPC
     // gRPC stub for server communication.
     std::unique_ptr<socketout::SocketOut::Stub> stub;
+    std::unordered_map<int, std::atomic<bool>>
+        is_connected;  ///< Connection status for each channel/message stream.
+    int current_thread_key;
 #else
     QTcpSocket* socket;  ///< The TCP socket used for network communication.
 #endif

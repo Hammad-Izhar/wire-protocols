@@ -119,6 +119,9 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
             // wait for the user to disconnect
         }
 
+        std::cout << "User " << request->username() << " has disconnected from message stream"
+                  << std::endl;
+
         session.remove_message_stream(request->username());
 
         return grpc::Status::OK;
@@ -168,6 +171,9 @@ class SocketOutImpl final : public socketout::SocketOut::Service {
         while (!context->IsCancelled()) {
             // wait for the user to disconnect
         }
+
+        std::cout << "User " << request->username() << " has disconnected from channel stream"
+                  << std::endl;
 
         session.remove_channel_stream(request->username());
 

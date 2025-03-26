@@ -136,12 +136,24 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
     auto message_context = std::make_unique<grpc::ClientContext>();
     auto message_reader = stub->subscribe_messages(message_context.get(), request);
 
-    std::thread t_channel([this, channel_context = std::move(channel_context),
+    int random_key = std::rand() % 1000;
+    is_connected[random_key].store(true);
+    current_thread_key = random_key;
+
+    std::thread t_channel([this, curr_key = random_key,
+                           channel_context = std::move(channel_context),
                            channel_reader = std::move(channel_reader)]() mutable {
         qDebug() << "Subscribing to channels";
 
         socketout::ChannelResponse response;
         while (channel_reader->Read(&response)) {
+            if (!is_connected[curr_key].load()) {
+                qDebug() << "User manually disconnected";
+                // remove the current key
+                is_connected.erase(curr_key);
+                break;
+            }
+
             Session& session = Session::get_instance();
 
             session.authenticated_user.value()->add_channel(
@@ -158,19 +170,25 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
             qDebug() << "Received channel on login: " << channel->to_json().c_str();
 
             session.add_channel(channel);
-            // session.set_active_channel(channel);
-
             emit createChannelSuccess(channel);
         }
         grpc::Status status = channel_reader->Finish();
+        qDebug() << "Channel subscription finished with status: " << status.error_message().c_str();
     });
 
-    std::thread t_message([this, message_context = std::move(message_context),
+    std::thread t_message([this, curr_key = random_key,
+                           message_context = std::move(message_context),
                            message_reader = std::move(message_reader)]() mutable {
         qDebug() << "Subscribing to messages";
 
         socketout::MessageResponse response;
         while (message_reader->Read(&response)) {
+            if (!is_connected[curr_key].load()) {
+                qDebug() << "User manually disconnected";
+                is_connected.erase(curr_key);
+                break;
+            }
+
             Session& session = Session::get_instance();
             if (response.type() == socketout::Operation::CREATE) {
                 std::vector<UUID> read_by;
@@ -202,7 +220,7 @@ void TcpClient::login_user(const std::string& username, const std::string& passw
         }
 
         grpc::Status status = message_reader->Finish();
-        //  TODO: perhaps we can use this to disconnect
+        qDebug() << "Message subscription finished with status: " << status.error_message().c_str();
     });
 
     t_channel.detach();
@@ -363,6 +381,7 @@ void TcpClient::delete_message(Message::SharedPtr message) {
 void TcpClient::disconnectFromServer() {
 #ifdef PROTOCOL_RPC
     stub = nullptr;
+    is_connected[current_thread_key].store(false);
     onDisconnected();
 #else
     socket->disconnectFromHost();

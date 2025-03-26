@@ -1,6 +1,7 @@
 #pragma once
-#include <google/protobuf/empty.pb.h>
 #ifdef PROTOCOL_RPC
+#include <google/protobuf/empty.pb.h>
+#include <grpcpp/grpcpp.h>
 #include <grpcpp/server_context.h>
 #include <grpcpp/support/status.h>
 #include <optional>
@@ -49,6 +50,7 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
             std::cerr << "Error adding user: " << std::get<std::string>(result) << std::endl;
             return grpc::Status(grpc::StatusCode::INTERNAL, std::get<std::string>(result));
         }
+
         return grpc::Status::OK;
     }
 
@@ -125,6 +127,7 @@ class SocketOutServerImpl final : public socketout_server::SocketOutServer::Serv
 
         return grpc::Status::OK;
     }
+
     grpc::Status delete_user(grpc::ServerContext* context,
                              const socketout_server::UUID* request,
                              google::protobuf::Empty* response) override {

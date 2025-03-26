@@ -24,6 +24,8 @@ class Session {
 
     uint16_t get_port() const { return port; }
 
+    std::unordered_set<uint16_t> get_replicas() const { return replica_ports; }
+
     void attach(const uint16_t port);
 
     std::optional<grpc::ServerWriter<socketout::MessageResponse>*> get_message_stream(
