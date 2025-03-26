@@ -50,7 +50,7 @@ if __name__ == "__main__":
                 # Send the command to the new (active) pane.
                 subprocess.run([
                     "tmux", "send-keys", "-t", "socketout:replicas",
-                    f"python3 socketout.py {replica['name']}_config.json"
+                      f"build/server_rpc --config {os.path.join(config_dir, f'{replica['name']}_config.json')}"
                 ])
                 # Rearrange the layout to keep it tiled.
                 subprocess.run(["tmux", "select-layout", "-t", "socketout:replicas", "tiled"])

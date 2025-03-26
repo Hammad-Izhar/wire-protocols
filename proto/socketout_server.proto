@@ -2,6 +2,8 @@ import "google/protobuf/empty.proto";
 package socketout_server;
 
 service SocketOutServer {
+    rpc attach(AttachRequest) returns (AttachRequest);
+
     rpc add_user(User) returns (google.protobuf.Empty);
 
     rpc add_channel(Channel) returns (google.protobuf.Empty);
@@ -11,6 +13,11 @@ service SocketOutServer {
     rpc delete_user(UUID) returns (google.protobuf.Empty);
 
     rpc delete_message(Snowflake) returns (google.protobuf.Empty);
+}
+
+message AttachRequest {
+    // TODO: also include the ip address of the replica
+    required uint32 port = 1;
 }
 
 message UUID {

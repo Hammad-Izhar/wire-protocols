@@ -5,12 +5,14 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <iostream>
+#include <thread>
 
 #ifdef PROTOCOL_RPC
 #include <google/protobuf/message.h>
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/impl/codegen/server_interceptor.h>
 #include "server/model/socket_out_impl.hpp"
+#include "server/model/socketout_server_impl.hpp"
 #endif
 
 #include "models/message_handler.hpp"
@@ -68,6 +70,55 @@ class MessageSizeInterceptorFactory : public grpc::experimental::ServerIntercept
 };
 #endif
 
+void runRepl() {
+    std::string line;
+    while (true) {
+        std::cout << ">>> " << std::flush;
+        if (!std::getline(std::cin, line)) {
+            // Exit the loop if input is closed (EOF)
+            break;
+        }
+
+        // Ignore empty lines
+        if (line.empty())
+            continue;
+
+        std::istringstream iss(line);
+        std::string command;
+        iss >> command;
+
+        // Check for the attach command (or its shorthand "a")
+        if (command != "attach" && command != "a") {
+            std::cout << "Invalid command. Use: attach [host] [port] or a [host] [port]"
+                      << std::endl;
+            continue;
+        }
+
+        std::string host;
+        int port;
+        if (!(iss >> host >> port)) {
+            std::cout << "Invalid command format. Correct usage: attach [host] [port]" << std::endl;
+            continue;
+        }
+
+        // Replace the following with your actual attach functionality.
+        // make grpc call to attach to the replica
+        std::cout << "Attaching to replica at " << host << ":" << port << "..." << std::endl;
+        Session& session = Session::get_instance();
+
+        auto channel = grpc::CreateChannel(host + ":" + std::to_string(port),
+                                           grpc::InsecureChannelCredentials());
+        auto stub = socketout_server::SocketOutServer::NewStub(channel);
+        socketout_server::AttachRequest request;
+        request.set_port(session.get_port());
+        socketout_server::AttachRequest response;
+        grpc::ClientContext context;
+        grpc::Status status = stub->attach(&context, request, &response);
+
+        session.attach(response.port());
+    }
+}
+
 int main(int argc, char* argv[]) {
     QCoreApplication app(argc, argv);
     QCommandLineParser parser;
@@ -123,15 +174,21 @@ int main(int argc, char* argv[]) {
 
     std::cout << "'Connecting' to database at: " << db << std::endl;
     Database& database = Database::get_instance(db);
+    Session& session = Session::get_instance(port);
+
+    std::thread replThread(runRepl);
+    replThread.detach();
 
 #ifdef PROTOCOL_RPC
     std::cout << "Starting gRPC server on port " << port << std::endl;
     std::string server_address = "0.0.0.0:" + std::to_string(port);
     SocketOutImpl public_service;
+    SocketOutServerImpl socketout_service;
 
     grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&public_service);
+    builder.RegisterService(&socketout_service);
 
 #ifdef GRPC_INTERCEPTOR
     std::vector<std::unique_ptr<grpc::experimental::ServerInterceptorFactoryInterface>>

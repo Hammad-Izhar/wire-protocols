@@ -1,8 +1,11 @@
+#include <iostream>
+#include <optional>
 #ifdef PROTOCOL_RPC
 #include "server/model/session.hpp"
 
-Session& Session::get_instance() {
-    static Session instance;
+Session& Session::get_instance(std::optional<uint16_t> port) {
+    static Session instance(port.value_or(0));  // Default to 0 if no port is provided
+    assert(instance.port != 0);
     return instance;
 }
 
@@ -14,6 +17,13 @@ void Session::save_message_stream(const std::string& username,
 void Session::save_channel_stream(const std::string& username,
                                   grpc::ServerWriter<socketout::ChannelResponse>* response) {
     channel_streams[username] = response;
+}
+
+void Session::attach(const uint16_t port) {
+    std::cout << "Added replica at: " << port << std::endl;
+    if (port != 0) {
+        replica_ports.insert(port);
+    }
 }
 
 std::optional<grpc::ServerWriter<socketout::MessageResponse>*> Session::get_message_stream(

@@ -1,13 +1,28 @@
+#pragma once
+#include <google/protobuf/empty.pb.h>
 #ifdef PROTOCOL_RPC
 #include <grpcpp/server_context.h>
 #include <grpcpp/support/status.h>
 #include <optional>
 
 #include "server/db/database.hpp"
+#include "server/model/session.hpp"
 #include "socketout_server.grpc.pb.h"
 #include "socketout_server.pb.h"
 
 class SocketOutServerImpl final : public socketout_server::SocketOutServer::Service {
+    grpc::Status attach(grpc::ServerContext* context,
+                        const socketout_server::AttachRequest* request,
+                        socketout_server::AttachRequest* response) override {
+        std::cout << "Attempting to attach to replica: " << request->port() << std::endl;
+
+        Session& session = Session::get_instance();
+        session.attach(request->port());
+
+        response->set_port(session.get_port());
+        return grpc::Status::OK;
+    }
+
     grpc::Status add_user(grpc::ServerContext* context,
                           const socketout_server::User* request,
                           google::protobuf::Empty* response) override {
