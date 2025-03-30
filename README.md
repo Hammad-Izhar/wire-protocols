@@ -1,10 +1,88 @@
 # Sock-et Out
-## COMPSCI 2620 Design Problem 2: RPCs
+## COMPSCI 2620 Design Problem 3: Replication
 ### Group 36: Hammad Izhar, Thomas Kaminsky
 
-This branch contains our implementation of gRPC communication for our chatbot from design problem 1. Detailed comments on the implementation, as well as reflections on performance and the writing process asked for on the assignment page, are contained in `Notebook.md`.
+This branch contains our implementation of gRPC communication for our chatbot from design problem 1, updated to include persistent memory and 3-fault tolerance. Detailed comments on the implementation are contained in `Notebook.md`.
 
 Thanks so much!
+
+# Setup and Running (Design Project 3)
+
+To run the code, you'll need [Docker](https://www.docker.com/) and an X11 server. On Linux, you most likely already have an X11 server installed. On Mac/Windows consider using [XQuartz](https://www.xquartz.org/) (Mac) or [Xming](https://sourceforge.net/projects/xming/) (Windows), respectively.
+
+**NOTE** This code has only been verified on Mac, and briefly tested on Linux. Your mileage may very.
+
+>[!INFO]
+> On Linux, `docker.host.internal` is not natively supported. Therefore, it is recommended to first verify the value of `$DISPLAY` locally and then export it in the docker container. Also be sure to verify xhost connections are allowed by `xhost +local:`
+
+## Setup Steps (Mac)
+
+Open XQuartz. In 'XQuartz' settings, navigate to Settings -> Security -> 'Allow connections from network clients', and then restart your machine.
+
+Make sure that XQuartz is running after restart.
+
+Open a terminal, and allow xhost connections by running the following:
+
+```
+xhost +local:
+```
+
+Next, clone the repo and build and enter the Docker container:
+
+```bash
+git clone https://github.com/Hammad-Izhar/wire-protocols && cd wire-protocols
+docker compose up --build -d
+docker attach wire-protocols-app-1 # replace this with the container name
+```
+
+To build the code, navigate to the build directory and run the following commands:
+
+```
+cd ~/cs2620/wire-protocols/build
+cmake ..
+make
+```
+
+If you're getting error `Authorization required, but no authorization protocol specified`, open a new terminal and run
+
+```
+xhost +local:
+```
+
+## Running the Code
+
+Once installation is complete, you can start a server by running
+
+```
+./server_rpc --config ../config/server.json
+```
+
+**in the `/build` directory.** To connect multiple instances of the server together, link them using in-text prompts. For example, if two processes are running at `localhost:12345` and `localhost:12346`, you can type the following in `localhost:12345` to connect the two:
+
+```
+a localhost 12346
+```
+
+This also works across devices, instead attaching to the other IP (rather than localhost).
+
+
+Likewise, to spin up a client, run
+
+```
+./client_rpc
+```
+
+to spin up a new client, and
+
+```
+./test
+```
+
+to run unit tests.
+
+To spin up a group of clients, run the python file `deploy.py` with one of the configs in `config/` (currently, either `simple.yaml` or `3ft_system.yaml`).
+
+NOTE: Currently, the custom socket and json implementations are depricated, so there will be compiler errors if you try to run those. Please stick to using the gRPC implementation.
 
 ### Documentation (From DP 1)
 
