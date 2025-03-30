@@ -1,5 +1,26 @@
 # Engineering Notebook - RPC
 
+## 03/36/2025 : Design Problem 3
+
+For this design problem, we needed to implement persistent memory and 2-fault tolerance for our chat bot system. Below we describe our design philosophy for each component.
+
+### Persistent Memory
+
+Based on previous assignments, we were already storing our data as an unordered map in four separate unordered maps---one for messages, one for users, one for passwords, and one for channels. These data structures essentially looked like comma-separated lists of attributes (e.g. users had UIDs, display names, usernames, and a list of channels that they were a part of), and so we decided to store them each as CSVs so it would be easy to tell if they were working properly. 
+
+In the long run, it would probably have been better to use a relational database like a SQL database---as we were implementing memory, we began to run into some small synchronization issues because, for example, both users and messages referenced channels that they belonged to. It would have been better for everything to be relational, so we wouldn't have to copy data to multiple places.
+
+Otherwise, adding persistence was very simple. In each of the databases, when we had to add/remove data, we just also wrote to / deleted from the corresponding CSV, whose location was determined at initialization. We also had the databases each read from the csv if it existed at initialization to make sure that they were up to date.
+
+### Fault Tolerance
+
+Our basic idea for 3-fault tolerance was to have completely independent clients, each with replicated databases. They constantly send messages to one another when any connected client updates state in order to synchronize their databases, and if a new server joins, it likewise receives a list of all of the current information to update its local store. This allows us to get rejoining `for free', as a rejoining client functions just like a completely new client.
+
+Currently, because our implementation required that users input a port, we assumed that the user would have access to a list of viable ports at which they could connect---thus, if they're kicked from a server (say, because a server goes down), they can just choose another server from their list of viable ports to join, and their data should still be up to date. Of course, if we had changed the GUI to automatically connect to a port, we could easily automate this process by checking whether each port was active at a time.
+
+Messages between databases (indeed, all messages in our implementation) were implemented using gRPC, and all other calls between client and server remained the same.
+
+
 ## 02/21/2025 : Deliverables for Design Problem 2
 
 Today we met to brainstorm some of the additions which must be made to accommodate gRPC message passing, rather than our custom scheme. Currently, we believe that necessary changes include the following:

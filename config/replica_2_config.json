@@ -1,1 +1,1 @@
-{"name": "replica_2", "port": 12346, "db": "replica_db/replica_2", "hostname": "172.20.0.2"}
+{"name": "replica_2", "port": 12346, "db": "replica_db/replica_2", "hostname": "192.168.1.4"}

@@ -15,6 +15,8 @@ def get_local_ipv4():
         ip = '127.0.0.1'
     finally:
         s.close()
+    
+    ip = "192.168.1.4"
     return ip
 
 
